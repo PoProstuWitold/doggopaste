@@ -1,0 +1,3 @@
+# DoggoPaste
+
+DoggoPaste project monorepo.

@@ -1,0 +1,24 @@
+{
+	"name": "api",
+	"version": "0.1.0",
+	"private": true,
+	"scripts": {
+		"dev": "NODE_ENV='development' node --watch --import tsx src/index.ts",
+		"build": "tsc -p tsconfig.json",
+		"start": "node build/src/index.js",
+		"check-types": "tsc --noEmit",
+		"ncu-u": "ncu -u && pnpm install"
+	},
+	"dependencies": {
+		"@hono/node-server": "^1.13.8",
+		"hono": "^4.7.4",
+		"socket.io": "^4.8.1"
+	},
+	"devDependencies": {
+		"@types/node": "^22.13.9",
+		"rimraf": "^6.0.1",
+		"tslib": "^2.8.1",
+		"tsx": "^4.19.3",
+		"typescript": "^5.8.2"
+	}
+}
