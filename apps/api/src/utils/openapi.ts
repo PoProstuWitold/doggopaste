@@ -49,14 +49,9 @@ export const openApiSpec = {
 			...paths
 		},
 		info: {
-			title: 'Hono & Next.js',
+			title: 'DoggoPaste',
 			version: '0.1.0',
-			description: 'API Reference for Hono & Next.js fullstack template',
-			contact: {
-				name: 'Witold Zawada',
-				email: 'witoldzawada.dev@gmail.com',
-				url: 'https://witoldzawada.dev'
-			},
+			description: 'Drop your code, let Doggo fetch it!',
 			license: {
 				name: 'MIT',
 				url: 'https://opensource.org/licenses/MIT'
@@ -64,11 +59,11 @@ export const openApiSpec = {
 		},
 		servers: [
 			{
-				url: 'http://localhost:3000/api',
+				url: 'http://localhost:3001/api',
 				description: 'Local Server Base'
 			},
 			{
-				url: 'http://localhost:3000/api/auth',
+				url: 'http://localhost:3001/api/auth',
 				description: 'Auth routes'
 			}
 		],
