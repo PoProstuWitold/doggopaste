@@ -1,2 +1,3 @@
-export * from './http-error-map'
-export * from './auth'
+export * from './http-error-map.js'
+export * from './auth.js'
+export * from './openapi.js'

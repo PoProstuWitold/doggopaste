@@ -1,6 +1,8 @@
 // built-in or npm
 import { serve } from '@hono/node-server'
+import { apiReference } from '@scalar/hono-api-reference'
 import { Hono } from 'hono'
+import { openAPISpecs } from 'hono-openapi'
 import { compress } from 'hono/compress'
 import { cors } from 'hono/cors'
 import { logger } from 'hono/logger'
@@ -9,15 +11,15 @@ import { requestId } from 'hono/request-id'
 import { secureHeaders } from 'hono/secure-headers'
 
 // custom
-import { GenericException } from './exceptions'
+import { GenericException } from './exceptions/index.js'
 import {
 	errorHandler,
 	initWebSockets,
 	responseTime,
 	wsMiddleware
-} from './middlewares'
+} from './middlewares/index.js'
 import type { Env } from './types'
-import { auth } from './utils'
+import { auth, openApiSpec } from './utils/index.js'
 
 const app = new Hono<Env>().basePath('/api')
 const server = serve(
@@ -52,7 +54,16 @@ app.use(
 app.use('*', requestId())
 app.use('*', secureHeaders())
 app.use(wsMiddleware)
-
+app.get('/openapi', openAPISpecs(app, openApiSpec))
+app.get(
+	'/docs',
+	apiReference({
+		theme: 'saturn',
+		spec: {
+			url: '/api/openapi'
+		}
+	})
+)
 app.onError(errorHandler)
 app.notFound((c) => {
 	throw new GenericException({

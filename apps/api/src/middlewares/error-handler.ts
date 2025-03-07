@@ -1,10 +1,10 @@
+import { APIError } from 'better-auth/api'
 import type { Context } from 'hono'
 import type { HTTPResponseError } from 'hono/types'
 import type { ContentfulStatusCode, StatusCode } from 'hono/utils/http-status'
-// import { APIError } from 'better-auth/api'
 
-import { GenericException } from '../exceptions'
-// import { HttpStatusCodes } from '../utils'
+import { GenericException } from '../exceptions/index.js'
+import { HttpStatusCodes } from '../utils/index.js'
 
 export const errorHandler = (err: Error | HTTPResponseError, c: Context) => {
 	const message = err.message || 'Internal Server Error'
@@ -14,15 +14,16 @@ export const errorHandler = (err: Error | HTTPResponseError, c: Context) => {
 		return c.json(err, err.statusCode as ContentfulStatusCode)
 	}
 
-	// if (err instanceof APIError) {
-	// 	const status = (HttpStatusCodes.get(err.status) as StatusCode) || 500
-	// 	const error: GenericException = {
-	// 		statusCode: status,
-	// 		name: err.status,
-	// 		message: err.body.message || err.message
-	// 	}
-	// 	return c.json(error, status as ContentfulStatusCode)
-	// }
+	if (err instanceof APIError) {
+		const status =
+			(HttpStatusCodes.get(err.status as string) as StatusCode) || 500
+		const error: GenericException = {
+			statusCode: status,
+			name: err.status as string,
+			message: err.body.message || err.message
+		}
+		return c.json(error, status as ContentfulStatusCode)
+	}
 
 	const error: GenericException = {
 		statusCode: status,
