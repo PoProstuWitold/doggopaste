@@ -9,6 +9,27 @@ For complete documentation visit route **`/api/docs`**.
 
 ## Usage
 
+### Enviromental variables
+
+Create ``.env`` in ``apps/api`` with following content:
+```ini
+# Database (matches docker-compose.dev.yaml)
+DATABASE_URL=postgresql://doggo:changeme@localhost:5432/doggopaste
+
+# Better Auth - basic
+BETTER_AUTH_SECRET=super_secret_doggo
+BETTER_AUTH_URL=http://localhost:3001
+
+# Better Auth - OAuth2
+GITHUB_CLIENT_ID=your_github_client_id
+GITHUB_CLIENT_SECRET=your_github_client_secret
+```
+
+Create ``.env.local`` in ``apps/web`` with following content:
+```ini
+NEXT_PUBLIC_APP_URL="http://localhost:3000"
+```
+
 - Global monorepo scripts (``turbo run <command>``)
     - **``dev``** - runs all apps in development mode with hot-reload
     - **``build``** - builds all apps for production
