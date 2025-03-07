@@ -17,6 +17,7 @@ import {
 	wsMiddleware
 } from './middlewares'
 import type { Env } from './types'
+import { auth } from './utils'
 
 const app = new Hono<Env>().basePath('/api')
 const server = serve(
@@ -71,3 +72,4 @@ app.get('/', (c) => {
 	c.var.io.emit('data', 'hello world')
 	return c.text('DoggoPaste REST API')
 })
+app.on(['POST', 'GET'], '/auth/**', (c) => auth.handler(c.req.raw))
