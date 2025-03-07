@@ -4,6 +4,9 @@
 
 DoggoPaste project monorepo.
 
+## Documentation
+For complete documentation visit route **`/api/docs`**.
+
 ## Usage
 
 - Global monorepo scripts (``turbo run <command>``)
@@ -21,3 +24,12 @@ DoggoPaste project monorepo.
         - **``db:migrate``** - pushes migration
     - **``apps/web``**
         - **``analyze``** - shows analytics for Next.js web app
+
+## Tech stack:
+- [Turborepo](https://turbo.build/repo/docs) as monorepo solution,
+- [Hono](https://hono.dev/) as API and WebSockets backend framework,
+- [Next.js](https://nextjs.org/) as frontend framework,
+- [PostgreSQL](https://www.postgresql.org/) with [Drizzle ORM](https://orm.drizzle.team/) as database,
+- [Better Auth](https://www.better-auth.com/) for auth,
+- [Headless UI](https://headlessui.com/) as components,
+- [TailwindCSS](https://tailwindcss.com/) and [DaisyUI](https://daisyui.com/) for styling
