@@ -1,14 +1,25 @@
 import { betterAuth } from 'better-auth'
 import { drizzleAdapter } from 'better-auth/adapters/drizzle'
-import { openAPI } from 'better-auth/plugins'
+import { admin, openAPI, organization } from 'better-auth/plugins'
 
 import { db } from '../db/index.js'
 import { schema } from '../db/schema.js'
 
 export const auth = betterAuth({
+	trustedOrigins: ['http://localhost:3000', 'http://localhost:3001'],
+	ipAddress: {
+		ipAddressHeaders: ['x-client-ip', 'x-forwarded-for'],
+		disableIpTracking: false
+	},
 	plugins: [
 		openAPI({
 			path: '/docs'
+		}),
+		admin(),
+		organization({
+			teams: {
+				enabled: true
+			}
 		})
 	],
 	database: drizzleAdapter(db, {
@@ -21,8 +32,15 @@ export const auth = betterAuth({
 	advanced: {
 		generateId: false,
 		cookiePrefix: 'doggopaste',
+		defaultCookieAttributes: {
+			sameSite: 'none',
+			secure: true,
+			partitioned: true
+		},
 		crossSubDomainCookies: {
-			enabled: true
+			enabled: true,
+			cookieDomain: 'localhost',
+			domain: 'localhost'
 		}
 	},
 	user: {
@@ -35,15 +53,6 @@ export const auth = betterAuth({
 				input: false
 			}
 		}
-	},
-	session: {
-		modelName: 'sessions'
-	},
-	account: {
-		modelName: 'accounts'
-	},
-	verification: {
-		modelName: 'verifications'
 	},
 	emailAndPassword: {
 		enabled: true,

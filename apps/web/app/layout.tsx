@@ -1,20 +1,13 @@
-import type { Metadata } from 'next'
-import localFont from 'next/font/local'
 import './globals.css'
-
-const geistSans = localFont({
-	src: './fonts/GeistVF.woff',
-	variable: '--font-geist-sans'
-})
-
-const geistMono = localFont({
-	src: './fonts/GeistMonoVF.woff',
-	variable: '--font-geist-mono'
-})
+import type { Metadata } from 'next'
+import { Toaster } from 'react-hot-toast'
+import { Container } from './components/Container'
+import { Footer } from './components/Footer'
+import { Navbar } from './components/NavBar'
 
 export const metadata: Metadata = {
-	title: 'DoggoPaste',
-	description: 'Drop your code, let Doggo fetch it!'
+	title: 'PoProstuWitold',
+	description: 'Hono Fullstack Template'
 }
 
 export default function RootLayout({
@@ -23,9 +16,13 @@ export default function RootLayout({
 	children: React.ReactNode
 }>) {
 	return (
-		<html lang='en'>
-			<body className={`${geistSans.variable} ${geistMono.variable}`}>
-				{children}
+		<html lang='en' suppressHydrationWarning>
+			<head />
+			<body>
+				<Navbar />
+				<Container>{children}</Container>
+				<Footer />
+				<Toaster />
 			</body>
 		</html>
 	)

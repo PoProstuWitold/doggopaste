@@ -39,9 +39,14 @@ const server = serve(
 initWebSockets(server)
 app.use(compress())
 app.use(
+	'*',
 	cors({
-		origin: '*',
-		allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'HEAD']
+		origin: 'http://localhost:3000',
+		allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'HEAD'],
+		allowHeaders: ['Content-Type', 'Authorization'],
+		exposeHeaders: ['Content-Type'],
+		credentials: true,
+		maxAge: 6000
 	})
 )
 app.use(logger())
@@ -84,3 +89,4 @@ app.get('/', (c) => {
 	return c.text('DoggoPaste REST API')
 })
 app.on(['POST', 'GET'], '/auth/**', (c) => auth.handler(c.req.raw))
+app.on('GET', '/redirect', (c) => c.redirect('http://localhost:3000/profile'))

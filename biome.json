@@ -16,7 +16,9 @@
 			"apps/**/package-lock.json",
 			".turbo",
 			"apps/**/.turbo",
-			".vscode"
+			".vscode",
+			"NavBar.tsx",
+			"globals.css"
 		]
 	},
 	"formatter": {

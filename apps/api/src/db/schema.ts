@@ -1,6 +1,6 @@
 import {
 	boolean,
-	pgEnum,
+	numeric,
 	pgTable,
 	timestamp,
 	uuid,
@@ -16,20 +16,17 @@ const essentialColumns = {
 		.$onUpdate(() => new Date())
 }
 
-export const rolesEnum = pgEnum('role', [
-	'user',
-	'moderator',
-	'premium',
-	'admin'
-])
-
 export const usersTable = pgTable('users', {
 	...essentialColumns,
 	name: varchar({ length: 512 }).notNull(),
 	email: varchar({ length: 512 }).notNull().unique(),
 	emailVerified: boolean('email_verified').notNull().default(false),
 	image: varchar({ length: 512 }),
-	role: rolesEnum().notNull().default('user')
+	// admin plugin
+	role: varchar({ length: 512 }),
+	banned: boolean(),
+	banReason: varchar({ length: 512 }),
+	banExpires: numeric()
 })
 
 export const sessionsTable = pgTable('sessions', {
@@ -40,7 +37,11 @@ export const sessionsTable = pgTable('sessions', {
 	token: varchar({ length: 512 }).notNull().unique(),
 	expiresAt: timestamp('expires_at').notNull(),
 	ipAddress: varchar('ip_address', { length: 512 }),
-	userAgent: varchar('user_agent', { length: 512 })
+	userAgent: varchar('user_agent', { length: 512 }),
+	// admin plugin
+	impersonatedBy: uuid(),
+	// organization plugin
+	activeOrganizationId: uuid()
 })
 
 export const accountsTable = pgTable('accounts', {
@@ -66,9 +67,55 @@ export const verificationsTable = pgTable('verifications', {
 	expiresAt: timestamp('expires_at').notNull()
 })
 
+export const organizationsTable = pgTable('organizations', {
+	...essentialColumns,
+	name: varchar({ length: 512 }).notNull().unique(),
+	slug: varchar({ length: 512 }).notNull().unique(),
+	logo: varchar({ length: 512 }),
+	metadata: varchar({ length: 512 })
+})
+
+export const membersTable = pgTable('members', {
+	...essentialColumns,
+	userId: uuid('user_id')
+		.notNull()
+		.references(() => usersTable.id),
+	organizationId: uuid('organization_id')
+		.notNull()
+		.references(() => organizationsTable.id),
+	role: varchar({ length: 512 })
+})
+
+export const invitationsTable = pgTable('invitations', {
+	...essentialColumns,
+	email: varchar({ length: 512 }),
+	inviterId: uuid('inviter_id')
+		.notNull()
+		.references(() => usersTable.id),
+	organizationId: uuid('organization_id')
+		.notNull()
+		.references(() => organizationsTable.id),
+	role: varchar({ length: 512 }),
+	status: varchar({ length: 512 }),
+	expiresAt: timestamp('expires_at').notNull()
+})
+
+// optional for organization plugin
+export const teamsTable = pgTable('teams', {
+	...essentialColumns,
+	name: varchar({ length: 512 }).notNull(),
+	organizationId: uuid('organization_id')
+		.notNull()
+		.references(() => organizationsTable.id)
+})
+
 export const schema = {
 	users: usersTable,
 	sessions: sessionsTable,
 	accounts: accountsTable,
-	verifications: verificationsTable
+	verifications: verificationsTable,
+	organizations: organizationsTable,
+	members: membersTable,
+	invitations: invitationsTable,
+	teams: teamsTable
 }
