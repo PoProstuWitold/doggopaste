@@ -15,6 +15,7 @@ import { GenericException } from './exceptions/index.js'
 import {
 	errorHandler,
 	initWebSockets,
+	ipAddress,
 	responseTime,
 	wsMiddleware
 } from './middlewares/index.js'
@@ -59,6 +60,7 @@ app.use(
 app.use('*', requestId())
 app.use('*', secureHeaders())
 app.use(wsMiddleware)
+app.use(ipAddress)
 app.get('/openapi', openAPISpecs(app, openApiSpec))
 app.get(
 	'/docs',
@@ -85,8 +87,23 @@ app.notFound((c) => {
 app.use(responseTime)
 
 app.get('/', (c) => {
-	c.var.io.emit('data', 'hello world')
+	c.var.io.emit('message', 'Hello from DoggoPaste REST API')
 	return c.text('DoggoPaste REST API')
+})
+
+// Better Auth
+app.use('*', async (c, next) => {
+	const session = await auth.api.getSession({ headers: c.req.raw.headers })
+
+	if (!session) {
+		c.set('user', null)
+		c.set('session', null)
+		return next()
+	}
+
+	c.set('user', session.user)
+	c.set('session', session.session)
+	return next()
 })
 app.on(['POST', 'GET'], '/auth/**', (c) => auth.handler(c.req.raw))
 app.on('GET', '/redirect', (c) => c.redirect('http://localhost:3000/profile'))
