@@ -9,6 +9,7 @@
 		"start": "node --env-file .env build/src/index.js",
 		"check-types": "tsc --noEmit",
 		"ncu-u": "ncu -u && pnpm install",
+		"ncu": "ncu",
 		"db:push": "drizzle-kit push",
 		"db:generate": "drizzle-kit generate",
 		"db:migrate": "drizzle-kit migrate"

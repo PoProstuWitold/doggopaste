@@ -8,7 +8,8 @@
 		"build": "next build",
 		"start": "next start",
 		"check-types": "tsc --noEmit",
-		"ncu-u": "ncu -u && pnpm install"
+		"ncu-u": "ncu -u && pnpm install",
+		"ncu": "ncu"
 	},
 	"dependencies": {
 		"@headlessui/react": "^2.2.0",

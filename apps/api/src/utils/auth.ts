@@ -6,7 +6,7 @@ import { db } from '../db/index.js'
 import { schema } from '../db/schema.js'
 
 export const auth = betterAuth({
-	trustedOrigins: ['http://localhost:3000', 'http://localhost:3001'],
+	trustedOrigins: [process.env.NEXT_PUBLIC_APP_URL, process.env.HONO_API_URL],
 	ipAddress: {
 		ipAddressHeaders: ['x-client-ip', 'x-forwarded-for'],
 		disableIpTracking: false
@@ -39,8 +39,8 @@ export const auth = betterAuth({
 		},
 		crossSubDomainCookies: {
 			enabled: true,
-			cookieDomain: 'localhost',
-			domain: 'localhost'
+			cookieDomain: process.env.COOKIE_DOMAIN,
+			domain: process.env.COOKIE_DOMAIN
 		}
 	},
 	user: {

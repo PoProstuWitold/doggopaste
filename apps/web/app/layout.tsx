@@ -6,8 +6,8 @@ import { Footer } from './components/Footer'
 import { Navbar } from './components/NavBar'
 
 export const metadata: Metadata = {
-	title: 'PoProstuWitold',
-	description: 'Hono Fullstack Template'
+	title: 'DoggoPaste',
+	description: 'Drop your code, let Doggo fetch it!'
 }
 
 export default function RootLayout({

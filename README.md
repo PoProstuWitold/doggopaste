@@ -23,11 +23,18 @@ BETTER_AUTH_URL=http://localhost:3001
 # Better Auth - OAuth2
 GITHUB_CLIENT_ID=your_github_client_id
 GITHUB_CLIENT_SECRET=your_github_client_secret
+
+# URLs
+NEXT_PUBLIC_APP_URL="http://localhost:3000"
+HONO_API_URL="http://localhost:3001"
+COOKIE_DOMAIN="localhost"
 ```
 
 Create ``.env.local`` in ``apps/web`` with following content:
 ```ini
+# URLs
 NEXT_PUBLIC_APP_URL="http://localhost:3000"
+NEXT_PUBLIC_HONO_API_URL="http://localhost:3001"
 ```
 
 - Global monorepo scripts (``turbo run <command>``)
@@ -36,6 +43,7 @@ NEXT_PUBLIC_APP_URL="http://localhost:3000"
     - **``start``** - runs all built apps
     - **``check-types``** - check types
     - **``ncu-u``**: updates *``package.json``* dependencies with ***[NPM Check Update](https://www.npmjs.com/package/npm-check-updates)*** and then installs them
+    - **``ncu``**: checks for updates with ***[NPM Check Update](https://www.npmjs.com/package/npm-check-updates)***
     - **``check``** - show potential problems with code using ***[Biome](https://biomejs.dev/)***
     - **``check:fix``** - applies said fixes
 - App specific scripts (you have to be in app katalog (e.g. ``doggopaste/apps/api``) and then use ``pnpm run <command>``)

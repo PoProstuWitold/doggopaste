@@ -59,11 +59,11 @@ export const openApiSpec = {
 		},
 		servers: [
 			{
-				url: 'http://localhost:3001/api',
+				url: `${process.env.HONO_API_URL}/api`,
 				description: 'Local Server Base'
 			},
 			{
-				url: 'http://localhost:3001/api/auth',
+				url: `${process.env.HONO_API_URL}/api/auth`,
 				description: 'Auth routes'
 			}
 		],

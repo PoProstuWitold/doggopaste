@@ -23,6 +23,9 @@
 		},
 		"ncu-u": {
 			"dependsOn": ["^ncu-u"]
+		},
+		"ncu": {
+			"dependsOn": ["^ncu"]
 		}
 	}
 }

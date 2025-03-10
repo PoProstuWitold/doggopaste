@@ -25,7 +25,7 @@ export default async function ProfilePage() {
 	})
 
 	if (!allSessions.data) {
-		// toast.error('Failed to fetch sessions')
+		toast.error('Failed to fetch sessions')
 		await wait(1000)
 		redirect('/login')
 	}
@@ -36,15 +36,6 @@ export default async function ProfilePage() {
 		userAgent: session.userAgent || 'Unknown'
 	}))
 
-	// const currentSession = await auth.api
-	// 	.getSession({
-	// 		headers: await headers()
-	// 	})
-	// 	.catch(async (err) => {
-	// 		await wait(1000)
-	// 		// Redirect to login page
-	// 		redirect('/login')
-	// 	})
 	const currentSession = await authClient.getSession({
 		fetchOptions: {
 			headers: await headers()
@@ -52,7 +43,7 @@ export default async function ProfilePage() {
 	})
 
 	if (!currentSession.data || !allSessions) {
-		// toast.error('Failed to fetch current session')
+		toast.error('Failed to fetch current session')
 		await wait(1000)
 		redirect('/login')
 	}

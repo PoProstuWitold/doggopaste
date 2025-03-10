@@ -22,6 +22,14 @@ import {
 import type { Env } from './types'
 import { auth, openApiSpec } from './utils/index.js'
 
+if (!process.env.HONO_API_URL) {
+	throw new Error('HONO_API_URL is required')
+}
+
+if (!process.env.NEXT_PUBLIC_APP_URL) {
+	throw new Error('NEXT_PUBLIC_APP_URL is required')
+}
+
 const app = new Hono<Env>().basePath('/api')
 const server = serve(
 	{
@@ -42,7 +50,7 @@ app.use(compress())
 app.use(
 	'*',
 	cors({
-		origin: 'http://localhost:3000',
+		origin: process.env.NEXT_PUBLIC_APP_URL,
 		allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'HEAD'],
 		allowHeaders: ['Content-Type', 'Authorization'],
 		exposeHeaders: ['Content-Type'],
@@ -106,4 +114,6 @@ app.use('*', async (c, next) => {
 	return next()
 })
 app.on(['POST', 'GET'], '/auth/**', (c) => auth.handler(c.req.raw))
-app.on('GET', '/redirect', (c) => c.redirect('http://localhost:3000/profile'))
+app.on('GET', '/redirect', (c) =>
+	c.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/profile`)
+)
