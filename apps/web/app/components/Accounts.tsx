@@ -3,6 +3,8 @@ import { authClient } from '@/app/utils/auth-client'
 import { wait } from '@/app/utils/functions'
 import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
+import { FaFacebook, FaGithub, FaGoogle } from 'react-icons/fa6'
+import { Account } from './Account'
 
 interface AccountsProps {
 	accounts:
@@ -74,7 +76,14 @@ export const Accounts: React.FC<AccountsProps> = ({ accounts }) => {
 		<>
 			<details className='collapse bg-base-200 collapse-arrow'>
 				<summary className='collapse-title text-xl font-medium'>
-					Accounts
+					<div className='flex items-center gap-2'>
+						<p>Accounts</p>
+						<span className='badge badge-accent'>
+							{accounts?.length
+								? `${accounts.length} connected account(s)`
+								: null}
+						</span>
+					</div>
 				</summary>
 				<div className='collapse-content'>
 					<div className='flex flex-col gap-4'>
@@ -84,11 +93,25 @@ export const Accounts: React.FC<AccountsProps> = ({ accounts }) => {
 								key={provider}
 								className='flex justify-between items-center p-4'
 							>
-								<div>
-									<strong>
-										{provider.charAt(0).toUpperCase() +
-											provider.slice(1)}
-									</strong>
+								<div className='flex items-center gap-2'>
+									{provider === 'github' ? (
+										<div className='flex items-center gap-2 text-xl font-bold'>
+											<FaGithub />
+											<span>GitHub</span>
+										</div>
+									) : null}
+									{provider === 'google' ? (
+										<div className='flex items-center gap-2 text-xl font-bold'>
+											<FaGoogle />
+											<span>Google</span>
+										</div>
+									) : null}
+									{provider === 'facebook' ? (
+										<div className='flex items-center gap-2 text-xl font-bold'>
+											<FaFacebook />
+											<span>Facebook</span>
+										</div>
+									) : null}
 								</div>
 								<button
 									onClick={() => linkSocial(provider)}
@@ -102,54 +125,11 @@ export const Accounts: React.FC<AccountsProps> = ({ accounts }) => {
 
 						{/* Linked providers (show unlink buttons) */}
 						{accounts?.map((account) => (
-							<div
-								key={`${account.id}:${account.accountId}`}
-								className='flex flex-col gap-2 border p-4 border-error-content rounded-lg shadow-sm'
-							>
-								<div>
-									<strong>Provider:</strong>{' '}
-									{account.provider}
-								</div>
-								<div>
-									<strong>Created At:</strong>{' '}
-									{new Date(account.createdAt).toString()}
-								</div>
-								<div>
-									<strong>Updated At:</strong>{' '}
-									{new Date(account.updatedAt).toString()}
-								</div>
-								<div>
-									<strong>Account ID:</strong>{' '}
-									{account.accountId}
-								</div>
-								<div>
-									<strong>Scopes:</strong>{' '}
-									{account.scopes.length
-										? account.scopes.join(', ')
-										: 'No scopes'}
-								</div>
-								{/* Unlink Button */}
-								{account.provider !== 'credential' ? (
-									<>
-										<div>
-											<button
-												onClick={() =>
-													unlinkSocial(
-														account.provider as
-															| 'google'
-															| 'github'
-															| 'facebook'
-													)
-												}
-												type='button'
-												className='btn btn-error'
-											>
-												Unlink
-											</button>
-										</div>
-									</>
-								) : null}
-							</div>
+							<Account
+								key={account.id}
+								account={account}
+								unlinkSocial={unlinkSocial}
+							/>
 						))}
 					</div>
 				</div>

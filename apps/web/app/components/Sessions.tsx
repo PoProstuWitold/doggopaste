@@ -4,6 +4,7 @@ import { authClient } from '@/app/utils/auth-client'
 import { wait } from '@/app/utils/functions'
 import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
+import { Session } from './Session'
 
 interface SessionsProps {
 	allSessions: Array<{
@@ -81,60 +82,24 @@ export const Sessions: React.FC<SessionsProps> = ({
 		<>
 			<details className='collapse bg-base-200 collapse-arrow'>
 				<summary className='collapse-title text-xl font-medium'>
-					Sessions
+					<div className='flex items-center gap-2'>
+						<p>Accounts</p>
+						<span className='badge badge-accent'>
+							{allSessions?.length
+								? `${allSessions.length} active session(s)`
+								: null}
+						</span>
+					</div>
 				</summary>
 				<div className='collapse-content flex flex-col gap-2 p-2'>
 					<div className='p-2 flex flex-col gap-4'>
 						{allSessions.map((session) => (
-							<div
+							<Session
 								key={session.id}
-								className='flex justify-between items-center p-4 border border-error-content rounded-lg shadow-sm'
-							>
-								<div className='flex flex-col gap-2'>
-									{currentSessionToken === session.token ? (
-										<span className='text-primary font-bold'>
-											{' '}
-											Current session
-										</span>
-									) : (
-										''
-									)}
-									<p className='text-sm flex flex-col'>
-										<strong>Session ID:</strong>{' '}
-										{session.id}
-									</p>
-									<p className='text-sm flex flex-col'>
-										<strong>Expires At:</strong>{' '}
-										{new Date(session.expiresAt).toString()}
-									</p>
-									<p className='text-sm flex flex-col'>
-										<strong>Token:</strong> {session.token}
-									</p>
-									<p className='text-sm flex flex-col'>
-										<strong>Created at:</strong>{' '}
-										{new Date(session.createdAt).toString()}
-									</p>
-									<p className='text-sm flex flex-col'>
-										<strong>Updated at:</strong>{' '}
-										{new Date(session.updatedAt).toString()}
-									</p>
-									<p className='text-sm flex flex-col'>
-										<strong>IP Address:</strong>{' '}
-										{session.ipAddress || 'Unknown'}
-									</p>
-									<p className='text-sm flex flex-col'>
-										<strong>User Agent:</strong>{' '}
-										{session.userAgent || 'Unknown'}
-									</p>
-								</div>
-								<button
-									type='button'
-									className='btn btn-error'
-									onClick={() => revokeSession(session.token)}
-								>
-									Revoke
-								</button>
-							</div>
+								currentSessionToken={currentSessionToken}
+								session={session}
+								revokeSession={revokeSession}
+							/>
 						))}
 					</div>
 					<div className='p-2'>

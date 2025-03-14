@@ -1,3 +1,8 @@
+'use client'
+import { useState } from 'react'
+import { FaCheck } from 'react-icons/fa'
+import { FaXmark } from 'react-icons/fa6'
+
 export interface ProfileProps {
 	currentSession: {
 		session: {
@@ -22,75 +27,69 @@ export interface ProfileProps {
 }
 
 export const Profile: React.FC<ProfileProps> = ({ currentSession }) => {
+	const [showId, setShowId] = useState<boolean>(false)
+
 	return (
 		<>
 			<details className='collapse bg-base-200 collapse-arrow'>
 				<summary className='collapse-title text-xl font-medium'>
-					Profile & Current Session
+					<div className='flex items-center gap-2'>
+						<p>Profile</p>
+						<span className='badge badge-accent'>
+							{currentSession.user.role}
+						</span>
+					</div>
 				</summary>
 				<div className='collapse-content'>
-					<ul className='list-disc ml-5'>
-						<li>
-							<strong>ID:</strong> {currentSession.session.id}
-						</li>
-						<li>
-							<strong>Expires At:</strong>{' '}
-							{new Date(
-								currentSession.session.expiresAt
-							).toString()}
-						</li>
-						<li>
-							<strong>Token:</strong>{' '}
-							{currentSession.session.token}
-						</li>
-						<li>
-							<strong>Created At:</strong>{' '}
-							{new Date(
-								currentSession.session.createdAt
-							).toString()}
-						</li>
-						<li>
-							<strong>Updated At:</strong>{' '}
-							{new Date(
-								currentSession.session.updatedAt
-							).toString()}
-						</li>
-						<li>
-							<strong>IP Address:</strong>{' '}
-							{currentSession.session.ipAddress || 'Unknown'}
-						</li>
-						<li>
-							<strong>User Agent:</strong>{' '}
-							{currentSession.session.userAgent || 'Unknown'}
-						</li>
-					</ul>
-					<h3 className='mt-4 font-semibold'>User Information</h3>
-					<ul className='list-disc ml-5'>
-						<li>
-							<strong>ID:</strong> {currentSession.user.id}
-						</li>
-						<li>
+					<div className='grid grid-cols-1 gap-2'>
+						<div className='flex md:flex-row md:items-center gap-2 flex-col'>
+							<strong>ID:</strong>
+							<div className='flex items-center gap-2'>
+								<span className='badge badge-neutral'>
+									{showId ? currentSession.user.id : 'HIDDEN'}
+								</span>
+								<button
+									className='btn btn-xs btn-outline rounded-2xl'
+									onClick={() => setShowId(!showId)}
+									type='button'
+								>
+									{showId ? 'Hide' : 'Show'}
+								</button>
+							</div>
+						</div>
+						<div className='flex items-center gap-2'>
 							<strong>Name:</strong> {currentSession.user.name}
-						</li>
-						<li>
-							<strong>Email:</strong> {currentSession.user.email}
-						</li>
-						<li>
-							<strong>Email Verified:</strong>{' '}
-							{currentSession.user.emailVerified ? 'Yes' : 'No'}
-						</li>
-						<li>
-							<strong>Role:</strong> {currentSession.user.role}
-						</li>
-						<li>
-							<strong>Created At:</strong>{' '}
-							{new Date(currentSession.user.createdAt).toString()}
-						</li>
-						<li>
-							<strong>Updated At:</strong>{' '}
-							{new Date(currentSession.user.updatedAt).toString()}
-						</li>
-					</ul>
+						</div>
+						<div className='flex md:flex-row md:items-center gap-2 flex-col'>
+							<div className='flex items-center gap-2'>
+								<strong>Email:</strong>
+								{currentSession.user.email}
+								{currentSession.user.emailVerified ? (
+									<div className='badge badge-outline badge-success text-xs'>
+										<span className='flex items-center gap-1'>
+											Verified <FaCheck />
+										</span>
+									</div>
+								) : (
+									<div className='badge badge-outline badge-error text-xs'>
+										<span className='flex items-center gap-1'>
+											Not Verified <FaXmark />
+										</span>
+									</div>
+								)}
+							</div>
+						</div>
+						<div className='flex md:flex-row md:items-center gap-2 flex-col'>
+							<strong>Created/Updated:</strong>
+							{new Date(
+								currentSession.user.createdAt
+							).toLocaleString('pl-PL')}
+							/
+							{new Date(
+								currentSession.user.updatedAt
+							).toLocaleString('pl-PL')}
+						</div>
+					</div>
 				</div>
 			</details>
 		</>

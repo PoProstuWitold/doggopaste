@@ -5,7 +5,6 @@ import { authClient } from '@/app/utils/auth-client'
 import { wait } from '@/app/utils/functions'
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
-import toast from 'react-hot-toast'
 
 interface Session {
 	id: string
@@ -25,7 +24,6 @@ export default async function ProfilePage() {
 	})
 
 	if (!allSessions.data) {
-		toast.error('Failed to fetch sessions')
 		await wait(1000)
 		redirect('/login')
 	}
@@ -43,7 +41,6 @@ export default async function ProfilePage() {
 	})
 
 	if (!currentSession.data || !allSessions) {
-		toast.error('Failed to fetch current session')
 		await wait(1000)
 		redirect('/login')
 	}
