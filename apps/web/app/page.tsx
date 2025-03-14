@@ -1,4 +1,5 @@
 import { headers } from 'next/headers'
+import { CustomDialog } from './components/CustomDialog'
 import { authClient } from './utils/auth-client'
 
 export default async function HomePage() {

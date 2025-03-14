@@ -2,6 +2,8 @@
 import { useState } from 'react'
 import { FaCheck } from 'react-icons/fa'
 import { FaXmark } from 'react-icons/fa6'
+import { CustomDialog } from './CustomDialog'
+import { EditUser } from './EditUser'
 
 export interface ProfileProps {
 	currentSession: {
@@ -88,6 +90,22 @@ export const Profile: React.FC<ProfileProps> = ({ currentSession }) => {
 							{new Date(
 								currentSession.user.updatedAt
 							).toLocaleString('pl-PL')}
+						</div>
+						<div className='flex md:flex-row md:items-center gap-2 flex-col'>
+							<CustomDialog
+								btnText='Edit User'
+								title='Edit User'
+								description='Edit your user information'
+							>
+								<EditUser />
+							</CustomDialog>
+							<CustomDialog
+								btnText='Change Password'
+								title='Change Password'
+								description='Change your password'
+							>
+								test2
+							</CustomDialog>
 						</div>
 					</div>
 				</div>
