@@ -53,7 +53,9 @@ export const CustomDialog: React.FC<CustomDialogProps> = ({
 							</button>
 						</DialogTitle>
 						<Description>{description}</Description>
-						<div className='mt-4 flex flex-col gap-2'>{children}</div>
+						<div className='mt-4 flex flex-col gap-2'>
+							{children}
+						</div>
 					</DialogPanel>
 				</div>
 			</Dialog>

@@ -1,16 +1,16 @@
 'use client'
-import { useForm } from 'react-hook-form'
-import { authClient } from '../utils/auth-client'
-import toast from 'react-hot-toast'
-import { wait } from '../utils/functions'
 import { useRouter } from 'next/navigation'
+import { useForm } from 'react-hook-form'
+import toast from 'react-hot-toast'
+import { authClient } from '../utils/auth-client'
+import { wait } from '../utils/functions'
 
 interface EditUserData {
 	name: string
 }
 
 export const EditUser: React.FC = () => {
-    const router = useRouter()
+	const router = useRouter()
 	const {
 		register,
 		handleSubmit,
@@ -18,36 +18,37 @@ export const EditUser: React.FC = () => {
 	} = useForm<EditUserData>()
 
 	const onSubmit = async (formData: EditUserData) => {
-        console.log('Edit user data:', formData)
+		console.log('Edit user data:', formData)
 		const { name } = formData
-        const { data, error } = await authClient.updateUser({
-            name
-        }, {
-            onRequest: (ctx) => {
-                //show loading
-                console.log('loading', ctx)
-                toast.loading('Loading...', {
-                    duration: 1000
-                })
-            },
-            onSuccess: async (ctx) => {
-                //redirect to the dashboard
-                console.log('success', ctx)
-                toast.success(
-                    `Updated user data`
-                )
-                await wait(500)
-                router.replace('/profile')
-                router.refresh()
-            },
-            onError: (ctx) => {
-                console.log('error', ctx)
-                toast.error(ctx.error.message)
-            }
-        })
-        console.log('data', data)
-        console.log('error', error)
-    }
+		const { data, error } = await authClient.updateUser(
+			{
+				name
+			},
+			{
+				onRequest: (ctx) => {
+					//show loading
+					console.log('loading', ctx)
+					toast.loading('Loading...', {
+						duration: 1000
+					})
+				},
+				onSuccess: async (ctx) => {
+					//redirect to the dashboard
+					console.log('success', ctx)
+					toast.success(`Updated user data`)
+					await wait(500)
+					router.replace('/profile')
+					router.refresh()
+				},
+				onError: (ctx) => {
+					console.log('error', ctx)
+					toast.error(ctx.error.message)
+				}
+			}
+		)
+		console.log('data', data)
+		console.log('error', error)
+	}
 
 	return (
 		<>
