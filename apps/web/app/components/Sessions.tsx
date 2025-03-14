@@ -83,7 +83,7 @@ export const Sessions: React.FC<SessionsProps> = ({
 			<details className='collapse bg-base-200 collapse-arrow'>
 				<summary className='collapse-title text-xl font-medium'>
 					<div className='flex items-center gap-2'>
-						<p>Accounts</p>
+						<p>Sessions</p>
 						<span className='badge badge-accent'>
 							{allSessions?.length
 								? `${allSessions.length} active session(s)`
