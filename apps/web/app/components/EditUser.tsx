@@ -35,7 +35,7 @@ export const EditUser: React.FC = () => {
 				onSuccess: async (ctx) => {
 					//redirect to the dashboard
 					console.log('success', ctx)
-					toast.success(`Updated user data`)
+					toast.success('Updated user data')
 					await wait(500)
 					router.replace('/profile')
 					router.refresh()
