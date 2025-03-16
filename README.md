@@ -13,11 +13,14 @@ For complete documentation visit route **`/api/docs`**.
 
 Create ``.env`` in ``apps/api`` with following content:
 ```ini
+# App
+APP_NAME=DoggoPaste
+
 # Database (matches docker-compose.dev.yaml)
 DATABASE_URL=postgresql://doggo:changeme@localhost:5432/doggopaste
 
 # Better Auth - basic
-BETTER_AUTH_SECRET=super_secret_doggo
+BETTER_AUTH_SECRET=super_secret_doggo # replace with output of "openssl rand -base64 32"
 BETTER_AUTH_URL=http://localhost:3001
 
 # Better Auth - OAuth2

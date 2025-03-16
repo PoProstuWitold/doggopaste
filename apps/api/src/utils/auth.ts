@@ -6,6 +6,10 @@ import { db } from '../db/index.js'
 import { schema } from '../db/schema.js'
 
 export const auth = betterAuth({
+	appName: process.env.APP_NAME,
+	baseURL: process.env.BETTER_AUTH_URL,
+	basePath: '/api/auth',
+	secret: process.env.BETTER_AUTH_SECRET,
 	trustedOrigins: [process.env.NEXT_PUBLIC_APP_URL, process.env.HONO_API_URL],
 	ipAddress: {
 		ipAddressHeaders: ['x-client-ip', 'x-forwarded-for'],
@@ -56,7 +60,11 @@ export const auth = betterAuth({
 	},
 	emailAndPassword: {
 		enabled: true,
-		autoSignIn: true
+		disableSignUp: false,
+		autoSignIn: true,
+		minPasswordLength: 8,
+		maxPasswordLength: 128,
+		resetPasswordTokenExpiresIn: 3600
 	},
 	socialProviders: {
 		github: {
