@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import { FaCheck } from 'react-icons/fa'
 import { FaXmark } from 'react-icons/fa6'
+import { ChangePassword } from './ChangePassword'
 import { CustomDialog } from './CustomDialog'
 import { EditUser } from './EditUser'
 
@@ -26,9 +27,13 @@ export interface ProfileProps {
 			updatedAt: Date
 		}
 	}
+	hasCredentialAccount: boolean
 }
 
-export const Profile: React.FC<ProfileProps> = ({ currentSession }) => {
+export const Profile: React.FC<ProfileProps> = ({
+	currentSession,
+	hasCredentialAccount
+}) => {
 	const [showId, setShowId] = useState<boolean>(false)
 
 	return (
@@ -99,13 +104,15 @@ export const Profile: React.FC<ProfileProps> = ({ currentSession }) => {
 							>
 								<EditUser />
 							</CustomDialog>
-							<CustomDialog
-								btnText='Change Password'
-								title='Change Password'
-								description='Change your password'
-							>
-								test2
-							</CustomDialog>
+							{hasCredentialAccount ? (
+								<CustomDialog
+									btnText='Change Password'
+									title='Change Password'
+									description='Change your password'
+								>
+									<ChangePassword />
+								</CustomDialog>
+							) : null}
 						</div>
 					</div>
 				</div>

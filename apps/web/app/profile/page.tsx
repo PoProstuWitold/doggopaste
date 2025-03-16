@@ -50,6 +50,9 @@ export default async function ProfilePage() {
 			headers: await headers()
 		}
 	})
+	const hasCredentialAccount =
+		accounts.data?.some((account) => account.provider === 'credential') ??
+		false
 
 	return (
 		<>
@@ -58,8 +61,12 @@ export default async function ProfilePage() {
 					currentSession={
 						currentSession.data as ProfileProps['currentSession']
 					}
+					hasCredentialAccount={hasCredentialAccount}
 				/>
-				<Accounts accounts={accounts.data} />
+				<Accounts
+					accounts={accounts.data}
+					hasCredentialAccount={hasCredentialAccount}
+				/>
 				<Sessions
 					allSessions={processedSessions}
 					currentSessionToken={currentSession.data.session.token}

@@ -4,6 +4,7 @@ import { wait } from '@/app/utils/functions'
 import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
 import { FaFacebook, FaGithub, FaGoogle } from 'react-icons/fa6'
+import { RiLockPasswordFill } from 'react-icons/ri'
 import { Account } from './Account'
 
 interface AccountsProps {
@@ -17,9 +18,13 @@ interface AccountsProps {
 				scopes: string[]
 		  }[]
 		| null
+	hasCredentialAccount: boolean
 }
 
-export const Accounts: React.FC<AccountsProps> = ({ accounts }) => {
+export const Accounts: React.FC<AccountsProps> = ({
+	accounts,
+	hasCredentialAccount
+}) => {
 	const router = useRouter()
 	const providers: ('google' | 'github' | 'facebook')[] = [
 		'google',
@@ -44,6 +49,10 @@ export const Accounts: React.FC<AccountsProps> = ({ accounts }) => {
 		if (error) {
 			toast.error(error.message || 'Failed to link account')
 		}
+	}
+
+	const createPassword = async () => {
+		alert('NOT IMPLEMENTED YET')
 	}
 
 	const unlinkSocial = async (
@@ -87,6 +96,25 @@ export const Accounts: React.FC<AccountsProps> = ({ accounts }) => {
 				</summary>
 				<div className='collapse-content'>
 					<div className='flex flex-col gap-4'>
+						{/* Credential account */}
+						{!hasCredentialAccount ? (
+							<div className='flex justify-between items-center p-4'>
+								<div className='flex items-center gap-2'>
+									<div className='flex items-center gap-2 text-xl font-bold'>
+										<RiLockPasswordFill />
+										<span>Credential</span>
+									</div>
+								</div>
+								<button
+									onClick={() => createPassword()}
+									type='button'
+									className='btn btn-primary'
+								>
+									Create password
+								</button>
+							</div>
+						) : null}
+
 						{/* Unlinked providers (show link buttons) */}
 						{unlinkedProviders.map((provider) => (
 							<div
