@@ -20,11 +20,7 @@ export const auth = betterAuth({
 			path: '/docs'
 		}),
 		admin(),
-		organization({
-			teams: {
-				enabled: true
-			}
-		})
+		organization()
 	],
 	database: drizzleAdapter(db, {
 		provider: 'pg',
