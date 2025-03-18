@@ -12,10 +12,8 @@ export const Container: React.FC<ContainerProps> = ({ children }) => {
 					px-4 
 					sm:px-6 
 					md:px-8 
-					lg:pt-24 
-					lg:max-w-5xl 
-					lg:mx-auto 
-					xl:max-w-6xl
+					lg:pt-24
+					lg:mx-auto
 				`}
 			>
 				{children}

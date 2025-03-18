@@ -193,8 +193,13 @@ export const realTimePastesTable = pgTable('realtime_pastes', {
 	slug: varchar({ length: 64 }).unique().notNull(),
 	content: text('content').notNull(), // treść edytowana w czasie rzeczywistym
 	syntax: varchar({ length: 64 }).notNull().default('plaintext'),
-	visibility: realTimePasteVisibilityEnum('visibility').notNull().default('public'),
-	organizationId: uuid('organization_id').references(() => organizationsTable.id, { onDelete: 'set null' })
+	visibility: realTimePasteVisibilityEnum('visibility')
+		.notNull()
+		.default('public'),
+	organizationId: uuid('organization_id').references(
+		() => organizationsTable.id,
+		{ onDelete: 'set null' }
+	)
 })
 
 export const schema = {

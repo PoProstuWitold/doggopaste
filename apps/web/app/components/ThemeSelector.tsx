@@ -2,6 +2,17 @@
 
 import { useEffect, useState } from 'react'
 
+import 'highlight.js/styles/github-dark.css'
+import 'highlight.js/styles/github.css'
+import 'highlight.js/styles/atom-one-dark.css'
+import 'highlight.js/styles/gradient-light.css'
+import 'highlight.js/styles/tokyo-night-dark.css'
+import 'highlight.js/styles/shades-of-purple.css'
+import 'highlight.js/styles/monokai-sublime.css'
+import 'highlight.js/styles/stackoverflow-light.css'
+import 'highlight.js/styles/nord.css'
+import { themeToHighlightStyle } from '../utils/themes'
+
 interface ThemeSelectorProps {
 	defaultTheme: string
 }
@@ -28,16 +39,16 @@ export const ThemeSelector: React.FC<ThemeSelectorProps> = ({
 	useEffect(() => {
 		const savedTheme = localStorage.getItem('theme') || defaultTheme
 		setTheme(savedTheme)
-		setHTMLTheme(savedTheme)
+		applyTheme(savedTheme)
 	}, [defaultTheme])
 
 	const handleThemeChange = (newTheme: string) => {
 		setTheme(newTheme)
-		setHTMLTheme(newTheme)
+		applyTheme(newTheme)
 		localStorage.setItem('theme', newTheme)
 	}
 
-	const setHTMLTheme = (newTheme: string) => {
+	const applyTheme = (newTheme: string) => {
 		const root = document.documentElement
 
 		if (newTheme === 'system') {
@@ -47,8 +58,16 @@ export const ThemeSelector: React.FC<ThemeSelectorProps> = ({
 				? 'dark'
 				: 'light'
 			root.setAttribute('data-theme', systemTheme)
+			document.body.setAttribute(
+				'data-highlight',
+				themeToHighlightStyle[systemTheme] as string
+			)
 		} else {
 			root.setAttribute('data-theme', newTheme)
+			document.body.setAttribute(
+				'data-highlight',
+				themeToHighlightStyle[newTheme] as string
+			)
 		}
 	}
 
