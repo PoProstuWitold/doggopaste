@@ -2,7 +2,7 @@
 
 import hljs from 'highlight.js'
 import { useRouter } from 'next/navigation'
-import { type KeyboardEvent, useEffect, useRef } from 'react'
+import { KeyboardEvent, useEffect, useRef } from 'react'
 import { useForm } from 'react-hook-form'
 import { FaFileCode } from 'react-icons/fa'
 
@@ -10,14 +10,14 @@ interface PasteForm {
 	title: string
 	content: string
 	category: string
-	tags: string
+	tags: string[]
 	syntax: string
 	expiration: string
 	visibility: string
 	folder: string
 	passwordEnabled: boolean
 	password: string
-	burnAfterRead: boolean
+	pasteAsGuest: boolean
 }
 
 export default function CreatePasteForm() {
@@ -39,7 +39,8 @@ export default function CreatePasteForm() {
 			folder: 'none',
 			passwordEnabled: false,
 			password: '',
-			burnAfterRead: false
+			pasteAsGuest: false,
+			tags: []
 		}
 	})
 
@@ -49,6 +50,24 @@ export default function CreatePasteForm() {
 	const syntax = watch('syntax')
 	const content = watch('content')
 	const passwordEnabled = watch('passwordEnabled')
+	const tags = watch('tags', [])
+
+	const addTag = (event: React.KeyboardEvent<HTMLInputElement>) => {
+		if (event.key === 'Enter' || event.key === ',') {
+			event.preventDefault()
+			const value = event.currentTarget.value.trim()
+			if (value && !tags.includes(value)) {
+				const updatedTags = [...tags, value]
+				setValue('tags', updatedTags, { shouldValidate: true })
+			}
+			event.currentTarget.value = ''
+		}
+	}
+
+	const removeTag = (tag: string) => {
+		const updatedTags = tags.filter((t) => t !== tag)
+		setValue('tags', updatedTags, { shouldValidate: true })
+	}
 
 	const highlightCode = (code: string) => {
 		if (preRef.current) {
@@ -83,6 +102,15 @@ export default function CreatePasteForm() {
 
 	const onSubmit = async (data: PasteForm) => {
 		console.log('New paste:', data)
+		const res = await fetch(`${process.env.NEXT_PUBLIC_HONO_API_URL}/api/pastes`, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify(data),
+			credentials: 'include'
+		})
+		console.log(await res.json())
 		alert('Paste created successfully! 🥳')
 		reset()
 		router.push('/')
@@ -138,15 +166,17 @@ export default function CreatePasteForm() {
 
 					<label className='form-control w-full'>
 						<div className='label'>
-							<span className='label-text'>
-								Tags (comma separated)
-							</span>
+							<span className='label-text'>Tags (Coma or Enter separated)</span>
 						</div>
-						<input
-							{...register('tags')}
-							type='text'
-							className='input input-bordered w-full'
-						/>
+						<div className='flex flex-wrap gap-2'>
+							{tags.map((tag, index) => (
+								<div key={index} className='badge badge-primary flex items-center gap-2'>
+									{tag}
+									<button type='button' onClick={() => removeTag(tag)} className='ml-1 text-white'>✕</button>
+								</div>
+							))}
+						</div>
+						<input type='text' placeholder='Enter tag and press Enter' className='input input-bordered w-full mt-2' onKeyDown={addTag} />
 					</label>
 
 					<label className='form-control w-full'>
@@ -236,9 +266,9 @@ export default function CreatePasteForm() {
 						<input
 							type='checkbox'
 							className='checkbox'
-							{...register('burnAfterRead')}
+							{...register('pasteAsGuest')}
 						/>
-						<span>Burn after read</span>
+						<span>Paste as guest</span>
 					</label>
 				</div>
 				<div className='divider lg:divider-horizontal'></div>
