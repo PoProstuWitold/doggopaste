@@ -74,7 +74,7 @@ export const Session: React.FC<SessionProps> = ({
 					<div className='flex md:flex-row md:items-center gap-2 flex-col'>
 						<strong>User Agent:</strong>
 						<span>
-							{session.userAgent
+							{session.userAgent && os.name
 								? `${os.name}, ${browser.name} ${browser.major}`
 								: 'Unknown'}
 						</span>
