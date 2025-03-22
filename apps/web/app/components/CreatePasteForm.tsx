@@ -1,10 +1,14 @@
 'use client'
 
-import hljs from 'highlight.js'
+import { cpp } from '@codemirror/lang-cpp'
+import { html } from '@codemirror/lang-html'
+import { javascript } from '@codemirror/lang-javascript'
+import { python } from '@codemirror/lang-python'
+import CodeMirror from '@uiw/react-codemirror'
 import { useRouter } from 'next/navigation'
-import { KeyboardEvent, useEffect, useRef } from 'react'
-import { useForm } from 'react-hook-form'
+import { Controller, useForm } from 'react-hook-form'
 import { FaFileCode } from 'react-icons/fa'
+import { useTheme } from '../context/ThemeContext'
 
 interface PasteForm {
 	title: string
@@ -20,7 +24,19 @@ interface PasteForm {
 	pasteAsGuest: boolean
 }
 
+const extensions = {
+	javascript: javascript(),
+	typescript: javascript({ typescript: true }),
+	jsx: javascript({ jsx: true }),
+	tsx: javascript({ jsx: true, typescript: true }),
+	python: python(),
+	cpp: cpp(),
+	html: html(),
+	plaintext: []
+}
+
 export default function CreatePasteForm() {
+	const { cmTheme } = useTheme()
 	const router = useRouter()
 	const {
 		register,
@@ -28,7 +44,8 @@ export default function CreatePasteForm() {
 		watch,
 		formState: { errors },
 		reset,
-		setValue
+		setValue,
+		control
 	} = useForm<PasteForm>({
 		defaultValues: {
 			content: '',
@@ -44,11 +61,7 @@ export default function CreatePasteForm() {
 		}
 	})
 
-	const textareaRef = useRef<HTMLTextAreaElement>(null)
-	const preRef = useRef<HTMLPreElement>(null)
-
 	const syntax = watch('syntax')
-	const content = watch('content')
 	const passwordEnabled = watch('passwordEnabled')
 	const tags = watch('tags', [])
 
@@ -69,51 +82,28 @@ export default function CreatePasteForm() {
 		setValue('tags', updatedTags, { shouldValidate: true })
 	}
 
-	const highlightCode = (code: string) => {
-		if (preRef.current) {
-			const highlighted = hljs.highlight(code, { language: syntax }).value
-			preRef.current.innerHTML = `${highlighted}<br/>`
-		}
-	}
-
-	useEffect(() => {
-		highlightCode(content || '')
-	}, [syntax, content])
-
-	const handleTabKey = (e: KeyboardEvent<HTMLTextAreaElement>) => {
-		if (e.key === 'Tab') {
-			e.preventDefault()
-			const textarea = e.currentTarget
-			const start = textarea.selectionStart
-			const updatedValue = `${textarea.value.substring(0, start)}    ${textarea.value.substring(start)}`
-			setValue('content', updatedValue, { shouldValidate: true })
-			setTimeout(() => {
-				textarea.selectionStart = textarea.selectionEnd = start + 4
-			}, 0)
-		}
-	}
-
-	const syncScroll = () => {
-		if (textareaRef.current && preRef.current) {
-			preRef.current.scrollTop = textareaRef.current.scrollTop
-			preRef.current.scrollLeft = textareaRef.current.scrollLeft
-		}
-	}
-
 	const onSubmit = async (data: PasteForm) => {
 		console.log('New paste:', data)
-		const res = await fetch(`${process.env.NEXT_PUBLIC_HONO_API_URL}/api/pastes`, {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify(data),
-			credentials: 'include'
-		})
-		console.log(await res.json())
-		alert('Paste created successfully! 🥳')
+		const res = await fetch(
+			`${process.env.NEXT_PUBLIC_HONO_API_URL}/api/pastes`,
+			{
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify(data),
+				credentials: 'include'
+			}
+		)
+		const json = await res.json()
+		console.log(json)
+		if (res.ok) {
+			alert('Paste created successfully!')
+		} else {
+			alert('Failed to create paste')
+		}
 		reset()
-		router.push('/')
+		// router.push('/')
 	}
 
 	return (
@@ -166,17 +156,33 @@ export default function CreatePasteForm() {
 
 					<label className='form-control w-full'>
 						<div className='label'>
-							<span className='label-text'>Tags (Coma or Enter separated)</span>
+							<span className='label-text'>
+								Tags (Coma or Enter separated)
+							</span>
 						</div>
 						<div className='flex flex-wrap gap-2'>
 							{tags.map((tag, index) => (
-								<div key={index} className='badge badge-primary flex items-center gap-2'>
+								<div
+									key={`${index}:${tag}`}
+									className='badge badge-primary flex items-center gap-2'
+								>
 									{tag}
-									<button type='button' onClick={() => removeTag(tag)} className='ml-1 text-white'>✕</button>
+									<button
+										type='button'
+										onClick={() => removeTag(tag)}
+										className='ml-1 text-white'
+									>
+										✕
+									</button>
 								</div>
 							))}
 						</div>
-						<input type='text' placeholder='Enter tag and press Enter' className='input input-bordered w-full mt-2' onKeyDown={addTag} />
+						<input
+							type='text'
+							placeholder='Enter tag and press Enter'
+							className='input input-bordered w-full mt-2'
+							onKeyDown={addTag}
+						/>
 					</label>
 
 					<label className='form-control w-full'>
@@ -195,6 +201,8 @@ export default function CreatePasteForm() {
 							<option value='python'>Python</option>
 							<option value='cpp'>C++</option>
 							<option value='html'>HTML</option>
+							<option value='jsx'>JSX</option>
+							<option value='tsx'>TSX</option>
 						</select>
 					</label>
 
@@ -271,36 +279,41 @@ export default function CreatePasteForm() {
 						<span>Paste as guest</span>
 					</label>
 				</div>
-				<div className='divider lg:divider-horizontal'></div>
-				<div className='w-full lg:w-4/5 flex flex-col gap-4'>
-					<label className='form-control w-full flex-1'>
+				<div className='divider lg:divider-horizontal' />
+				<div className='w-full lg:w-4/5 flex flex-col gap-4 min-w-0'>
+					<div className='form-control w-full flex-1 min-w-0'>
 						<div className='label'>
 							<span className='label-text'>Content</span>
 						</div>
-						<div className='relative h-[500px] w-full font-mono textarea textarea-bordered overflow-hidden'>
-							<textarea
-								ref={textareaRef}
-								onKeyDown={handleTabKey}
-								onChange={(e) => {
-									setValue('content', e.target.value, {
-										shouldValidate: true
-									})
-									highlightCode(e.target.value)
-								}}
-								onScroll={syncScroll}
-								placeholder='Paste your code here...'
-								className='absolute inset-0 z-10 resize-none bg-transparent text-transparent caret-white overflow-auto p-3'
-								spellCheck={false}
-								value={content}
-							/>
-							<pre
-								ref={preRef}
-								aria-hidden='true'
-								className={`absolute inset-0 overflow-auto p-3 pointer-events-none language-${syntax}`}
-								style={{ whiteSpace: 'pre-wrap' }}
+						<div className='min-w-0'>
+							<Controller
+								name='content'
+								control={control}
+								render={({ field }) => (
+									<CodeMirror
+										value={field.value}
+										extensions={[
+											extensions[
+												syntax as keyof typeof extensions
+											]
+										]}
+										onChange={field.onChange}
+										basicSetup={{
+											lineNumbers: true,
+											highlightActiveLine: true,
+											highlightActiveLineGutter: true,
+											foldGutter: true,
+											tabSize: 4,
+											history: true,
+											syntaxHighlighting: true
+										}}
+										className='rounded-lg border overflow-auto h-[550px]'
+										theme={cmTheme}
+									/>
+								)}
 							/>
 						</div>
-					</label>
+					</div>
 					<button type='submit' className='btn btn-primary w-full'>
 						Submit
 					</button>

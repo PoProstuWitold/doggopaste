@@ -12,10 +12,15 @@
 		"ncu": "ncu"
 	},
 	"dependencies": {
+		"@codemirror/lang-cpp": "^6.0.2",
+		"@codemirror/lang-html": "^6.4.9",
+		"@codemirror/lang-javascript": "^6.2.3",
+		"@codemirror/lang-python": "^6.1.7",
 		"@headlessui/react": "^2.2.0",
 		"@tailwindcss/postcss": "^4.0.12",
+		"@uiw/codemirror-themes-all": "^4.23.10",
+		"@uiw/react-codemirror": "^4.23.10",
 		"better-auth": "^1.2.3",
-		"highlight.js": "^11.11.1",
 		"next": "^15.2.1",
 		"react": "^19.0.0",
 		"react-dom": "^19.0.0",

@@ -18,8 +18,7 @@
 			"apps/**/.turbo",
 			".vscode",
 			"NavBar.tsx",
-			"globals.css",
-			"CreatePasteForm.tsx"
+			"globals.css"
 		]
 	},
 	"formatter": {

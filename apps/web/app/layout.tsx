@@ -4,6 +4,7 @@ import { Toaster } from 'react-hot-toast'
 import { Container } from './components/Container'
 import { Footer } from './components/Footer'
 import { Navbar } from './components/NavBar'
+import { ThemeProvider } from './context/ThemeContext'
 
 export const metadata: Metadata = {
 	title: 'DoggoPaste',
@@ -19,10 +20,12 @@ export default function RootLayout({
 		<html lang='en' suppressHydrationWarning>
 			<head />
 			<body>
-				<Navbar />
-				<Container>{children}</Container>
-				<Footer />
-				<Toaster />
+				<ThemeProvider defaultTheme='system'>
+					<Navbar />
+					<Container>{children}</Container>
+					<Footer />
+					<Toaster />
+				</ThemeProvider>
 			</body>
 		</html>
 	)
