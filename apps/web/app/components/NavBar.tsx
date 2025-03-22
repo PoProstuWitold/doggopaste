@@ -43,7 +43,7 @@ export const Navbar: React.FC = () => {
 							<ProfileIcon />
 						</li>
 						<li>
-							<ThemeSelector defaultTheme='system' />
+							<ThemeSelector />
 						</li>
 					</ul>
 				</div>
