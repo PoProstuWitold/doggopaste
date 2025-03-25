@@ -21,32 +21,32 @@ importers:
   apps/api:
     dependencies:
       '@hono/node-server':
-        specifier: ^1.13.8
-        version: 1.13.8(hono@4.7.4)
+        specifier: ^1.14.0
+        version: 1.14.0(hono@4.7.5)
       '@hono/zod-validator':
         specifier: ^0.4.3
-        version: 0.4.3(hono@4.7.4)(zod@3.24.2)
+        version: 0.4.3(hono@4.7.5)(zod@3.24.2)
       '@scalar/hono-api-reference':
-        specifier: ^0.5.183
-        version: 0.5.183(hono@4.7.4)
+        specifier: ^0.7.2
+        version: 0.7.2(hono@4.7.5)
       argon2:
         specifier: ^0.41.1
         version: 0.41.1
       better-auth:
-        specifier: ^1.2.3
-        version: 1.2.3(typescript@5.8.2)
+        specifier: ^1.2.4
+        version: 1.2.4(typescript@5.8.2)
       drizzle-orm:
-        specifier: ^0.40.0
-        version: 0.40.0(@types/pg@8.11.11)(gel@2.0.1)(kysely@0.27.6)(pg@8.13.3)
+        specifier: ^0.41.0
+        version: 0.41.0(@types/pg@8.11.11)(gel@2.0.1)(kysely@0.27.6)(pg@8.14.1)
       hono:
-        specifier: ^4.7.4
-        version: 4.7.4
+        specifier: ^4.7.5
+        version: 4.7.5
       hono-openapi:
         specifier: ^0.4.6
-        version: 0.4.6(@hono/zod-validator@0.4.3(hono@4.7.4)(zod@3.24.2))(hono@4.7.4)(valibot@1.0.0-beta.15(typescript@5.8.2))(zod@3.24.2)
+        version: 0.4.6(@hono/zod-validator@0.4.3(hono@4.7.5)(zod@3.24.2))(hono@4.7.5)(valibot@1.0.0-beta.15(typescript@5.8.2))(zod@3.24.2)
       pg:
-        specifier: ^8.13.3
-        version: 8.13.3
+        specifier: ^8.14.1
+        version: 8.14.1
       random-words:
         specifier: ^2.0.1
         version: 2.0.1
@@ -58,8 +58,8 @@ importers:
         version: 3.24.2
     devDependencies:
       '@types/node':
-        specifier: ^22.13.9
-        version: 22.13.9
+        specifier: ^22.13.13
+        version: 22.13.13
       '@types/pg':
         specifier: ^8.11.11
         version: 8.11.11
@@ -97,8 +97,8 @@ importers:
         specifier: ^2.2.0
         version: 2.2.0(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       '@tailwindcss/postcss':
-        specifier: ^4.0.12
-        version: 4.0.12
+        specifier: ^4.0.16
+        version: 4.0.16
       '@uiw/codemirror-themes-all':
         specifier: ^4.23.10
         version: 4.23.10(@codemirror/language@6.11.0)(@codemirror/state@6.5.2)(@codemirror/view@6.36.4)
@@ -106,11 +106,11 @@ importers:
         specifier: ^4.23.10
         version: 4.23.10(@babel/runtime@7.26.10)(@codemirror/autocomplete@6.18.6)(@codemirror/language@6.11.0)(@codemirror/lint@6.8.4)(@codemirror/search@6.5.10)(@codemirror/state@6.5.2)(@codemirror/theme-one-dark@6.1.2)(@codemirror/view@6.36.4)(codemirror@6.0.1)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       better-auth:
-        specifier: ^1.2.3
-        version: 1.2.3(typescript@5.8.2)
+        specifier: ^1.2.4
+        version: 1.2.4(typescript@5.8.2)
       next:
-        specifier: ^15.2.1
-        version: 15.2.1(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
+        specifier: ^15.2.4
+        version: 15.2.4(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       react:
         specifier: ^19.0.0
         version: 19.0.0
@@ -127,33 +127,33 @@ importers:
         specifier: ^5.5.0
         version: 5.5.0(react@19.0.0)
       ua-parser-js:
-        specifier: ^2.0.2
-        version: 2.0.2
+        specifier: ^2.0.3
+        version: 2.0.3
       zod:
         specifier: ^3.24.2
         version: 3.24.2
     devDependencies:
       '@types/node':
-        specifier: ^22.13.9
-        version: 22.13.9
+        specifier: ^22.13.13
+        version: 22.13.13
       '@types/react':
-        specifier: 19.0.10
-        version: 19.0.10
+        specifier: 19.0.12
+        version: 19.0.12
       '@types/react-dom':
         specifier: 19.0.4
-        version: 19.0.4(@types/react@19.0.10)
+        version: 19.0.4(@types/react@19.0.12)
       autoprefixer:
-        specifier: ^10.4.20
-        version: 10.4.20(postcss@8.5.3)
+        specifier: ^10.4.21
+        version: 10.4.21(postcss@8.5.3)
       daisyui:
-        specifier: ^5.0.0
-        version: 5.0.0
+        specifier: ^5.0.9
+        version: 5.0.9
       postcss:
         specifier: ^8.5.3
         version: 8.5.3
       tailwindcss:
-        specifier: ^4.0.12
-        version: 4.0.12
+        specifier: ^4.0.16
+        version: 4.0.16
       typescript:
         specifier: ^5.8.2
         version: 5.8.2
@@ -735,8 +735,8 @@ packages:
   '@hexagon/base64@1.1.28':
     resolution: {integrity: sha512-lhqDEAvWixy3bZ+UOYbPwUbBkwBq5C1LAJ/xPC8Oi+lL54oyakv/npbA0aU2hgCsx/1NUd4IBvV03+aUBWxerw==}
 
-  '@hono/node-server@1.13.8':
-    resolution: {integrity: sha512-fsn8ucecsAXUoVxrUil0m13kOEq4mkX4/4QozCqmY+HpGfKl74OYSn8JcMA8GnG0ClfdRI4/ZSeG7zhFaVg+wg==}
+  '@hono/node-server@1.14.0':
+    resolution: {integrity: sha512-YUCxJwgHRKSqjrdTk9e4VMGKN27MK5r4+MGPyZTgKH+IYbK+KtYbHeOcPGJ91KGGD6RIQiz2dAHxvjauNhOS8g==}
     engines: {node: '>=18.14.1'}
     peerDependencies:
       hono: ^4
@@ -889,53 +889,53 @@ packages:
   '@marijn/find-cluster-break@1.0.2':
     resolution: {integrity: sha512-l0h88YhZFyKdXIFNfSWpyjStDjGHwZ/U7iobcK1cQQD8sejsONdQtTVU+1wVN1PBw40PiiHB1vA5S7VTfQiP9g==}
 
-  '@next/env@15.2.1':
-    resolution: {integrity: sha512-JmY0qvnPuS2NCWOz2bbby3Pe0VzdAQ7XpEB6uLIHmtXNfAsAO0KLQLkuAoc42Bxbo3/jMC3dcn9cdf+piCcG2Q==}
+  '@next/env@15.2.4':
+    resolution: {integrity: sha512-+SFtMgoiYP3WoSswuNmxJOCwi06TdWE733D+WPjpXIe4LXGULwEaofiiAy6kbS0+XjM5xF5n3lKuBwN2SnqD9g==}
 
-  '@next/swc-darwin-arm64@15.2.1':
-    resolution: {integrity: sha512-aWXT+5KEREoy3K5AKtiKwioeblmOvFFjd+F3dVleLvvLiQ/mD//jOOuUcx5hzcO9ISSw4lrqtUPntTpK32uXXQ==}
+  '@next/swc-darwin-arm64@15.2.4':
+    resolution: {integrity: sha512-1AnMfs655ipJEDC/FHkSr0r3lXBgpqKo4K1kiwfUf3iE68rDFXZ1TtHdMvf7D0hMItgDZ7Vuq3JgNMbt/+3bYw==}
     engines: {node: '>= 10'}
     cpu: [arm64]
     os: [darwin]
 
-  '@next/swc-darwin-x64@15.2.1':
-    resolution: {integrity: sha512-E/w8ervu4fcG5SkLhvn1NE/2POuDCDEy5gFbfhmnYXkyONZR68qbUlJlZwuN82o7BrBVAw+tkR8nTIjGiMW1jQ==}
+  '@next/swc-darwin-x64@15.2.4':
+    resolution: {integrity: sha512-3qK2zb5EwCwxnO2HeO+TRqCubeI/NgCe+kL5dTJlPldV/uwCnUgC7VbEzgmxbfrkbjehL4H9BPztWOEtsoMwew==}
     engines: {node: '>= 10'}
     cpu: [x64]
     os: [darwin]
 
-  '@next/swc-linux-arm64-gnu@15.2.1':
-    resolution: {integrity: sha512-gXDX5lIboebbjhiMT6kFgu4svQyjoSed6dHyjx5uZsjlvTwOAnZpn13w9XDaIMFFHw7K8CpBK7HfDKw0VZvUXQ==}
+  '@next/swc-linux-arm64-gnu@15.2.4':
+    resolution: {integrity: sha512-HFN6GKUcrTWvem8AZN7tT95zPb0GUGv9v0d0iyuTb303vbXkkbHDp/DxufB04jNVD+IN9yHy7y/6Mqq0h0YVaQ==}
     engines: {node: '>= 10'}
     cpu: [arm64]
     os: [linux]
 
-  '@next/swc-linux-arm64-musl@15.2.1':
-    resolution: {integrity: sha512-3v0pF/adKZkBWfUffmB/ROa+QcNTrnmYG4/SS+r52HPwAK479XcWoES2I+7F7lcbqc7mTeVXrIvb4h6rR/iDKg==}
+  '@next/swc-linux-arm64-musl@15.2.4':
+    resolution: {integrity: sha512-Oioa0SORWLwi35/kVB8aCk5Uq+5/ZIumMK1kJV+jSdazFm2NzPDztsefzdmzzpx5oGCJ6FkUC7vkaUseNTStNA==}
     engines: {node: '>= 10'}
     cpu: [arm64]
     os: [linux]
 
-  '@next/swc-linux-x64-gnu@15.2.1':
-    resolution: {integrity: sha512-RbsVq2iB6KFJRZ2cHrU67jLVLKeuOIhnQB05ygu5fCNgg8oTewxweJE8XlLV+Ii6Y6u4EHwETdUiRNXIAfpBww==}
+  '@next/swc-linux-x64-gnu@15.2.4':
+    resolution: {integrity: sha512-yb5WTRaHdkgOqFOZiu6rHV1fAEK0flVpaIN2HB6kxHVSy/dIajWbThS7qON3W9/SNOH2JWkVCyulgGYekMePuw==}
     engines: {node: '>= 10'}
     cpu: [x64]
     os: [linux]
 
-  '@next/swc-linux-x64-musl@15.2.1':
-    resolution: {integrity: sha512-QHsMLAyAIu6/fWjHmkN/F78EFPKmhQlyX5C8pRIS2RwVA7z+t9cTb0IaYWC3EHLOTjsU7MNQW+n2xGXr11QPpg==}
+  '@next/swc-linux-x64-musl@15.2.4':
+    resolution: {integrity: sha512-Dcdv/ix6srhkM25fgXiyOieFUkz+fOYkHlydWCtB0xMST6X9XYI3yPDKBZt1xuhOytONsIFJFB08xXYsxUwJLw==}
     engines: {node: '>= 10'}
     cpu: [x64]
     os: [linux]
 
-  '@next/swc-win32-arm64-msvc@15.2.1':
-    resolution: {integrity: sha512-Gk42XZXo1cE89i3hPLa/9KZ8OuupTjkDmhLaMKFohjf9brOeZVEa3BQy1J9s9TWUqPhgAEbwv6B2+ciGfe54Vw==}
+  '@next/swc-win32-arm64-msvc@15.2.4':
+    resolution: {integrity: sha512-dW0i7eukvDxtIhCYkMrZNQfNicPDExt2jPb9AZPpL7cfyUo7QSNl1DjsHjmmKp6qNAqUESyT8YFl/Aw91cNJJg==}
     engines: {node: '>= 10'}
     cpu: [arm64]
     os: [win32]
 
-  '@next/swc-win32-x64-msvc@15.2.1':
-    resolution: {integrity: sha512-YjqXCl8QGhVlMR8uBftWk0iTmvtntr41PhG1kvzGp0sUP/5ehTM+cwx25hKE54J0CRnHYjSGjSH3gkHEaHIN9g==}
+  '@next/swc-win32-x64-msvc@15.2.4':
+    resolution: {integrity: sha512-SbnWkJmkS7Xl3kre8SdMF6F/XDh1DTFEhp0jRTj/uB8iPKoU2bb2NDfcu+iifv1+mxQEd1g2vvSxcZbXSKyWiQ==}
     engines: {node: '>= 10'}
     cpu: [x64]
     os: [win32]
@@ -1006,12 +1006,12 @@ packages:
     peerDependencies:
       react: ^16.8.0 || ^17.0.0-rc.1 || ^18.0.0 || ^19.0.0-rc.1
 
-  '@scalar/core@0.1.0':
-    resolution: {integrity: sha512-LnszTA7JmdtmEX1qqhkIKTKFQiFstRYiDs0NrXdYtMk/WB55Bnoz0Lk8BWw1qC1NhMpP5It+PRYZke727Gxrbw==}
+  '@scalar/core@0.2.2':
+    resolution: {integrity: sha512-jT6vfz37yQnqVjj8kXYEmV2cZvODW1A0PXjxZ9DzKqjm9tIssNwP4vvcdD1FSuiMcj+rgxAxOjIYMI+ybI/9RQ==}
     engines: {node: '>=18'}
 
-  '@scalar/hono-api-reference@0.5.183':
-    resolution: {integrity: sha512-rzWxFDjBW2VvMRAPqcwgkC+7ZMmBZZVIMFUejwjF+618jKvQ09ooVyBb9hUnW4KaUElUqx/iIFflLKf0A95iLA==}
+  '@scalar/hono-api-reference@0.7.2':
+    resolution: {integrity: sha512-CnxRjGfAWPGkV0D5TEwogvn7JSx/f9+ag6vQ6g25GigSDyj/UkxYbZqwe/QOV/+2EWruY3ypOvPuNMf7nEQhdQ==}
     engines: {node: '>=18'}
     peerDependencies:
       hono: ^4.0.0
@@ -1020,8 +1020,8 @@ packages:
     resolution: {integrity: sha512-HQQudOSQBU7ewzfnBW9LhDmBE2XOJgSfwrh5PlUB7zJup/kaRkBGNgV2wMjNz9Af/uztiU/xNrO179FysmUT+g==}
     engines: {node: '>=18'}
 
-  '@scalar/types@0.0.39':
-    resolution: {integrity: sha512-oAMBWC5B0I8IViCuaV1ydoUAm7KJSwHZfCuLMea15tSKh0/wj9H1KQvDJF8gE/cUVwjQvj4q94GB22kBT4XGNQ==}
+  '@scalar/types@0.1.2':
+    resolution: {integrity: sha512-5kCLQRwAYWt1ds110EaUb9yonc3KoQYNyo4YUCigJLOnoNugbqkEX0zRudGevItiuk+xg4uOYd30r3C+6xAasA==}
     engines: {node: '>=18'}
 
   '@simplewebauthn/browser@13.1.0':
@@ -1040,81 +1040,81 @@ packages:
   '@swc/helpers@0.5.15':
     resolution: {integrity: sha512-JQ5TuMi45Owi4/BIMAJBoSQoOJu12oOk/gADqlcUL9JEdHB8vyjUSsxqeNXnmXHjYKMi2WcYtezGEEhqUI/E2g==}
 
-  '@tailwindcss/node@4.0.12':
-    resolution: {integrity: sha512-a6J11K1Ztdln9OrGfoM75/hChYPcHYGNYimqciMrvKXRmmPaS8XZTHhdvb5a3glz4Kd4ZxE1MnuFE2c0fGGmtg==}
+  '@tailwindcss/node@4.0.16':
+    resolution: {integrity: sha512-T6IK79hoCFScxD5tRxWMtwqwSs4sT81Vw+YbzL7RZD0/Ndm4y5kboV7LdQ97YGH6udoOZyVT/uEfrnU2L5Nkog==}
 
-  '@tailwindcss/oxide-android-arm64@4.0.12':
-    resolution: {integrity: sha512-dAXCaemu3mHLXcA5GwGlQynX8n7tTdvn5i1zAxRvZ5iC9fWLl5bGnjZnzrQqT7ttxCvRwdVf3IHUnMVdDBO/kQ==}
+  '@tailwindcss/oxide-android-arm64@4.0.16':
+    resolution: {integrity: sha512-mieEZrNLHatpQu6ad0pWBnL8ObUE9ZSe4eoX6GKTqsKv98AxNw5lUa5nJM0FgD8rYJeZ2dPtHNN/YM2xY9R+9g==}
     engines: {node: '>= 10'}
     cpu: [arm64]
     os: [android]
 
-  '@tailwindcss/oxide-darwin-arm64@4.0.12':
-    resolution: {integrity: sha512-vPNI+TpJQ7sizselDXIJdYkx9Cu6JBdtmRWujw9pVIxW8uz3O2PjgGGzL/7A0sXI8XDjSyRChrUnEW9rQygmJQ==}
+  '@tailwindcss/oxide-darwin-arm64@4.0.16':
+    resolution: {integrity: sha512-pfilSvgrX5UDdjh09gGVMhAPfZVucm4AnwFBkwBe6WFl7gzMAZ92/35GC0yMDeS+W+RNSXclXJz+HamF1iS/aA==}
     engines: {node: '>= 10'}
     cpu: [arm64]
     os: [darwin]
 
-  '@tailwindcss/oxide-darwin-x64@4.0.12':
-    resolution: {integrity: sha512-RL/9jM41Fdq4Efr35C5wgLx98BirnrfwuD+zgMFK6Ir68HeOSqBhW9jsEeC7Y/JcGyPd3MEoJVIU4fAb7YLg7A==}
+  '@tailwindcss/oxide-darwin-x64@4.0.16':
+    resolution: {integrity: sha512-Z3lJY3yUjlHbzgXwWH9Y6IGeSGXfwjbXuvTPolyJUGMZl2ZaHdQMPOZ8dMll1knSLjctOif+QijMab0+GSXYLQ==}
     engines: {node: '>= 10'}
     cpu: [x64]
     os: [darwin]
 
-  '@tailwindcss/oxide-freebsd-x64@4.0.12':
-    resolution: {integrity: sha512-7WzWiax+LguJcMEimY0Q4sBLlFXu1tYxVka3+G2M9KmU/3m84J3jAIV4KZWnockbHsbb2XgrEjtlJKVwHQCoRA==}
+  '@tailwindcss/oxide-freebsd-x64@4.0.16':
+    resolution: {integrity: sha512-dv2U8Yc7vKIDyiJkUouhjsl+dTfRImNyZRCTFsHvvrhJvenYZBRtE/wDSYlZHR0lWKhIocxk1ScAkAcMR3F3QQ==}
     engines: {node: '>= 10'}
     cpu: [x64]
     os: [freebsd]
 
-  '@tailwindcss/oxide-linux-arm-gnueabihf@4.0.12':
-    resolution: {integrity: sha512-X9LRC7jjE1QlfIaBbXjY0PGeQP87lz5mEfLSVs2J1yRc9PSg1tEPS9NBqY4BU9v5toZgJgzKeaNltORyTs22TQ==}
+  '@tailwindcss/oxide-linux-arm-gnueabihf@4.0.16':
+    resolution: {integrity: sha512-XBRXyUUyjMg5UMiyuQxJqWSs27w0V49g1iPuhrFakmu1/idDSly59XYteRrI2onoS9AzmMwfyzdiQSJXM89+PQ==}
     engines: {node: '>= 10'}
     cpu: [arm]
     os: [linux]
 
-  '@tailwindcss/oxide-linux-arm64-gnu@4.0.12':
-    resolution: {integrity: sha512-i24IFNq2402zfDdoWKypXz0ZNS2G4NKaA82tgBlE2OhHIE+4mg2JDb5wVfyP6R+MCm5grgXvurcIcKWvo44QiQ==}
+  '@tailwindcss/oxide-linux-arm64-gnu@4.0.16':
+    resolution: {integrity: sha512-+bL1zkU8MDzv389OqyI0SJbrG9kGsdxf+k2ZAILlw1TPWg5oeMkwoqgaQRqGwpOHz0pycT94qIgWVNJavAz+Iw==}
     engines: {node: '>= 10'}
     cpu: [arm64]
     os: [linux]
 
-  '@tailwindcss/oxide-linux-arm64-musl@4.0.12':
-    resolution: {integrity: sha512-LmOdshJBfAGIBG0DdBWhI0n5LTMurnGGJCHcsm9F//ISfsHtCnnYIKgYQui5oOz1SUCkqsMGfkAzWyNKZqbGNw==}
+  '@tailwindcss/oxide-linux-arm64-musl@4.0.16':
+    resolution: {integrity: sha512-Uqfnyx9oFxoX+/iy9pIDTADHLLNwuZNB8QSp+BwKAhtHjBTTYmDAdxKy3u8lJZve1aOd+S145eWpn3tT08cm4w==}
     engines: {node: '>= 10'}
     cpu: [arm64]
     os: [linux]
 
-  '@tailwindcss/oxide-linux-x64-gnu@4.0.12':
-    resolution: {integrity: sha512-OSK667qZRH30ep8RiHbZDQfqkXjnzKxdn0oRwWzgCO8CoTxV+MvIkd0BWdQbYtYuM1wrakARV/Hwp0eA/qzdbw==}
+  '@tailwindcss/oxide-linux-x64-gnu@4.0.16':
+    resolution: {integrity: sha512-v0Hx0KD94F6FG0IW3AJyCzQepSv/47xhShCgiWJ2TNVu406VtREkGpJtxS0Gu1ecSXhgn/36LToU5kivAuQiPg==}
     engines: {node: '>= 10'}
     cpu: [x64]
     os: [linux]
 
-  '@tailwindcss/oxide-linux-x64-musl@4.0.12':
-    resolution: {integrity: sha512-uylhWq6OWQ8krV8Jk+v0H/3AZKJW6xYMgNMyNnUbbYXWi7hIVdxRKNUB5UvrlC3RxtgsK5EAV2i1CWTRsNcAnA==}
+  '@tailwindcss/oxide-linux-x64-musl@4.0.16':
+    resolution: {integrity: sha512-CjV6hhQAVNYw6W2EXp1ZVL81CTSBEh6nTmS5EZq5rdEhqOx8G8YQtFKjcCJiojsS+vMXt9r87gGoORJcHOA0lg==}
     engines: {node: '>= 10'}
     cpu: [x64]
     os: [linux]
 
-  '@tailwindcss/oxide-win32-arm64-msvc@4.0.12':
-    resolution: {integrity: sha512-XDLnhMoXZEEOir1LK43/gHHwK84V1GlV8+pAncUAIN2wloeD+nNciI9WRIY/BeFTqES22DhTIGoilSO39xDb2g==}
+  '@tailwindcss/oxide-win32-arm64-msvc@4.0.16':
+    resolution: {integrity: sha512-Pj9eaAtXYH7NrvVx8Jx0U/sEaNpcIbb8d+2WnC8a+xL0LfIXWsu4AyeRUeTeb8Ty4fTGhKSJTohdXj1iSdN9WQ==}
     engines: {node: '>= 10'}
     cpu: [arm64]
     os: [win32]
 
-  '@tailwindcss/oxide-win32-x64-msvc@4.0.12':
-    resolution: {integrity: sha512-I/BbjCLpKDQucvtn6rFuYLst1nfFwSMYyPzkx/095RE+tuzk5+fwXuzQh7T3fIBTcbn82qH/sFka7yPGA50tLw==}
+  '@tailwindcss/oxide-win32-x64-msvc@4.0.16':
+    resolution: {integrity: sha512-M35hoFrhJe+1QdSiZpn85y8K7tfEVw6lswv3TjIfJ44JiPjPzZ4URg+rsTjTq0kue6NjNCbbY99AsRSSpJZxOw==}
     engines: {node: '>= 10'}
     cpu: [x64]
     os: [win32]
 
-  '@tailwindcss/oxide@4.0.12':
-    resolution: {integrity: sha512-DWb+myvJB9xJwelwT9GHaMc1qJj6MDXRDR0CS+T8IdkejAtu8ctJAgV4r1drQJLPeS7mNwq2UHW2GWrudTf63A==}
+  '@tailwindcss/oxide@4.0.16':
+    resolution: {integrity: sha512-n++F8Rzvo/e+FYxikZgKW4sCRXneSstLhTI91Ay9toeRcE/+WO33SQWzGtgmjWJcTupXZreskJ8FCr9b+kdXew==}
     engines: {node: '>= 10'}
 
-  '@tailwindcss/postcss@4.0.12':
-    resolution: {integrity: sha512-r59Sdr8djCW4dL3kvc4aWU8PHdUAVM3O3te2nbYzXsWwKLlHPCuUoZAc9FafXb/YyNDZOMI7sTbKTKFmwOrMjw==}
+  '@tailwindcss/postcss@4.0.16':
+    resolution: {integrity: sha512-wgNRdylwhUk04T27Mlpi4fB4adPxChbqrqKhvYFJmYP+zW4Ren+PwYoUcns0xlbjolcjQuAG+GZHRQAfF7LOCg==}
 
   '@tanstack/react-virtual@3.13.2':
     resolution: {integrity: sha512-LceSUgABBKF6HSsHK2ZqHzQ37IKV/jlaWbHm+NyTa3/WNb/JZVcThDuTainf+PixltOOcFCYXwxbLpOX9sCx+g==}
@@ -1134,8 +1134,8 @@ packages:
   '@types/node-fetch@2.6.12':
     resolution: {integrity: sha512-8nneRWKCg3rMtF69nLQJnOYUcbafYeFSjqkw3jCRLsqkWFlHaoQrr5mXmofFGOx3DKn7UfmBMyov8ySvLRVldA==}
 
-  '@types/node@22.13.9':
-    resolution: {integrity: sha512-acBjXdRJ3A6Pb3tqnw9HZmyR3Fiol3aGxRCK1x3d+6CDAMjl7I649wpSd+yNURCjbOUGu9tqtLKnTGxmK6CyGw==}
+  '@types/node@22.13.13':
+    resolution: {integrity: sha512-ClsL5nMwKaBRwPcCvH8E7+nU4GxHVx1axNvMZTFHMEfNI7oahimt26P5zjVCRrjiIWj6YFXfE1v3dEp94wLcGQ==}
 
   '@types/pg@8.11.11':
     resolution: {integrity: sha512-kGT1qKM8wJQ5qlawUrEkXgvMSXoV213KfMGXcwfDwUIfUHXqXYXOfS1nE1LINRJVVVx5wCm70XnFlMHaIcQAfw==}
@@ -1145,8 +1145,8 @@ packages:
     peerDependencies:
       '@types/react': ^19.0.0
 
-  '@types/react@19.0.10':
-    resolution: {integrity: sha512-JuRQ9KXLEjaUNjTWpzuR231Z2WpIwczOkBEIvbHNCzQefFIT0L8IqE6NV6ULLyC1SI/i234JnDoMkfg+RjQj2g==}
+  '@types/react@19.0.12':
+    resolution: {integrity: sha512-V6Ar115dBDrjbtXSrS+/Oruobc+qVbbUxDFC1RSbRqLt5SYvxxyIDrSC85RWml54g+jfNeEMZhEj7wW07ONQhA==}
 
   '@uiw/codemirror-extensions-basic-setup@4.23.10':
     resolution: {integrity: sha512-zpbmSeNs3OU/f/Eyd6brFnjsBUYwv2mFjWxlAsIRSwTlW+skIT60rQHFBSfsj/5UVSxSLWVeUYczN7AyXvgTGQ==}
@@ -1322,8 +1322,8 @@ packages:
   asynckit@0.4.0:
     resolution: {integrity: sha512-Oei9OH4tRh0YqU3GxhX79dM/mwVgvbZJaSNaRk+bshkj0S5cfHcgYakreBjrHwatXKbz+IoIdYLxrKim2MjW0Q==}
 
-  autoprefixer@10.4.20:
-    resolution: {integrity: sha512-XY25y5xSv/wEoqzDyXXME4AFfkZI0P23z6Fs3YgymDnKJkCGOnkL0iTxCa85UTqaSgfcqyf3UA6+c7wUvx/16g==}
+  autoprefixer@10.4.21:
+    resolution: {integrity: sha512-O+A6LWV5LDHSJD3LjHYoNi4VLsj/Whi7k6zG12xTYaU4cQ8oxQGckXNX8cRHK5yOZ/ppVHe0ZBXGzSV9jXdVbQ==}
     engines: {node: ^10 || ^12 || >=14}
     hasBin: true
     peerDependencies:
@@ -1336,8 +1336,8 @@ packages:
     resolution: {integrity: sha512-lGe34o6EHj9y3Kts9R4ZYs/Gr+6N7MCaMlIFA3F1R2O5/m7K06AxfSeO5530PEERE6/WyEg3lsuyw4GHlPZHog==}
     engines: {node: ^4.5.0 || >= 5.9}
 
-  better-auth@1.2.3:
-    resolution: {integrity: sha512-y97/ah2SOWaW81IRg36m7xMSMVl7ATaHie/nhQ0in/reVlEX/6juVPszNqq0gcTwQtFsB8oe15wQKgdf4yHP9Q==}
+  better-auth@1.2.4:
+    resolution: {integrity: sha512-/ZK2jbUjm8JwdeCLFrUWUBmexPyI9PkaLVXWLWtN60sMDHTY8B5G72wcHglo1QMFBaw4G0qFkP5ayl9k6XfDaA==}
 
   better-call@1.0.4:
     resolution: {integrity: sha512-NdAihYdkS0IOz1mtz8mw1gWacCxR9r921U8YqB+VB6++rt8edMG13vVL16Y4TBL4XkjMK/DUewEsOOFkw9LJYQ==}
@@ -1363,6 +1363,9 @@ packages:
 
   caniuse-lite@1.0.30001701:
     resolution: {integrity: sha512-faRs/AW3jA9nTwmJBSO1PQ6L/EOgsB5HMQQq4iCu5zhPgVVgO/pZRHlmatwijZKetFw8/Pr4q6dEN8sJuq8qTw==}
+
+  caniuse-lite@1.0.30001707:
+    resolution: {integrity: sha512-3qtRjw/HQSMlDWf+X79N206fepf4SOOU6SQLMaq/0KkZLmSjPxAkBOQQ+FxbHKfHmYLZFfdWsO3KA90ceHPSnw==}
 
   client-only@0.0.1:
     resolution: {integrity: sha512-IV3Ou0jSMzZrd3pZ48nLkT9DA7Ag1pnPzaiQhpW7c3RbcqqzvzzVu+L8gfqMp/8IM2MQtSiqaCxrrcfu8I8rMA==}
@@ -1414,8 +1417,8 @@ packages:
   csstype@3.1.3:
     resolution: {integrity: sha512-M1uQkMl8rQK/szD0LNhtqxIPLpimGm8sOBwU7lLnCpSbTyY3yeU1Vc7l4KT5zT4s/yOxHH5O7tIuuLOCnLADRw==}
 
-  daisyui@5.0.0:
-    resolution: {integrity: sha512-U0K9Bac3Bi3zZGm6ojrw12F0vBHTpEgf46zv/BYxLe07hF0Xnx7emIQliwaRBgJuYhY0BhwQ6wSnq5cJXHA2yA==}
+  daisyui@5.0.9:
+    resolution: {integrity: sha512-RsaehHh45f+0shWgZZaOY09/8eOae2voRsqJCD71j9yrnYgcke0Nj5ys0ZxrW4SPcc4+q96kWyJu0Z8P1zZdoA==}
 
   debug@4.3.7:
     resolution: {integrity: sha512-Er2nc/H7RrMXZBFCEim6TCmMk02Z8vLC2Rbi1KEBggpo0fS6l0S1nnapwmIi3yW/+GOJap1Krg4w0Hg80oCqgQ==}
@@ -1444,8 +1447,8 @@ packages:
     resolution: {integrity: sha512-l6dMSE100u7sDaTbLczibrQZjA35jLsHNqIV+jmhNVO3O8jzM6kywMOmV9uOz9ZVSCMPQhAZEFjL/qDPVrqpUA==}
     hasBin: true
 
-  drizzle-orm@0.40.0:
-    resolution: {integrity: sha512-7ptk/HQiMSrEZHnAsSlBESXWj52VwgMmyTEfoNmpNN2ZXpcz13LwHfXTIghsAEud7Z5UJhDOp8U07ujcqme7wg==}
+  drizzle-orm@0.41.0:
+    resolution: {integrity: sha512-7A4ZxhHk9gdlXmTdPj/lREtP+3u8KvZ4yEN6MYVxBzZGex5Wtdc+CWSbu7btgF6TB0N+MNPrvW7RKBbxJchs/Q==}
     peerDependencies:
       '@aws-sdk/client-rds-data': '>=3'
       '@cloudflare/workers-types': '>=4'
@@ -1716,8 +1719,8 @@ packages:
       zod-openapi:
         optional: true
 
-  hono@4.7.4:
-    resolution: {integrity: sha512-Pst8FuGqz3L7tFF+u9Pu70eI0xa5S3LPUmrNd5Jm8nTHze9FxLTK9Kaj5g/k4UcwuJSXTP65SyHOPLrffpcAJg==}
+  hono@4.7.5:
+    resolution: {integrity: sha512-fDOK5W2C1vZACsgLONigdZTRZxuBqFtcKh7bUQ5cVSbwI2RWjloJDcgFOVzbQrlI6pCmhlTsVYZ7zpLj4m4qMQ==}
     engines: {node: '>=16.9.0'}
 
   hookable@5.5.3:
@@ -1867,8 +1870,8 @@ packages:
     resolution: {integrity: sha512-+EUsqGPLsM+j/zdChZjsnX51g4XrHFOIXwfnCVPGlQk/k5giakcKsuxCObBRu6DSm9opw/O6slWbJdghQM4bBg==}
     engines: {node: '>= 0.6'}
 
-  next@15.2.1:
-    resolution: {integrity: sha512-zxbsdQv3OqWXybK5tMkPCBKyhIz63RstJ+NvlfkaLMc/m5MwXgz2e92k+hSKcyBpyADhMk2C31RIiaDjUZae7g==}
+  next@15.2.4:
+    resolution: {integrity: sha512-VwL+LAaPSxEkd3lU2xWbgEOtrM8oedmyhBqaVNmgKB+GvZlCy9rgaEc+y2on0wv+l0oSFqLtYD6dcC1eAedUaQ==}
     engines: {node: ^18.18.0 || ^19.8.0 || >= 20.0.0}
     hasBin: true
     peerDependencies:
@@ -1944,13 +1947,16 @@ packages:
     resolution: {integrity: sha512-BM/Thnrw5jm2kKLE5uJkXqqExRUY/toLHda65XgFTBTFYZyopbKjBe29Ii3RbkvlsMoFwD+tHeGaCjjv0gHlyw==}
     engines: {node: '>=4'}
 
-  pg-pool@3.7.1:
-    resolution: {integrity: sha512-xIOsFoh7Vdhojas6q3596mXFsR8nwBQBXX5JiV7p9buEVAGqYL4yFzclON5P9vFrpu1u7Zwl2oriyDa89n0wbw==}
+  pg-pool@3.8.0:
+    resolution: {integrity: sha512-VBw3jiVm6ZOdLBTIcXLNdSotb6Iy3uOCwDGFAksZCXmi10nyRvnP2v3jl4d+IsLYRyXf6o9hIm/ZtUzlByNUdw==}
     peerDependencies:
       pg: '>=8.0'
 
   pg-protocol@1.7.1:
     resolution: {integrity: sha512-gjTHWGYWsEgy9MsY0Gp6ZJxV24IjDqdpTW7Eh0x+WfJLFsm/TJx1MzL6T0D88mBvkpxotCQ6TwW6N+Kko7lhgQ==}
+
+  pg-protocol@1.8.0:
+    resolution: {integrity: sha512-jvuYlEkL03NRvOoyoRktBK7+qU5kOvlAwvmrH8sr3wbLrOdVWsRxQfz8mMy9sZFsqJ1hEWNfdWKI4SAmoL+j7g==}
 
   pg-types@2.2.0:
     resolution: {integrity: sha512-qTAAlrEsl8s4OiEQY69wDvcMIdQN6wdz5ojQiOy6YRMuynxenON0O5oCpJI6lshc6scgAY8qvJ2On/p+CXY0GA==}
@@ -1960,8 +1966,8 @@ packages:
     resolution: {integrity: sha512-cRL3JpS3lKMGsKaWndugWQoLOCoP+Cic8oseVcbr0qhPzYD5DWXK+RZ9LY9wxRf7RQia4SCwQlXk0q6FCPrVng==}
     engines: {node: '>=10'}
 
-  pg@8.13.3:
-    resolution: {integrity: sha512-P6tPt9jXbL9HVu/SSRERNYaYG++MjnscnegFh9pPHihfoBSujsrka0hyuymMzeJKFWrcG8wvCKy8rCe8e5nDUQ==}
+  pg@8.14.1:
+    resolution: {integrity: sha512-0TdbqfjwIun9Fm/r89oB7RFQ0bLgduAhiIqIXOsyKoiC/L54DbuAAzIEN/9Op0f1Po9X7iCPXGoa/Ah+2aI8Xw==}
     engines: {node: '>= 8.0.0'}
     peerDependencies:
       pg-native: '>=3.0.1'
@@ -2174,8 +2180,8 @@ packages:
   tabbable@6.2.0:
     resolution: {integrity: sha512-Cat63mxsVJlzYvN51JmVXIgNoUokrIaT2zLclCXjRd8boZ0004U4KCs/sToJ75C6sdlByWxpYnb5Boif1VSFew==}
 
-  tailwindcss@4.0.12:
-    resolution: {integrity: sha512-bT0hJo91FtncsAMSsMzUkoo/iEU0Xs5xgFgVC9XmdM9bw5MhZuQFjPNl6wxAE0SiQF/YTZJa+PndGWYSDtuxAg==}
+  tailwindcss@4.0.16:
+    resolution: {integrity: sha512-i/SbG7ThTIcLshcFJL+je7hCv9dPis4Xl4XNeel6iZNX42pp/BZ+la+SbZIPoYE+PN8zhKbnHblpQ/lhOWwIeQ==}
 
   tapable@2.2.1:
     resolution: {integrity: sha512-GNzQvQTOIP6RyTfE2Qxb8ZVlNmw0n88vp1szwWRimP02mnTsx3Wtn5qRdqY9w2XduFNUgvOwhNnQsjwCp+kqaQ==}
@@ -2234,8 +2240,8 @@ packages:
   ua-is-frozen@0.1.2:
     resolution: {integrity: sha512-RwKDW2p3iyWn4UbaxpP2+VxwqXh0jpvdxsYpZ5j/MLLiQOfbsV5shpgQiw93+KMYQPcteeMQ289MaAFzs3G9pw==}
 
-  ua-parser-js@2.0.2:
-    resolution: {integrity: sha512-NoaPjzMmuUlo5bJ2jrdkzvHL8gpcgVrhUugAqsqsundDO3R8rw7R0OwxLoWhcKtsTb+6u3z9dES8m6+vxEcJog==}
+  ua-parser-js@2.0.3:
+    resolution: {integrity: sha512-LZyXZdNttONW8LjzEH3Z8+6TE7RfrEiJqDKyh0R11p/kxvrV2o9DrT2FGZO+KVNs3k+drcIQ6C3En6wLnzJGpw==}
     hasBin: true
 
   uncrypto@0.1.3:
@@ -2724,13 +2730,13 @@ snapshots:
 
   '@hexagon/base64@1.1.28': {}
 
-  '@hono/node-server@1.13.8(hono@4.7.4)':
+  '@hono/node-server@1.14.0(hono@4.7.5)':
     dependencies:
-      hono: 4.7.4
+      hono: 4.7.5
 
-  '@hono/zod-validator@0.4.3(hono@4.7.4)(zod@3.24.2)':
+  '@hono/zod-validator@0.4.3(hono@4.7.5)(zod@3.24.2)':
     dependencies:
-      hono: 4.7.4
+      hono: 4.7.5
       zod: 3.24.2
 
   '@img/sharp-darwin-arm64@0.33.5':
@@ -2863,30 +2869,30 @@ snapshots:
 
   '@marijn/find-cluster-break@1.0.2': {}
 
-  '@next/env@15.2.1': {}
+  '@next/env@15.2.4': {}
 
-  '@next/swc-darwin-arm64@15.2.1':
+  '@next/swc-darwin-arm64@15.2.4':
     optional: true
 
-  '@next/swc-darwin-x64@15.2.1':
+  '@next/swc-darwin-x64@15.2.4':
     optional: true
 
-  '@next/swc-linux-arm64-gnu@15.2.1':
+  '@next/swc-linux-arm64-gnu@15.2.4':
     optional: true
 
-  '@next/swc-linux-arm64-musl@15.2.1':
+  '@next/swc-linux-arm64-musl@15.2.4':
     optional: true
 
-  '@next/swc-linux-x64-gnu@15.2.1':
+  '@next/swc-linux-x64-gnu@15.2.4':
     optional: true
 
-  '@next/swc-linux-x64-musl@15.2.1':
+  '@next/swc-linux-x64-musl@15.2.4':
     optional: true
 
-  '@next/swc-win32-arm64-msvc@15.2.1':
+  '@next/swc-win32-arm64-msvc@15.2.4':
     optional: true
 
-  '@next/swc-win32-x64-msvc@15.2.1':
+  '@next/swc-win32-x64-msvc@15.2.4':
     optional: true
 
   '@noble/ciphers@0.6.0': {}
@@ -2979,18 +2985,18 @@ snapshots:
     dependencies:
       react: 19.0.0
 
-  '@scalar/core@0.1.0':
+  '@scalar/core@0.2.2':
     dependencies:
-      '@scalar/types': 0.0.39
+      '@scalar/types': 0.1.2
 
-  '@scalar/hono-api-reference@0.5.183(hono@4.7.4)':
+  '@scalar/hono-api-reference@0.7.2(hono@4.7.5)':
     dependencies:
-      '@scalar/core': 0.1.0
-      hono: 4.7.4
+      '@scalar/core': 0.2.2
+      hono: 4.7.5
 
   '@scalar/openapi-types@0.1.9': {}
 
-  '@scalar/types@0.0.39':
+  '@scalar/types@0.1.2':
     dependencies:
       '@scalar/openapi-types': 0.1.9
       '@unhead/schema': 1.11.20
@@ -3016,67 +3022,67 @@ snapshots:
     dependencies:
       tslib: 2.8.1
 
-  '@tailwindcss/node@4.0.12':
+  '@tailwindcss/node@4.0.16':
     dependencies:
       enhanced-resolve: 5.18.1
       jiti: 2.4.2
-      tailwindcss: 4.0.12
+      tailwindcss: 4.0.16
 
-  '@tailwindcss/oxide-android-arm64@4.0.12':
+  '@tailwindcss/oxide-android-arm64@4.0.16':
     optional: true
 
-  '@tailwindcss/oxide-darwin-arm64@4.0.12':
+  '@tailwindcss/oxide-darwin-arm64@4.0.16':
     optional: true
 
-  '@tailwindcss/oxide-darwin-x64@4.0.12':
+  '@tailwindcss/oxide-darwin-x64@4.0.16':
     optional: true
 
-  '@tailwindcss/oxide-freebsd-x64@4.0.12':
+  '@tailwindcss/oxide-freebsd-x64@4.0.16':
     optional: true
 
-  '@tailwindcss/oxide-linux-arm-gnueabihf@4.0.12':
+  '@tailwindcss/oxide-linux-arm-gnueabihf@4.0.16':
     optional: true
 
-  '@tailwindcss/oxide-linux-arm64-gnu@4.0.12':
+  '@tailwindcss/oxide-linux-arm64-gnu@4.0.16':
     optional: true
 
-  '@tailwindcss/oxide-linux-arm64-musl@4.0.12':
+  '@tailwindcss/oxide-linux-arm64-musl@4.0.16':
     optional: true
 
-  '@tailwindcss/oxide-linux-x64-gnu@4.0.12':
+  '@tailwindcss/oxide-linux-x64-gnu@4.0.16':
     optional: true
 
-  '@tailwindcss/oxide-linux-x64-musl@4.0.12':
+  '@tailwindcss/oxide-linux-x64-musl@4.0.16':
     optional: true
 
-  '@tailwindcss/oxide-win32-arm64-msvc@4.0.12':
+  '@tailwindcss/oxide-win32-arm64-msvc@4.0.16':
     optional: true
 
-  '@tailwindcss/oxide-win32-x64-msvc@4.0.12':
+  '@tailwindcss/oxide-win32-x64-msvc@4.0.16':
     optional: true
 
-  '@tailwindcss/oxide@4.0.12':
+  '@tailwindcss/oxide@4.0.16':
     optionalDependencies:
-      '@tailwindcss/oxide-android-arm64': 4.0.12
-      '@tailwindcss/oxide-darwin-arm64': 4.0.12
-      '@tailwindcss/oxide-darwin-x64': 4.0.12
-      '@tailwindcss/oxide-freebsd-x64': 4.0.12
-      '@tailwindcss/oxide-linux-arm-gnueabihf': 4.0.12
-      '@tailwindcss/oxide-linux-arm64-gnu': 4.0.12
-      '@tailwindcss/oxide-linux-arm64-musl': 4.0.12
-      '@tailwindcss/oxide-linux-x64-gnu': 4.0.12
-      '@tailwindcss/oxide-linux-x64-musl': 4.0.12
-      '@tailwindcss/oxide-win32-arm64-msvc': 4.0.12
-      '@tailwindcss/oxide-win32-x64-msvc': 4.0.12
+      '@tailwindcss/oxide-android-arm64': 4.0.16
+      '@tailwindcss/oxide-darwin-arm64': 4.0.16
+      '@tailwindcss/oxide-darwin-x64': 4.0.16
+      '@tailwindcss/oxide-freebsd-x64': 4.0.16
+      '@tailwindcss/oxide-linux-arm-gnueabihf': 4.0.16
+      '@tailwindcss/oxide-linux-arm64-gnu': 4.0.16
+      '@tailwindcss/oxide-linux-arm64-musl': 4.0.16
+      '@tailwindcss/oxide-linux-x64-gnu': 4.0.16
+      '@tailwindcss/oxide-linux-x64-musl': 4.0.16
+      '@tailwindcss/oxide-win32-arm64-msvc': 4.0.16
+      '@tailwindcss/oxide-win32-x64-msvc': 4.0.16
 
-  '@tailwindcss/postcss@4.0.12':
+  '@tailwindcss/postcss@4.0.16':
     dependencies:
       '@alloc/quick-lru': 5.2.0
-      '@tailwindcss/node': 4.0.12
-      '@tailwindcss/oxide': 4.0.12
+      '@tailwindcss/node': 4.0.16
+      '@tailwindcss/oxide': 4.0.16
       lightningcss: 1.29.2
       postcss: 8.5.3
-      tailwindcss: 4.0.12
+      tailwindcss: 4.0.16
 
   '@tanstack/react-virtual@3.13.2(react-dom@19.0.0(react@19.0.0))(react@19.0.0)':
     dependencies:
@@ -3088,30 +3094,30 @@ snapshots:
 
   '@types/cors@2.8.17':
     dependencies:
-      '@types/node': 22.13.9
+      '@types/node': 22.13.13
 
   '@types/json-schema@7.0.15': {}
 
   '@types/node-fetch@2.6.12':
     dependencies:
-      '@types/node': 22.13.9
+      '@types/node': 22.13.13
       form-data: 4.0.2
 
-  '@types/node@22.13.9':
+  '@types/node@22.13.13':
     dependencies:
       undici-types: 6.20.0
 
   '@types/pg@8.11.11':
     dependencies:
-      '@types/node': 22.13.9
+      '@types/node': 22.13.13
       pg-protocol: 1.7.1
       pg-types: 4.0.2
 
-  '@types/react-dom@19.0.4(@types/react@19.0.10)':
+  '@types/react-dom@19.0.4(@types/react@19.0.12)':
     dependencies:
-      '@types/react': 19.0.10
+      '@types/react': 19.0.12
 
-  '@types/react@19.0.10':
+  '@types/react@19.0.12':
     dependencies:
       csstype: 3.1.3
 
@@ -3507,10 +3513,10 @@ snapshots:
 
   asynckit@0.4.0: {}
 
-  autoprefixer@10.4.20(postcss@8.5.3):
+  autoprefixer@10.4.21(postcss@8.5.3):
     dependencies:
       browserslist: 4.24.4
-      caniuse-lite: 1.0.30001701
+      caniuse-lite: 1.0.30001707
       fraction.js: 4.3.7
       normalize-range: 0.1.2
       picocolors: 1.1.1
@@ -3521,7 +3527,7 @@ snapshots:
 
   base64id@2.0.0: {}
 
-  better-auth@1.2.3(typescript@5.8.2):
+  better-auth@1.2.4(typescript@5.8.2):
     dependencies:
       '@better-auth/utils': 0.2.3
       '@better-fetch/fetch': 1.1.15
@@ -3552,7 +3558,7 @@ snapshots:
 
   browserslist@4.24.4:
     dependencies:
-      caniuse-lite: 1.0.30001701
+      caniuse-lite: 1.0.30001707
       electron-to-chromium: 1.5.113
       node-releases: 2.0.19
       update-browserslist-db: 1.1.3(browserslist@4.24.4)
@@ -3569,6 +3575,8 @@ snapshots:
       function-bind: 1.1.2
 
   caniuse-lite@1.0.30001701: {}
+
+  caniuse-lite@1.0.30001707: {}
 
   client-only@0.0.1: {}
 
@@ -3625,7 +3633,7 @@ snapshots:
 
   csstype@3.1.3: {}
 
-  daisyui@5.0.0: {}
+  daisyui@5.0.9: {}
 
   debug@4.3.7:
     dependencies:
@@ -3649,12 +3657,12 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  drizzle-orm@0.40.0(@types/pg@8.11.11)(gel@2.0.1)(kysely@0.27.6)(pg@8.13.3):
+  drizzle-orm@0.41.0(@types/pg@8.11.11)(gel@2.0.1)(kysely@0.27.6)(pg@8.14.1):
     optionalDependencies:
       '@types/pg': 8.11.11
       gel: 2.0.1
       kysely: 0.27.6
-      pg: 8.13.3
+      pg: 8.14.1
 
   dunder-proto@1.0.1:
     dependencies:
@@ -3675,7 +3683,7 @@ snapshots:
   engine.io@6.6.4:
     dependencies:
       '@types/cors': 2.8.17
-      '@types/node': 22.13.9
+      '@types/node': 22.13.13
       accepts: 1.3.8
       base64id: 2.0.0
       cookie: 0.7.2
@@ -3877,16 +3885,16 @@ snapshots:
     dependencies:
       function-bind: 1.1.2
 
-  hono-openapi@0.4.6(@hono/zod-validator@0.4.3(hono@4.7.4)(zod@3.24.2))(hono@4.7.4)(valibot@1.0.0-beta.15(typescript@5.8.2))(zod@3.24.2):
+  hono-openapi@0.4.6(@hono/zod-validator@0.4.3(hono@4.7.5)(zod@3.24.2))(hono@4.7.5)(valibot@1.0.0-beta.15(typescript@5.8.2))(zod@3.24.2):
     dependencies:
       json-schema-walker: 2.0.0
     optionalDependencies:
-      '@hono/zod-validator': 0.4.3(hono@4.7.4)(zod@3.24.2)
-      hono: 4.7.4
+      '@hono/zod-validator': 0.4.3(hono@4.7.5)(zod@3.24.2)
+      hono: 4.7.5
       valibot: 1.0.0-beta.15(typescript@5.8.2)
       zod: 3.24.2
 
-  hono@4.7.4: {}
+  hono@4.7.5: {}
 
   hookable@5.5.3: {}
 
@@ -3989,9 +3997,9 @@ snapshots:
 
   negotiator@0.6.3: {}
 
-  next@15.2.1(react-dom@19.0.0(react@19.0.0))(react@19.0.0):
+  next@15.2.4(react-dom@19.0.0(react@19.0.0))(react@19.0.0):
     dependencies:
-      '@next/env': 15.2.1
+      '@next/env': 15.2.4
       '@swc/counter': 0.1.3
       '@swc/helpers': 0.5.15
       busboy: 1.6.0
@@ -4001,14 +4009,14 @@ snapshots:
       react-dom: 19.0.0(react@19.0.0)
       styled-jsx: 5.1.6(react@19.0.0)
     optionalDependencies:
-      '@next/swc-darwin-arm64': 15.2.1
-      '@next/swc-darwin-x64': 15.2.1
-      '@next/swc-linux-arm64-gnu': 15.2.1
-      '@next/swc-linux-arm64-musl': 15.2.1
-      '@next/swc-linux-x64-gnu': 15.2.1
-      '@next/swc-linux-x64-musl': 15.2.1
-      '@next/swc-win32-arm64-msvc': 15.2.1
-      '@next/swc-win32-x64-msvc': 15.2.1
+      '@next/swc-darwin-arm64': 15.2.4
+      '@next/swc-darwin-x64': 15.2.4
+      '@next/swc-linux-arm64-gnu': 15.2.4
+      '@next/swc-linux-arm64-musl': 15.2.4
+      '@next/swc-linux-x64-gnu': 15.2.4
+      '@next/swc-linux-x64-musl': 15.2.4
+      '@next/swc-win32-arm64-msvc': 15.2.4
+      '@next/swc-win32-x64-msvc': 15.2.4
       sharp: 0.33.5
     transitivePeerDependencies:
       - '@babel/core'
@@ -4048,11 +4056,13 @@ snapshots:
 
   pg-numeric@1.0.2: {}
 
-  pg-pool@3.7.1(pg@8.13.3):
+  pg-pool@3.8.0(pg@8.14.1):
     dependencies:
-      pg: 8.13.3
+      pg: 8.14.1
 
   pg-protocol@1.7.1: {}
+
+  pg-protocol@1.8.0: {}
 
   pg-types@2.2.0:
     dependencies:
@@ -4072,11 +4082,11 @@ snapshots:
       postgres-interval: 3.0.0
       postgres-range: 1.1.4
 
-  pg@8.13.3:
+  pg@8.14.1:
     dependencies:
       pg-connection-string: 2.7.0
-      pg-pool: 3.7.1(pg@8.13.3)
-      pg-protocol: 1.7.1
+      pg-pool: 3.8.0(pg@8.14.1)
+      pg-protocol: 1.8.0
       pg-types: 2.2.0
       pgpass: 1.0.5
     optionalDependencies:
@@ -4289,7 +4299,7 @@ snapshots:
 
   tabbable@6.2.0: {}
 
-  tailwindcss@4.0.12: {}
+  tailwindcss@4.0.16: {}
 
   tapable@2.2.1: {}
 
@@ -4335,7 +4345,7 @@ snapshots:
 
   ua-is-frozen@0.1.2: {}
 
-  ua-parser-js@2.0.2:
+  ua-parser-js@2.0.3:
     dependencies:
       '@types/node-fetch': 2.6.12
       detect-europe-js: 0.1.2
