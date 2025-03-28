@@ -8,7 +8,7 @@ import { HttpStatusCodes } from '../utils/index.js'
 
 export const errorHandler = (err: Error | HTTPResponseError, c: Context) => {
 	const message = err.message || 'Internal Server Error'
-	const status: StatusCode = 500
+	let status: StatusCode = 500
 
 	if (err instanceof GenericException) {
 		return c.json(err, err.statusCode as ContentfulStatusCode)
@@ -28,10 +28,25 @@ export const errorHandler = (err: Error | HTTPResponseError, c: Context) => {
 	const error: GenericException = {
 		statusCode: status,
 		name: 'Internal Server Error',
-		message,
-		stack: err.stack,
-		cause: err.cause
+		message
 	}
+
+	if (err.message.includes('duplicate key')) {
+		const match = error.message.match(/unique constraint "(.+?)"/)
+		if (match) {
+			const constraint = match[1] // => "pastes_slug_unique"
+			const [_table, column] = constraint
+				.replace('_unique', '')
+				.split('_')
+			// const message = `"${column}" on "${table}" already exists`
+			const message = `Value '${column}' already exists`
+			error.message = message
+		}
+		error.name = 'Conflict'
+		error.statusCode = 409
+		status = 409
+	}
+	console.error(err)
 
 	return c.json(error, status)
 }

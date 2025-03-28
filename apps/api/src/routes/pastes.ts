@@ -12,7 +12,8 @@ import { userGuard } from '../middlewares/user-guard.js'
 import type { Env } from '../types.js'
 import {
 	validatorCreatePasteJson,
-	validatorParamStringId
+	validatorParamStringId,
+	validatorParamStringSlug
 } from '../utils/index.js'
 import { DoggoUtils } from '../utils/index.js'
 
@@ -21,6 +22,7 @@ const app = new Hono<Env>()
 		// 1. Validated JSON data
 		const {
 			title,
+			slug,
 			content,
 			category,
 			tags,
@@ -84,7 +86,7 @@ const app = new Hono<Env>()
 			visibility,
 			folderId,
 			userId,
-			slug: await DoggoUtils.generateSlug(),
+			slug: slug.length ? slug : await DoggoUtils.generateSlug(),
 			expiresAt: await DoggoUtils.calculateExpirationDate(expiration),
 			passwordHash: passwordEnabled ? await argon2.hash(password) : null
 		}
@@ -119,26 +121,45 @@ const app = new Hono<Env>()
 			data: pastes
 		})
 	})
-	.get('/:id', userGuard, validatorParamStringId, async (c) => {
-		const { id } = c.req.valid('param')
-		const paste = await db
-			.select()
-			.from(pastesTable)
-			.where(eq(pastesTable.id, id))
+	.get('/:slug', validatorParamStringSlug, async (c) => {
+		const { slug } = c.req.valid('param')
+
+		const paste = (
+			await db
+				.select()
+				.from(pastesTable)
+				.where(eq(pastesTable.slug, slug))
+		)[0]
+
+		if (!paste) {
+			c.status(404)
+			return c.json({
+				success: false,
+				message: 'Paste not found'
+			})
+		}
 
 		c.status(200)
 		return c.json({
 			success: true,
-			data: paste[0]
+			data: paste
 		})
 	})
 	.put('/:id', validatorParamStringId, async (c) => {
-		const paste = 'paste'
-		return c.json(paste)
+		const paste = {
+			title: 'test'
+		}
+		return c.json({
+			success: true,
+			data: paste
+		})
 	})
-	.delete('/:id', validatorParamStringId, async (c) => {
+	.delete('/:id', userGuard, validatorParamStringId, async (c) => {
 		const paste = 'paste'
-		return c.json(paste)
+		return c.json({
+			success: true,
+			data: paste
+		})
 	})
 
 export default app

@@ -38,7 +38,11 @@ const extensions = {
 	plaintext: []
 }
 
-export default function CreatePasteForm() {
+export default function EditPasteForm({
+	slug
+}: {
+	slug: string
+}) {
 	const { cmTheme } = useTheme()
 	const router = useRouter()
 	const {
@@ -101,7 +105,7 @@ export default function CreatePasteForm() {
 
 		const json = await res.json()
 		if (res.ok) {
-			toast.success('Paste created successfully!')
+			toast.success('Paste edited successfully!')
 			reset()
 			await wait(2000)
 			router.push(`/p/${json.data.slug}`)
@@ -117,7 +121,7 @@ export default function CreatePasteForm() {
 		>
 			<div className='flex flex-row items-center text-3xl font-bold text-center gap-4 justify-center'>
 				<FaFileCode className='w-10 h-10' />
-				Create New Paste
+				Edit Paste "{slug}"
 			</div>
 
 			<div className='flex flex-col lg:flex-row gap-4'>

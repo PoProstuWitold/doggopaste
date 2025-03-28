@@ -2,6 +2,35 @@ import { zValidator } from '@hono/zod-validator'
 import { z } from 'zod'
 import { GenericException } from '../exceptions/index.js'
 
+const paramStringSlug = z.object({
+	slug: z.string({
+		message: 'Id must be a string'
+	})
+})
+
+export const validatorParamStringSlug = zValidator(
+	'param',
+	paramStringSlug,
+	async (result, _c) => {
+		if (!result.success) {
+			throw new GenericException({
+				statusCode: 400,
+				name: 'Bad Request',
+				message: 'Invalid id',
+				details: [
+					{
+						id:
+							result.success === false
+								? result.error.issues[0].message
+								: 'Invalid id',
+						value: String(result.data.slug)
+					}
+				]
+			})
+		}
+	}
+)
+
 const paramStringId = z.object({
 	id: z.string({
 		message: 'Id must be a string'
@@ -33,6 +62,10 @@ export const validatorParamStringId = zValidator(
 
 const createPasteSchema = z.object({
 	title: z.string().min(1, 'Title is required').max(100, 'Title is too long'),
+	slug: z
+		.string()
+		.optional()
+		.or(z.string().min(1, 'Slug is required').max(40, 'Slug is too long')),
 	content: z.string().min(1, 'Content cannot be empty'),
 	category: z
 		.enum(
