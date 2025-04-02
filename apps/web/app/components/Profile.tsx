@@ -2,30 +2,15 @@
 import { useState } from 'react'
 import { FaCheck } from 'react-icons/fa'
 import { FaXmark } from 'react-icons/fa6'
+import type { Session, User } from '../types'
 import { ChangePassword } from './ChangePassword'
 import { CustomDialog } from './CustomDialog'
 import { EditUser } from './EditUser'
 
 export interface ProfileProps {
 	currentSession: {
-		session: {
-			id: string
-			expiresAt: Date
-			token: string
-			createdAt: Date
-			updatedAt: Date
-			ipAddress?: string | null
-			userAgent?: string | null
-		}
-		user: {
-			id: string
-			name: string
-			email: string
-			emailVerified: boolean
-			role: string
-			createdAt: Date
-			updatedAt: Date
-		}
+		session: Session
+		user: User
 	}
 	hasCredentialAccount: boolean
 }
@@ -98,7 +83,7 @@ export const Profile: React.FC<ProfileProps> = ({
 						</div>
 						<div className='flex md:flex-row md:items-center gap-2 flex-col'>
 							<CustomDialog
-								btnText='Edit User'
+								btnContent='Edit User'
 								title='Edit User'
 								description='Edit your user information'
 							>
@@ -106,7 +91,7 @@ export const Profile: React.FC<ProfileProps> = ({
 							</CustomDialog>
 							{hasCredentialAccount ? (
 								<CustomDialog
-									btnText='Change Password'
+									btnContent='Change Password'
 									title='Change Password'
 									description='Change your password'
 								>

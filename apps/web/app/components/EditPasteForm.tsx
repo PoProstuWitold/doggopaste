@@ -1,47 +1,20 @@
 'use client'
 
-import { cpp } from '@codemirror/lang-cpp'
-import { html } from '@codemirror/lang-html'
-import { javascript } from '@codemirror/lang-javascript'
-import { python } from '@codemirror/lang-python'
 import CodeMirror from '@uiw/react-codemirror'
 import { useRouter } from 'next/navigation'
 import { Controller, useForm } from 'react-hook-form'
 import toast from 'react-hot-toast'
 import { FaFileCode } from 'react-icons/fa'
 import { useTheme } from '../context/ThemeContext'
-import { wait } from '../utils/functions'
-
-interface PasteForm {
-	slug: string
-	title: string
-	content: string
-	category: string
-	tags: string[]
-	syntax: string
-	expiration: string
-	visibility: string
-	folder: string
-	passwordEnabled: boolean
-	password: string
-	pasteAsGuest: boolean
-}
-
-const extensions = {
-	javascript: javascript(),
-	typescript: javascript({ typescript: true }),
-	jsx: javascript({ jsx: true }),
-	tsx: javascript({ jsx: true, typescript: true }),
-	python: python(),
-	cpp: cpp(),
-	html: html(),
-	plaintext: []
-}
+import type { Paste, PasteForm } from '../types'
+import { extensions, wait } from '../utils/functions'
 
 export default function EditPasteForm({
-	slug
+	slug,
+	paste
 }: {
 	slug: string
+	paste: Paste
 }) {
 	const { cmTheme } = useTheme()
 	const router = useRouter()
@@ -50,28 +23,29 @@ export default function EditPasteForm({
 		handleSubmit,
 		watch,
 		formState: { errors },
-		reset,
 		setValue,
+		setError,
 		control
 	} = useForm<PasteForm>({
 		defaultValues: {
-			slug: '',
-			content: '',
-			syntax: 'plaintext',
-			category: 'none',
-			expiration: 'never',
-			visibility: 'public',
-			folder: 'none',
+			title: paste.title,
+			slug: paste.slug,
+			content: paste.content,
+			syntax: paste.syntax,
+			category: paste.category,
+			expiration: paste.expiration,
+			visibility: paste.visibility,
+			folder: paste.folderId || 'none',
 			passwordEnabled: false,
 			password: '',
 			pasteAsGuest: false,
-			tags: []
+			tags: paste.tags
 		}
 	})
 
 	const syntax = watch('syntax')
 	const passwordEnabled = watch('passwordEnabled')
-	const tags = watch('tags', [])
+	const tags = watch('tags', paste.tags)
 
 	const addTag = (event: React.KeyboardEvent<HTMLInputElement>) => {
 		if (event.key === 'Enter' || event.key === ',') {
@@ -92,9 +66,9 @@ export default function EditPasteForm({
 
 	const onSubmit = async (data: PasteForm) => {
 		const res = await fetch(
-			`${process.env.NEXT_PUBLIC_HONO_API_URL}/api/pastes`,
+			`${process.env.NEXT_PUBLIC_HONO_API_URL}/api/pastes/${slug}`,
 			{
-				method: 'POST',
+				method: 'PUT',
 				headers: {
 					'Content-Type': 'application/json'
 				},
@@ -105,12 +79,36 @@ export default function EditPasteForm({
 
 		const json = await res.json()
 		if (res.ok) {
+			console.log(json)
 			toast.success('Paste edited successfully!')
-			reset()
-			await wait(2000)
-			router.push(`/p/${json.data.slug}`)
+			await wait(1000)
+			if (json.data.expiration !== 'burn_after_read') {
+				router.push(`/p/${json.data.slug}`)
+			} else {
+				toast.success(
+					'Your paste has expiration set to "burn after read". It will be deleted after you view it. Redirecting in 5 seconds...',
+					{
+						duration: 5000
+					}
+				)
+				await wait(5000)
+				router.push('/')
+			}
 		} else {
 			toast.error(json.message)
+
+			// map api errors to form errors
+			if (json.details && Array.isArray(json.details)) {
+				for (const fieldError of json.details) {
+					for (const key in fieldError) {
+						const message = fieldError[key]
+						setError(key as keyof PasteForm, {
+							type: 'server',
+							message
+						})
+					}
+				}
+			}
 		}
 	}
 
@@ -137,7 +135,7 @@ export default function EditPasteForm({
 							placeholder='Paste Title'
 						/>
 						{errors.title && (
-							<p className='text-error'>Title is required</p>
+							<p className='text-error'>{errors.title.message}</p>
 						)}
 					</label>
 

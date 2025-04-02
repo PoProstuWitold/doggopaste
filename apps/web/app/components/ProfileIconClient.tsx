@@ -6,11 +6,9 @@ import Link from 'next/link'
 import toast from 'react-hot-toast'
 
 interface ProfileIconClientProps {
-	user:
-		| {
-				name?: string
-		  }
-		| undefined
+	user?: {
+		name: string
+	}
 }
 
 export const ProfileIconClient: React.FC<ProfileIconClientProps> = ({

@@ -8,11 +8,11 @@ import {
 	pastesTable,
 	tagsTable
 } from '../db/schema.js'
+import { GenericException } from '../exceptions/generic-exception.js'
 import { userGuard } from '../middlewares/user-guard.js'
 import type { Env } from '../types.js'
 import {
 	validatorCreatePasteJson,
-	validatorParamStringId,
 	validatorParamStringSlug
 } from '../utils/index.js'
 import { DoggoUtils } from '../utils/index.js'
@@ -34,6 +34,14 @@ const app = new Hono<Env>()
 			passwordEnabled,
 			pasteAsGuest
 		} = c.req.valid('json')
+
+		if (slug === 'create') {
+			throw new GenericException({
+				statusCode: 409,
+				name: 'Conflict',
+				message: 'Slug cannot be "create"'
+			})
+		}
 
 		// 2. User ID
 		const user = c.get('user')
@@ -124,41 +132,217 @@ const app = new Hono<Env>()
 	.get('/:slug', validatorParamStringSlug, async (c) => {
 		const { slug } = c.req.valid('param')
 
-		const paste = (
-			await db
-				.select()
-				.from(pastesTable)
-				.where(eq(pastesTable.slug, slug))
-		)[0]
+		// 1. Get paste by slug
+		const [paste] = await db
+			.select()
+			.from(pastesTable)
+			.where(eq(pastesTable.slug, slug))
 
 		if (!paste) {
-			c.status(404)
-			return c.json({
-				success: false,
+			throw new GenericException({
+				statusCode: 404,
+				name: 'NotFound',
 				message: 'Paste not found'
 			})
 		}
 
+		// 2. Get tags for the paste
+		const tags = await db
+			.select({ name: tagsTable.name })
+			.from(pasteTagsTable)
+			.innerJoin(tagsTable, eq(pasteTagsTable.tagId, tagsTable.id))
+			.where(eq(pasteTagsTable.pasteId, paste.id))
+
+		// 3. Delete if burn_after_read BEFORE sending response
+		if (paste.expiration === 'burn_after_read') {
+			await db.delete(pastesTable).where(eq(pastesTable.id, paste.id))
+
+			// Optional: clean up orphan tags
+			await db.execute(`
+		  DELETE FROM tags
+		  WHERE id NOT IN (
+			SELECT DISTINCT tag_id FROM paste_tags
+		  )
+		`)
+		}
+
+		// 4. Return response
+		return c.json({
+			success: true,
+			data: {
+				...paste,
+				tags: tags.map((t) => t.name)
+			}
+		})
+	})
+	.put(
+		'/:slug',
+		userGuard,
+		validatorParamStringSlug,
+		validatorCreatePasteJson,
+		async (c) => {
+			const { slug } = c.req.valid('param')
+			const user = c.get('user')
+			const {
+				title,
+				slug: newSlug,
+				content,
+				category,
+				tags,
+				syntax,
+				expiration,
+				visibility,
+				folder,
+				password,
+				passwordEnabled
+			} = c.req.valid('json')
+
+			// 1. Get paste by slug
+			const [paste] = await db
+				.select()
+				.from(pastesTable)
+				.where(eq(pastesTable.slug, slug))
+
+			if (!paste) {
+				throw new GenericException({
+					statusCode: 404,
+					name: 'NotFound',
+					message: 'Paste not found'
+				})
+			}
+
+			// 2. Check if the user is the owner of the paste
+			if (paste.userId !== user.id) {
+				throw new GenericException({
+					statusCode: 403,
+					name: 'Forbidden',
+					message: 'You are not the owner of this paste'
+				})
+			}
+
+			// 3. Create folder if it does not exist
+			let folderId = null
+			if (folder !== 'none') {
+				const [dbFolder] = await db
+					.insert(foldersTable)
+					.values({
+						name: folder,
+						userId: user.id
+					})
+					.onConflictDoNothing()
+					.returning({ id: foldersTable.id })
+
+				folderId = dbFolder?.id || paste.folderId
+			}
+
+			// 4. Update paste
+			const values = {
+				title,
+				slug: newSlug.length
+					? newSlug
+					: await DoggoUtils.generateSlug(),
+				content,
+				category,
+				syntax,
+				expiration,
+				expiresAt: await DoggoUtils.calculateExpirationDate(expiration),
+				visibility,
+				folderId,
+				passwordHash: passwordEnabled
+					? await argon2.hash(password)
+					: null
+			}
+			const updatedPaste = await db
+				.update(pastesTable)
+				.set(values)
+				.where(eq(pastesTable.slug, slug))
+				.returning()
+
+			// 5. Remove old tags
+			await db
+				.delete(pasteTagsTable)
+				.where(eq(pasteTagsTable.pasteId, paste.id))
+
+			// 6. Add new tags
+			const tagIds: string[] = []
+
+			for (const tagName of tags) {
+				// 6.1. Check if tag exists
+				const [existingTag] = await db
+					.select({ id: tagsTable.id })
+					.from(tagsTable)
+					.where(eq(tagsTable.name, tagName))
+
+				let tagId = existingTag?.id
+
+				// if tag does not exist, create it
+				if (!tagId) {
+					const [newTag] = await db
+						.insert(tagsTable)
+						.values({ name: tagName })
+						.returning({ id: tagsTable.id })
+
+					tagId = newTag.id
+				}
+
+				if (tagId) {
+					tagIds.push(tagId)
+				}
+			}
+
+			// 7. Add tags to paste
+			if (tagIds.length > 0) {
+				await db.insert(pasteTagsTable).values(
+					tagIds.map((tagId) => ({
+						pasteId: paste.id,
+						tagId
+					}))
+				)
+			}
+
+			// 7. Return response
+			c.status(200)
+			return c.json({
+				success: true,
+				data: updatedPaste[0]
+			})
+		}
+	)
+	.delete('/:slug', userGuard, validatorParamStringSlug, async (c) => {
+		const { slug } = c.req.valid('param')
+		const user = c.get('user')
+
+		// 1. Find the paste by slug
+		const [paste] = await db
+			.select()
+			.from(pastesTable)
+			.where(eq(pastesTable.slug, slug))
+
+		if (!paste) {
+			throw new GenericException({
+				statusCode: 404,
+				name: 'NotFound',
+				message: 'Paste not found'
+			})
+		}
+
+		// 2. Check if the user is the owner
+		if (paste.userId !== user.id) {
+			throw new GenericException({
+				statusCode: 403,
+				name: 'Forbidden',
+				message: 'You are not the owner of this paste'
+			})
+		}
+
+		// 3. Delete the paste (cascade deletes tags via FK)
+		await db.delete(pastesTable).where(eq(pastesTable.id, paste.id))
+
+		// 4. Return success
 		c.status(200)
 		return c.json({
 			success: true,
-			data: paste
-		})
-	})
-	.put('/:id', validatorParamStringId, async (c) => {
-		const paste = {
-			title: 'test'
-		}
-		return c.json({
-			success: true,
-			data: paste
-		})
-	})
-	.delete('/:id', userGuard, validatorParamStringId, async (c) => {
-		const paste = 'paste'
-		return c.json({
-			success: true,
-			data: paste
+			message: 'Paste deleted successfully'
 		})
 	})
 

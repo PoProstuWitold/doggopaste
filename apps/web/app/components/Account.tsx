@@ -1,16 +1,10 @@
 import { useState } from 'react'
 import { FaFacebook, FaGithub, FaGoogle } from 'react-icons/fa6'
 import { RiLockPasswordFill } from 'react-icons/ri'
+import type { Account as AccountType } from '../types'
 
 interface AccountProps {
-	account: {
-		id: string
-		provider: string
-		createdAt: Date
-		updatedAt: Date
-		accountId: string
-		scopes: string[]
-	}
+	account: AccountType
 	unlinkSocial: (provider: 'google' | 'github' | 'facebook') => void
 }
 

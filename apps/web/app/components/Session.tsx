@@ -1,16 +1,9 @@
 import { useState } from 'react'
 import { UAParser } from 'ua-parser-js'
+import type { Session as SessionType } from '../types'
 
 interface SessionProps {
-	session: {
-		id: string
-		expiresAt: Date
-		token: string
-		createdAt: Date
-		updatedAt: Date
-		ipAddress: string
-		userAgent: string
-	}
+	session: SessionType
 	currentSessionToken: string
 	revokeSession: (token: string) => void
 }
@@ -20,7 +13,7 @@ export const Session: React.FC<SessionProps> = ({
 	currentSessionToken,
 	revokeSession
 }) => {
-	const { browser, os } = UAParser(session.userAgent)
+	const { browser, os } = UAParser(session.userAgent || '')
 	const [showSessionId, setShowSessionId] = useState(false)
 	const [showSessionToken, setShowSessionToken] = useState(false)
 

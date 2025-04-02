@@ -1,11 +1,12 @@
 import SinglePaste from '@/app/components/SinglePaste'
+import type { PasteResponse } from '@/app/types'
 
-async function fetchData(slug: string) {
+async function fetchResponse(slug: string): Promise<PasteResponse> {
 	const res = await fetch(
 		`${process.env.NEXT_PUBLIC_HONO_API_URL}/api/pastes/${slug}`
 	)
-	const data = await res.json()
-	return data
+	const json = await res.json()
+	return json
 }
 
 export default async function SinglePastePage({
@@ -14,15 +15,15 @@ export default async function SinglePastePage({
 	params: Promise<{ slug: string }>
 }) {
 	const { slug } = await params
-	const { data } = await fetchData(slug)
+	const { data, success } = await fetchResponse(slug)
+
+	if (!success) {
+		return <div>Paste not found</div>
+	}
 
 	return (
 		<>
-			<SinglePaste
-				slug={slug}
-				content={data.content}
-				syntax={data.syntax}
-			/>
+			<SinglePaste slug={slug} paste={data} />
 		</>
 	)
 }

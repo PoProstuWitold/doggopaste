@@ -4,18 +4,11 @@ import { authClient } from '@/app/utils/auth-client'
 import { wait } from '@/app/utils/functions'
 import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
+import type { Session as SessionType } from '../types'
 import { Session } from './Session'
 
 interface SessionsProps {
-	allSessions: Array<{
-		id: string
-		expiresAt: Date
-		token: string
-		createdAt: Date
-		updatedAt: Date
-		ipAddress: string
-		userAgent: string
-	}>
+	allSessions: SessionType[]
 	currentSessionToken: string
 }
 

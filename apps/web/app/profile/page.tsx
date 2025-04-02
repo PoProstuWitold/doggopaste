@@ -1,20 +1,11 @@
 import { Accounts } from '@/app/components/Accounts'
-import { Profile, type ProfileProps } from '@/app/components/Profile'
+import { Profile } from '@/app/components/Profile'
 import { Sessions } from '@/app/components/Sessions'
 import { authClient } from '@/app/utils/auth-client'
 import { wait } from '@/app/utils/functions'
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
-
-interface Session {
-	id: string
-	expiresAt: Date
-	token: string
-	createdAt: Date
-	updatedAt: Date
-	ipAddress?: string | null
-	userAgent?: string | null
-}
+import { type Session, User } from '../types'
 
 export default async function ProfilePage() {
 	const allSessions = await authClient.listSessions({
@@ -58,9 +49,7 @@ export default async function ProfilePage() {
 		<>
 			<div className='flex flex-col gap-4'>
 				<Profile
-					currentSession={
-						currentSession.data as ProfileProps['currentSession']
-					}
+					currentSession={currentSession.data}
 					hasCredentialAccount={hasCredentialAccount}
 				/>
 				<Accounts

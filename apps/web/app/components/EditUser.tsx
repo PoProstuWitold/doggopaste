@@ -2,12 +2,9 @@
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import toast from 'react-hot-toast'
+import type { EditUserData } from '../types'
 import { authClient } from '../utils/auth-client'
 import { wait } from '../utils/functions'
-
-interface EditUserData {
-	name: string
-}
 
 export const EditUser: React.FC = () => {
 	const router = useRouter()

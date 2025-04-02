@@ -6,20 +6,23 @@ import {
 	DialogPanel,
 	DialogTitle
 } from '@headlessui/react'
+import type React from 'react'
 import { useState } from 'react'
 import { FaXmark } from 'react-icons/fa6'
 
 interface CustomDialogProps {
-	btnText?: string
+	btnContent?: string | React.ReactNode
 	title?: string
 	description?: string
 	children?: React.ReactNode
+	btnClasses?: string
 }
 
 export const CustomDialog: React.FC<CustomDialogProps> = ({
-	btnText = 'Click me',
+	btnContent = 'Click me',
 	title = 'DoggoPaste',
 	description = 'This is a custom dialog',
+	btnClasses = 'btn btn-outline',
 	children
 }) => {
 	const [isOpen, setIsOpen] = useState(false)
@@ -29,9 +32,9 @@ export const CustomDialog: React.FC<CustomDialogProps> = ({
 			<button
 				type='button'
 				onClick={() => setIsOpen(true)}
-				className='btn btn-outline'
+				className={btnClasses}
 			>
-				{btnText}
+				{btnContent}
 			</button>
 			<Dialog
 				open={isOpen}

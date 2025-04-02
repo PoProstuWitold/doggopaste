@@ -7,19 +7,7 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import toast from 'react-hot-toast'
 import { FaFacebook, FaGithub, FaGoogle } from 'react-icons/fa'
-
-interface SignInData {
-	email: string
-	password: string
-	rememberMe?: boolean
-}
-
-interface SignUpData {
-	name: string
-	email: string
-	password: string
-	confirmPassword: string
-}
+import type { SignInData, SignUpData } from '../types'
 
 export const Login: React.FC = () => {
 	const router = useRouter()

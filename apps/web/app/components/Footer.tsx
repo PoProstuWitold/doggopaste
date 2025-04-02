@@ -1,8 +1,4 @@
-interface FooterProps {
-	children?: React.ReactNode
-}
-
-export const Footer: React.FC<FooterProps> = () => {
+export const Footer: React.FC = () => {
 	return (
 		<>
 			<footer className='p-10 bg-base-300'>

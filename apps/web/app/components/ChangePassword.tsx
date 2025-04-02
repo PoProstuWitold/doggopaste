@@ -2,14 +2,9 @@
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import toast from 'react-hot-toast'
+import type { ChangePasswordData } from '../types'
 import { authClient } from '../utils/auth-client'
 import { wait } from '../utils/functions'
-
-interface ChangePasswordData {
-	currentPassword: string
-	newPassword: string
-	revokeOtherSessions?: boolean
-}
 
 export const ChangePassword: React.FC = () => {
 	const router = useRouter()

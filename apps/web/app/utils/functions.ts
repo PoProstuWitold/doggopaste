@@ -1,3 +1,8 @@
+import { cpp } from '@codemirror/lang-cpp'
+import { html } from '@codemirror/lang-html'
+import { javascript } from '@codemirror/lang-javascript'
+import { python } from '@codemirror/lang-python'
+
 export const setThemeScript = `
 (function() {
 	try {
@@ -17,3 +22,14 @@ export const setThemeScript = `
 
 export const wait = (ms: number) =>
 	new Promise((resolve) => setTimeout(resolve, ms))
+
+export const extensions = {
+	javascript: javascript(),
+	typescript: javascript({ typescript: true }),
+	jsx: javascript({ jsx: true }),
+	tsx: javascript({ jsx: true, typescript: true }),
+	python: python(),
+	cpp: cpp(),
+	html: html(),
+	plaintext: []
+}

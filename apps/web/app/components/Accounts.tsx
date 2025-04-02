@@ -5,19 +5,11 @@ import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
 import { FaFacebook, FaGithub, FaGoogle } from 'react-icons/fa6'
 import { RiLockPasswordFill } from 'react-icons/ri'
+import type { Account as AccountType } from '../types'
 import { Account } from './Account'
 
 interface AccountsProps {
-	accounts:
-		| {
-				id: string
-				provider: string
-				createdAt: Date
-				updatedAt: Date
-				accountId: string
-				scopes: string[]
-		  }[]
-		| null
+	accounts: AccountType[] | null
 	hasCredentialAccount: boolean
 }
 
