@@ -32,4 +32,28 @@ export class DoggoUtils {
 				return null
 		}
 	}
+
+	public static getFileExtension(syntax: string) {
+		const syntaxToExtension = {
+			plaintext: 'txt',
+			javascript: 'js',
+			typescript: 'ts',
+			python: 'py',
+			cpp: 'cpp',
+			html: 'html',
+			jsx: 'jsx',
+			tsx: 'tsx'
+		} as const
+
+		const extension =
+			syntaxToExtension[syntax as keyof typeof syntaxToExtension] || 'txt'
+		return extension
+	}
+
+	public static sanitizeFileName(title: string): string {
+		return title
+			.replace(/[^\w\s.-]/g, '')
+			.replace(/\s+/g, '_')
+			.slice(0, 100)
+	}
 }

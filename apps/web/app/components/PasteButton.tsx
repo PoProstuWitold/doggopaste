@@ -48,11 +48,14 @@ export const PasteButtons = ({ slug }: { slug: string }) => {
 					Raw <BsFiletypeRaw />
 				</div>
 			</Link>
-			<button type='button' className='btn btn-sm btn-success'>
+			<a
+				href={`${process.env.NEXT_PUBLIC_HONO_API_URL}/api/pastes/${slug}/download`}
+				className='btn btn-sm btn-success'
+			>
 				<div className='flex items-center gap-1 font-extrabold'>
 					Download <MdDownload />
 				</div>
-			</button>
+			</a>
 			<button type='button' className='btn btn-sm btn-info'>
 				<div className='flex items-center gap-1 font-extrabold'>
 					Embed <ImEmbed2 />

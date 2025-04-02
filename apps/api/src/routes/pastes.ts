@@ -390,5 +390,49 @@ const app = new Hono<Env>()
 			message: 'Paste deleted successfully'
 		})
 	})
+	.get('/:slug/download', validatorParamStringSlug, async (c) => {
+		const { slug } = c.req.valid('param')
+
+		// 1. Get paste by slug
+		const [paste] = await db
+			.select()
+			.from(pastesTable)
+			.where(eq(pastesTable.slug, slug))
+		if (!paste) {
+			throw new GenericException({
+				statusCode: 404,
+				name: 'NotFound',
+				message: 'Paste not found'
+			})
+		}
+
+		// TO DO
+		// if (paste.passwordHash) {
+		// 	throw new GenericException({
+		// 		statusCode: 403,
+		// 		name: 'Forbidden',
+		// 		message: 'Paste is password protected'
+		// 	})
+		// }
+
+		if (paste.expiration === 'burn_after_read') {
+			await db.delete(pastesTable).where(eq(pastesTable.id, paste.id))
+			// Optional: clean up orphan tags
+			await db.execute(`
+		  DELETE FROM tags
+		  WHERE id NOT IN (
+			SELECT DISTINCT tag_id FROM paste_tags
+		  )
+		`)
+		}
+
+		const ext = DoggoUtils.getFileExtension(paste.syntax)
+		const safeTitle = DoggoUtils.sanitizeFileName(paste.title || slug)
+		const fileName = `${safeTitle}.${ext}`
+
+		c.header('Content-Type', 'text/plain; charset=utf-8')
+		c.header('Content-Disposition', `attachment; filename="${fileName}"`)
+		return c.body(paste.content)
+	})
 
 export default app
