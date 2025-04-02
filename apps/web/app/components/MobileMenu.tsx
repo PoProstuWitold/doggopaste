@@ -22,40 +22,46 @@ export const MobileMenu = () => {
 							className={`w-7 h-7 ${open ? 'hidden' : ''}`}
 						/>
 					</MenuButton>
-					<MenuItems className='mt-2 gap-4 flex px-6 py-4 absolute left-0 w-screen origin-top-left h-screen transition ease-in-out delay-[50ms] font-semibold bg-base-200 justify-stretch menu menu-vertical'>
+					<MenuItems className='absolute left-0 top-0 w-screen h-screen bg-base-200 px-6 py-4 flex flex-col gap-4 font-semibold transition ease-in-out delay-[50ms] menu'>
 						<MenuItem>
-							<h2 className='font-bold cursor-pointer text-xl'>
-								Menu
-							</h2>
+							<h2 className='text-xl font-bold mb-2'>Menu</h2>
 						</MenuItem>
 						<MenuItem>
-							<li className='hover:text-secondary transition-all duration-150'>
-								<Link href='/link1'>
-									<AiOutlineInfoCircle className='w-7 h-7' />
-									Link 1
-								</Link>
-							</li>
+							<Link
+								href='/p'
+								className='flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-primary hover:text-neutral-content transition-colors w-full'
+							>
+								<AiOutlineInfoCircle className='w-5 h-5' />
+								Pastes
+							</Link>
 						</MenuItem>
 						<MenuItem>
-							<li className='hover:text-secondary transition-all duration-150'>
-								<Link href='/link2'>
-									<MdComputer className='w-7 h-7' /> Link 2
-								</Link>
-							</li>
+							<Link
+								href='/r'
+								className='flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-primary hover:text-neutral-content transition-colors w-full'
+							>
+								<MdComputer className='w-5 h-5' />
+								Collab Editor
+							</Link>
+						</MenuItem>
+
+						<MenuItem>
+							<Link
+								href='/guide'
+								className='flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-primary hover:text-neutral-content transition-colors w-full'
+							>
+								<AiOutlineMail className='w-5 h-5' />
+								Guide
+							</Link>
 						</MenuItem>
 						<MenuItem>
-							<li className='hover:text-secondary transition-all duration-150'>
-								<Link href='/link3'>
-									<AiOutlineMail className='w-7 h-7' /> Link 3
-								</Link>
-							</li>
-						</MenuItem>
-						<MenuItem>
-							<li className='hover:text-secondary transition-all duration-150'>
-								<Link href='/link4'>
-									<AiFillBook className='w-7 h-7' /> Link 4
-								</Link>
-							</li>
+							<Link
+								href='/faq'
+								className='flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-primary hover:text-neutral-content transition-colors w-full'
+							>
+								<AiFillBook className='w-5 h-5' />
+								FAQ
+							</Link>
 						</MenuItem>
 					</MenuItems>
 				</>

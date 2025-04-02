@@ -1,9 +1,10 @@
-import Link from 'next/link'
-import { FaShieldDog } from 'react-icons/fa6'
 import { setThemeScript } from '@/app/utils/functions'
+import Link from 'next/link'
+import { FaQuestionCircle } from 'react-icons/fa'
+import { FaBookOpen, FaFileCode, FaShieldDog, FaUsers } from 'react-icons/fa6'
 import { MobileMenu } from './MobileMenu'
-import { ThemeSelector } from './ThemeSelector'
 import { ProfileIcon } from './ProfileIcon'
+import { ThemeSelector } from './ThemeSelector'
 
 export const Navbar: React.FC = () => {
 	return (
@@ -22,18 +23,42 @@ export const Navbar: React.FC = () => {
 					</Link>
 				</div>
 				<div className='hidden navbar-center lg:flex h-full'>
-					<ul className='p-0 font-semibold menu menu-horizontal menu-lg'>
-						<li className='active:bg-primary rounded-lg active:text-neutral-content'>
-							<Link href='/link1'>Link 1</Link>
+					<ul className='menu menu-horizontal gap-4 px-2 font-semibold text-base'>
+						<li>
+							<Link
+								href='/p'
+								className='flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-primary hover:text-neutral-content transition-colors'
+							>
+								<FaFileCode className='w-5 h-5' />
+								Pastes
+							</Link>
 						</li>
-						<li className='active:bg-primary rounded-lg active:text-neutral-content'>
-							<Link href='/link2'>Link 2</Link>
+						<li>
+							<Link
+								href='/r'
+								className='flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-primary hover:text-neutral-content transition-colors'
+							>
+								<FaUsers className='w-5 h-5' />
+								Collab Editor
+							</Link>
 						</li>
-						<li className='active:bg-primary rounded-lg active:text-neutral-content'>
-							<Link href='/link3'>Link 3</Link>
+						<li>
+							<Link
+								href='/guide'
+								className='flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-primary hover:text-neutral-content transition-colors'
+							>
+								<FaBookOpen className='w-5 h-5' />
+								Guide
+							</Link>
 						</li>
-						<li className='active:bg-primary rounded-lg active:text-neutral-content'>
-							<Link href='/link4'>Link 4</Link>
+						<li>
+							<Link
+								href='/faq'
+								className='flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-primary hover:text-neutral-content transition-colors'
+							>
+								<FaQuestionCircle className='w-5 h-5' />
+								FAQ
+							</Link>
 						</li>
 					</ul>
 				</div>
