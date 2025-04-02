@@ -113,6 +113,10 @@ export default function SinglePaste({
 						}
 					/>
 					<PasteDetail
+						label='Password'
+						value={paste.passwordHash ? 'Enabled' : 'Disabled'}
+					/>
+					<PasteDetail
 						label='Created at'
 						value={new Date(paste.createdAt).toLocaleString(
 							'pl-PL'

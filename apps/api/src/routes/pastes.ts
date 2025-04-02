@@ -68,16 +68,22 @@ const app = new Hono<Env>()
 			folderId = dbFolder.id
 		}
 
-		// 4. Create tags if they do not exist
+		// 4. Create or reuse tags
 		const tagIds: string[] = []
 		for (const tagName of tags) {
-			const [dbTag] = await db
-				.insert(tagsTable)
-				.values({
-					name: tagName
-				})
-				.onConflictDoNothing()
-				.returning({ id: tagsTable.id })
+			// try to find the tag by name
+			let [dbTag] = await db
+				.select({ id: tagsTable.id })
+				.from(tagsTable)
+				.where(eq(tagsTable.name, tagName))
+
+			// if tag does not exist, create it
+			if (!dbTag) {
+				;[dbTag] = await db
+					.insert(tagsTable)
+					.values({ name: tagName })
+					.returning({ id: tagsTable.id })
+			}
 
 			if (dbTag) {
 				tagIds.push(dbTag.id)
