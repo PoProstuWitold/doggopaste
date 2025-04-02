@@ -1,5 +1,5 @@
 import * as argon2 from 'argon2'
-import { eq } from 'drizzle-orm'
+import { eq, inArray, sql } from 'drizzle-orm'
 import { Hono } from 'hono'
 import { db } from '../db/index.js'
 import {
@@ -127,12 +127,51 @@ const app = new Hono<Env>()
 		})
 	})
 	.get('/', async (c) => {
-		const pastes = await db.select().from(pastesTable)
+		const limit = Number.parseInt(c.req.query('limit') || '10')
+		const offset = Number.parseInt(c.req.query('offset') || '0')
 
-		c.status(200)
+		const [total] = await db
+			.select({ count: sql<number>`COUNT(*)` })
+			.from(pastesTable)
+			.where(eq(pastesTable.visibility, 'public'))
+
+		const pastes = await db
+			.select()
+			.from(pastesTable)
+			.where(eq(pastesTable.visibility, 'public'))
+			.limit(limit)
+			.offset(offset)
+
+		if (pastes.length === 0) {
+			return c.json({ success: true, data: [], total: 0 })
+		}
+
+		const pasteIds = pastes.map((p) => p.id)
+
+		const tags = await db
+			.select({
+				pasteId: pasteTagsTable.pasteId,
+				name: tagsTable.name
+			})
+			.from(pasteTagsTable)
+			.innerJoin(tagsTable, eq(pasteTagsTable.tagId, tagsTable.id))
+			.where(inArray(pasteTagsTable.pasteId, pasteIds))
+
+		const groupedTags: Record<string, string[]> = {}
+		for (const { pasteId, name } of tags) {
+			groupedTags[pasteId] ||= []
+			groupedTags[pasteId].push(name)
+		}
+
+		const enriched = pastes.map((p) => ({
+			...p,
+			tags: groupedTags[p.id] || []
+		}))
+
 		return c.json({
 			success: true,
-			data: pastes
+			data: enriched,
+			total: total.count
 		})
 	})
 	.get('/:slug', validatorParamStringSlug, async (c) => {
