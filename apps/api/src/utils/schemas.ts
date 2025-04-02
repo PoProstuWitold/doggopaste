@@ -64,14 +64,12 @@ const createPasteSchema = z.object({
 	title: z.string().min(1, 'Title is required').max(100, 'Title is too long'),
 	slug: z
 		.string()
-		.min(1, 'Slug is required')
 		.max(40, 'Slug is too long')
-		.regex(
-			/^[a-z0-9-]+$/,
+		.refine(
+			(val) => val === '' || /^[a-z0-9-]+$/.test(val),
 			'Slug can only contain lowercase letters, numbers, and hyphens'
 		)
-		.transform((val) => val.toLowerCase())
-		.optional(),
+		.transform((val) => val.toLowerCase()),
 	content: z.string().min(1, 'Content cannot be empty'),
 	category: z
 		.enum(

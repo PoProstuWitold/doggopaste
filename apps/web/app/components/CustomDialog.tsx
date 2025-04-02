@@ -1,4 +1,5 @@
 'use client'
+
 import {
 	Description,
 	Dialog,
@@ -16,6 +17,8 @@ interface CustomDialogProps {
 	description?: string
 	children?: React.ReactNode
 	btnClasses?: string
+	isOpen?: boolean
+	onClose?: () => void
 }
 
 export const CustomDialog: React.FC<CustomDialogProps> = ({
@@ -23,22 +26,30 @@ export const CustomDialog: React.FC<CustomDialogProps> = ({
 	title = 'DoggoPaste',
 	description = 'This is a custom dialog',
 	btnClasses = 'btn btn-outline',
-	children
+	children,
+	isOpen,
+	onClose
 }) => {
-	const [isOpen, setIsOpen] = useState(false)
+	const [internalOpen, setInternalOpen] = useState(false)
+
+	const open = typeof isOpen === 'boolean' ? isOpen : internalOpen
+	const close = onClose || (() => setInternalOpen(false))
+	const openDialog = () => setInternalOpen(true)
 
 	return (
 		<>
-			<button
-				type='button'
-				onClick={() => setIsOpen(true)}
-				className={btnClasses}
-			>
-				{btnContent}
-			</button>
+			{typeof isOpen !== 'boolean' && (
+				<button
+					type='button'
+					onClick={openDialog}
+					className={btnClasses}
+				>
+					{btnContent}
+				</button>
+			)}
 			<Dialog
-				open={isOpen}
-				onClose={() => setIsOpen(false)}
+				open={open}
+				onClose={close}
 				className='fixed inset-0 flex w-screen items-center justify-center bg-black/30 p-4 transition duration-300 ease-out data-[closed]:opacity-0'
 				transition
 			>
@@ -50,7 +61,7 @@ export const CustomDialog: React.FC<CustomDialogProps> = ({
 							<button
 								className='btn btn-error btn-soft'
 								type='button'
-								onClick={() => setIsOpen(false)}
+								onClick={close}
 							>
 								<FaXmark className='text-2xl' />
 							</button>
