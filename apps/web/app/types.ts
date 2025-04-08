@@ -101,3 +101,22 @@ export interface PasteResponse {
 	success: boolean
 	data: Paste
 }
+
+export interface RealtimePaste {
+	id: string
+	createdAt: string
+	updatedAt: string
+	title: string
+	slug: string
+	content: string
+	syntax: keyof typeof extensions
+	visibility: string
+	userId: string | null
+	folderId: string | null
+	organizationId: string | null
+}
+
+export interface RealtimePasteResponse {
+	success: boolean
+	data: RealtimePaste
+}

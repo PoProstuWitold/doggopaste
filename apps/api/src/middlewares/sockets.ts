@@ -8,7 +8,8 @@ export function initWebSockets(server: ServerType) {
 	io = new WebSocketsServer(server, {
 		path: '/ws',
 		cors: {
-			origin: '*'
+			origin: process.env.NEXT_PUBLIC_APP_URL,
+			credentials: true
 		},
 		connectionStateRecovery: {}
 	})
@@ -25,6 +26,22 @@ export function initWebSockets(server: ServerType) {
 
 		socket.on('message', (msg, _callback) => {
 			console.log(`Received message from socket ${socket.id}: "${msg}"`)
+		})
+
+		// PROJECT SPECIFIC EVENTS
+		socket.on('join-room', (slug: string) => {
+			console.log(`Socket ${socket.id} joined room ${slug}`)
+			socket.join(slug)
+		})
+
+		socket.on('code-change', ({ from, to, insert, sender, slug }) => {
+			// only for sockets in same room
+			socket.to(slug).emit('code-change', {
+				from,
+				to,
+				insert,
+				sender
+			})
 		})
 	})
 }
