@@ -1,8 +1,14 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import { FaGithub, FaShieldDog } from 'react-icons/fa6'
 import { FiPlus } from 'react-icons/fi'
 
 export const dynamic = 'force-dynamic'
+
+export const metadata: Metadata = {
+	title: 'Public Collab Editors',
+	description: 'Check out the latest public collab editors on DoggoPaste!'
+}
 
 export default async function PublicPastes({
 	searchParams

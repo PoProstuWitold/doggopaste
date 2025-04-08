@@ -1,9 +1,26 @@
 import { RealtimeEditor } from '@/app/components/RealtimeEditor'
+import type { Metadata } from 'next'
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+	const { slug } = await params
+
+	return {
+		title: `Realtime Editor "${slug}"`,
+		description: `Realtime editor with slug "${slug}"`,
+		metadataBase: new URL(
+			process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+		)
+	}
+}
+
+interface Props {
+	params: Promise<{ slug: string }>
+}
 
 export default async function SinglePastePage({
 	params
 }: {
-	params: Promise<{ slug: string }>
+	params: Props['params']
 }) {
 	const { slug } = await params
 

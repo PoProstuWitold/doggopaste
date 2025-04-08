@@ -3,9 +3,26 @@ import { Profile } from '@/app/components/Profile'
 import { Sessions } from '@/app/components/Sessions'
 import { authClient } from '@/app/utils/auth-client'
 import { wait } from '@/app/utils/functions'
+import type { Metadata } from 'next'
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
-import { type Session, User } from '../types'
+import type { Session } from '../types'
+
+export async function generateMetadata(): Promise<Metadata> {
+	const currentSession = await authClient.getSession({
+		fetchOptions: {
+			headers: await headers()
+		}
+	})
+
+	return {
+		title: `${currentSession.data?.user.name || ''}`,
+		description: `Profile of ${currentSession.data?.user.name || ''}`,
+		metadataBase: new URL(
+			process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+		)
+	}
+}
 
 export default async function ProfilePage() {
 	const allSessions = await authClient.listSessions({

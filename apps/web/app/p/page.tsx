@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import { FaGithub, FaShieldDog } from 'react-icons/fa6'
 import { FiPlus } from 'react-icons/fi'
@@ -5,6 +6,11 @@ import { PasteCard } from '../components/PasteCard'
 import type { Paste } from '../types'
 
 export const dynamic = 'force-dynamic'
+
+export const metadata: Metadata = {
+	title: 'Public Pastes',
+	description: 'Check out the latest public pastes on DoggoPaste!'
+}
 
 export default async function PublicPastes({
 	searchParams

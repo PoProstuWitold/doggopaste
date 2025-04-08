@@ -1,5 +1,12 @@
+import type { Metadata } from 'next'
 import { headers } from 'next/headers'
 import { authClient } from './utils/auth-client'
+
+export const metadata: Metadata = {
+	title: 'DoggoPaste',
+	description:
+		'Drop your code, let Doggo fetch it! Combination of a Pastebin and CodeShare. Free and selfhostable.'
+}
 
 export default async function HomePage() {
 	const session = await authClient.getSession({

@@ -1,4 +1,8 @@
 packages:
   - apps/*
+
 onlyBuiltDependencies:
+  - '@biomejs/biome'
+  - argon2
   - esbuild
+  - sharp
