@@ -1,6 +1,6 @@
 // built-in or npm
 import { serve } from '@hono/node-server'
-import { apiReference } from '@scalar/hono-api-reference'
+import { Scalar } from '@scalar/hono-api-reference'
 import { Hono } from 'hono'
 import { openAPISpecs } from 'hono-openapi'
 import { compress } from 'hono/compress'
@@ -73,7 +73,7 @@ app.use(ipAddress)
 app.get('/openapi', openAPISpecs(app, openApiSpec))
 app.get(
 	'/docs',
-	apiReference({
+	Scalar({
 		theme: 'saturn',
 		url: '/api/openapi'
 	})

@@ -2,9 +2,9 @@ import { NextResponse } from 'next/server'
 
 export async function GET(
 	_: Request,
-	{ params }: { params: { slug: string } }
+	{ params }: { params: Promise<{ slug: string }> }
 ) {
-	const slug = params.slug
+	const { slug } = await params
 
 	const res = await fetch(
 		`${process.env.NEXT_PUBLIC_HONO_API_URL}/api/pastes/${slug}`,
