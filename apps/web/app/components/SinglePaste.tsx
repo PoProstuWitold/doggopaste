@@ -91,7 +91,18 @@ export default function SinglePaste({
 				</div>
 				<div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4'>
 					<PasteDetail label='Title' value={paste.title} />
-					<PasteDetail label='Category' value={paste.category} />
+					<PasteDetail
+						label='Category'
+						value={
+							paste.category === 'none' ? (
+								<span>No category</span>
+							) : (
+								<span className='badge badge-secondary'>
+									{paste.category}
+								</span>
+							)
+						}
+					/>
 					<PasteDetail label='Visibility' value={paste.visibility} />
 					<PasteDetail label='Expiration' value={paste.expiration} />
 					<PasteDetail label='Syntax' value={paste.syntax} />
@@ -101,12 +112,12 @@ export default function SinglePaste({
 							<div className='flex flex-wrap gap-2'>
 								{paste.tags.length
 									? paste.tags.map((tag, index) => (
-											<div
-												key={`${index}:${tag}`}
-												className='badge badge-primary flex items-center gap-2'
+											<span
+												key={tag}
+												className='badge badge-accent'
 											>
-												{tag}
-											</div>
+												#{tag}
+											</span>
 										))
 									: 'No tags'}
 							</div>

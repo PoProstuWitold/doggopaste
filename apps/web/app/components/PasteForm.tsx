@@ -224,19 +224,19 @@ export function PasteForm({
 							</div>
 							<div className='flex flex-wrap gap-2'>
 								{tags.map((tag, index) => (
-									<div
+									<span
 										key={`${index}:${tag}`}
-										className='badge badge-primary flex items-center gap-2'
+										className='badge badge-accent flex items-center gap-2'
 									>
-										{tag}
+										#{tag}
 										<button
 											type='button'
 											onClick={() => removeTag(tag)}
 											className='ml-1 text-white'
 										>
-											✕
+											x
 										</button>
-									</div>
+									</span>
 								))}
 							</div>
 							<input
