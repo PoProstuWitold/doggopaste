@@ -23,7 +23,7 @@ export const RealtimeEditor = ({
 	slug: string
 	realtimePaste?: RealtimePaste
 }) => {
-	const syntax = realtimePaste?.syntax || 'javascript'
+	const syntax = realtimePaste?.syntax || 'JavaScript'
 	const editorRef = useRef<HTMLDivElement>(null)
 	const viewRef = useRef<EditorView | null>(null)
 	const socketIdRef = useRef<string | null>(null)
