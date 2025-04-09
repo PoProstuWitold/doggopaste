@@ -1,5 +1,6 @@
 import {
 	boolean,
+	integer,
 	numeric,
 	pgEnum,
 	pgTable,
@@ -149,7 +150,7 @@ export const pastesTable = pgTable('pastes', {
 	expiresAt: timestamp('expires_at'), // Data, kiedy pasta wygaśnie
 	expiration: expirationEnum('expiration').notNull().default('never'), // Typ wygaśnięcia
 	passwordHash: varchar('password_hash', { length: 512 }), // hasło do pasty
-	hits: numeric().notNull().default('0'), // liczba odsłon
+	hits: integer().notNull().default(0).$type<number>(), // liczba odsłon
 	visibility: visibilityEnum('visibility').notNull().default('public'),
 	// Jeśli widoczność = "organization"
 	organizationId: uuid('organization_id').references(

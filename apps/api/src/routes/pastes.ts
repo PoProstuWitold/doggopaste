@@ -1,5 +1,5 @@
 import * as argon2 from 'argon2'
-import { eq, inArray, sql } from 'drizzle-orm'
+import { desc, eq, inArray, sql } from 'drizzle-orm'
 import { Hono } from 'hono'
 import { db } from '../db/index.js'
 import {
@@ -140,6 +140,7 @@ const app = new Hono<Env>()
 			.from(pastesTable)
 			.where(eq(pastesTable.visibility, 'public'))
 			.limit(limit)
+			.orderBy(desc(pastesTable.updatedAt))
 			.offset(offset)
 
 		if (pastes.length === 0) {
