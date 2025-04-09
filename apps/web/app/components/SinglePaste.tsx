@@ -5,7 +5,11 @@ import { useState } from 'react'
 import { FaFileCode, FaInfoCircle } from 'react-icons/fa'
 import { useTheme } from '../context/ThemeContext'
 import type { Paste } from '../types'
-import { extensions } from '../utils/functions'
+import {
+	extensions,
+	getContrastTextColor,
+	languageColors
+} from '../utils/functions'
 import { PasteButtons } from './PasteButton'
 
 export default function SinglePaste({
@@ -15,6 +19,8 @@ export default function SinglePaste({
 	slug: string
 	paste: Paste
 }) {
+	const bgColor = languageColors.get(paste.syntax) || '#999'
+
 	const { cmTheme } = useTheme()
 	const [showWarning, setShowWarning] = useState<boolean>(
 		paste.expiration === 'burn_after_read'
@@ -105,7 +111,20 @@ export default function SinglePaste({
 					/>
 					<PasteDetail label='Visibility' value={paste.visibility} />
 					<PasteDetail label='Expiration' value={paste.expiration} />
-					<PasteDetail label='Syntax' value={paste.syntax} />
+					<PasteDetail
+						label='Syntax'
+						value={
+							<span
+								className='badge font-semibold'
+								style={{
+									backgroundColor: bgColor,
+									color: getContrastTextColor(bgColor)
+								}}
+							>
+								{paste.syntax}
+							</span>
+						}
+					/>
 					<PasteDetail
 						label='Tags'
 						value={
@@ -155,7 +174,7 @@ function PasteDetail({
 	value: string | React.ReactNode
 }) {
 	return (
-		<div className='bg-base-300 rounded-lg p-4 shadow flex flex-col gap-2'>
+		<div className='bg-base-300 rounded-lg p-5 shadow flex flex-col gap-2'>
 			<div className='text-sm text-base-content/70'>{label}</div>
 			<div className='font-medium break-words'>{value}</div>
 		</div>

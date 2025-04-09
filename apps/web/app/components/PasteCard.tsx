@@ -9,12 +9,15 @@ import {
 	FaUserAlt
 } from 'react-icons/fa'
 import type { Paste } from '../types'
+import { getContrastTextColor, languageColors } from '../utils/functions'
 
 interface PasteCardProps {
 	paste: Paste
 }
 
 export const PasteCard: React.FC<PasteCardProps> = ({ paste }) => {
+	const bgColor = languageColors.get(paste.syntax) || '#999'
+
 	return (
 		<li
 			key={paste.id}
@@ -29,7 +32,13 @@ export const PasteCard: React.FC<PasteCardProps> = ({ paste }) => {
 					>
 						{paste.title || '(Untitled)'}
 					</Link>
-					<span className='badge badge-outline text-xs mt-2 md:mt-0'>
+					<span
+						className='badge mt-2 md:mt-0 font-semibold'
+						style={{
+							backgroundColor: bgColor,
+							color: getContrastTextColor(bgColor)
+						}}
+					>
 						{paste.syntax}
 					</span>
 				</div>
