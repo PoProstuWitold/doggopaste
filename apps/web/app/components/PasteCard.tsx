@@ -5,6 +5,7 @@ import {
 	FaEye,
 	FaFolderOpen,
 	FaGlobe,
+	FaRegEdit,
 	FaUserAlt
 } from 'react-icons/fa'
 import type { Paste } from '../types'
@@ -37,6 +38,12 @@ export const PasteCard: React.FC<PasteCardProps> = ({ paste }) => {
 					<FaClock /> Created:{' '}
 					{new Date(paste.createdAt).toLocaleString('pl-PL')}
 				</p>
+				{paste.createdAt !== paste.updatedAt && (
+					<p className='text-sm text-base-content/60 flex items-center gap-2'>
+						<FaRegEdit /> Edited:{' '}
+						{new Date(paste.updatedAt).toLocaleString('pl-PL')}
+					</p>
+				)}
 
 				<div className='flex flex-wrap gap-2 mt-2 text-sm'>
 					{paste.category && paste.category !== 'none' && (

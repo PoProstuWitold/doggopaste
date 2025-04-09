@@ -145,7 +145,7 @@ export const pastesTable = pgTable('pastes', {
 	slug: varchar({ length: 64 }).unique(), // niestandardowy URL
 	category: categoryEnum('category').notNull().default('none'),
 	content: text('content').notNull(),
-	syntax: varchar({ length: 64 }).notNull().default('plaintext'), // podświetlanie składni
+	syntax: varchar({ length: 64 }).notNull().default('Plaintext'), // podświetlanie składni
 	expiresAt: timestamp('expires_at'), // Data, kiedy pasta wygaśnie
 	expiration: expirationEnum('expiration').notNull().default('never'), // Typ wygaśnięcia
 	passwordHash: varchar('password_hash', { length: 512 }), // hasło do pasty
@@ -192,7 +192,7 @@ export const realTimePastesTable = pgTable('realtime_pastes', {
 	title: varchar({ length: 128 }).notNull(),
 	slug: varchar({ length: 64 }).unique().notNull(),
 	content: text('content').notNull(), // treść edytowana w czasie rzeczywistym
-	syntax: varchar({ length: 64 }).notNull().default('plaintext'),
+	syntax: varchar({ length: 64 }).notNull().default('Plaintext'),
 	visibility: realTimePasteVisibilityEnum('visibility')
 		.notNull()
 		.default('public'),

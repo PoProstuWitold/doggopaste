@@ -64,7 +64,7 @@ export function PasteForm({
 						title: '',
 						slug: '',
 						content: '',
-						syntax: 'plaintext',
+						syntax: 'Plaintext',
 						category: 'none',
 						expiration: 'never',
 						visibility: 'public',
@@ -257,14 +257,11 @@ export function PasteForm({
 								{...register('syntax')}
 								className='select select-bordered w-full'
 							>
-								<option value='plaintext'>None</option>
-								<option value='javascript'>JavaScript</option>
-								<option value='typescript'>TypeScript</option>
-								<option value='python'>Python</option>
-								<option value='cpp'>C++</option>
-								<option value='html'>HTML</option>
-								<option value='jsx'>JSX</option>
-								<option value='tsx'>TSX</option>
+								{Object.keys(extensions).map((lang) => (
+									<option key={lang} value={lang}>
+										{lang}
+									</option>
+								))}
 							</select>
 						</label>
 
