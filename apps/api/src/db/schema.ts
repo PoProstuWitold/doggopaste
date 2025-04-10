@@ -133,6 +133,13 @@ export const categoryEnum = pgEnum('category', [
 	'gaming'
 ])
 
+export const syntaxesTable = pgTable('syntaxes', {
+	...essentialColumns,
+	name: varchar({ length: 64 }).notNull().unique(),
+	extension: varchar({ length: 32 }),
+	color: varchar({ length: 32 }).notNull()
+})
+
 // pastes (wklejki kodu)
 export const pastesTable = pgTable('pastes', {
 	...essentialColumns,
@@ -146,7 +153,9 @@ export const pastesTable = pgTable('pastes', {
 	slug: varchar({ length: 64 }).unique(), // niestandardowy URL
 	category: categoryEnum('category').notNull().default('none'),
 	content: text('content').notNull(),
-	syntax: varchar({ length: 64 }).notNull().default('Plaintext'), // podświetlanie składni
+	syntaxId: uuid('syntax_id').references(() => syntaxesTable.id, {
+		onDelete: 'set null'
+	}),
 	expiresAt: timestamp('expires_at'), // Data, kiedy pasta wygaśnie
 	expiration: expirationEnum('expiration').notNull().default('never'), // Typ wygaśnięcia
 	passwordHash: varchar('password_hash', { length: 512 }), // hasło do pasty
@@ -193,7 +202,9 @@ export const realTimePastesTable = pgTable('realtime_pastes', {
 	title: varchar({ length: 128 }).notNull(),
 	slug: varchar({ length: 64 }).unique().notNull(),
 	content: text('content').notNull(), // treść edytowana w czasie rzeczywistym
-	syntax: varchar({ length: 64 }).notNull().default('Plaintext'),
+	syntaxId: uuid('syntax_id').references(() => syntaxesTable.id, {
+		onDelete: 'set null'
+	}),
 	visibility: realTimePasteVisibilityEnum('visibility')
 		.notNull()
 		.default('public'),
@@ -216,5 +227,6 @@ export const schema = {
 	folders: foldersTable,
 	tags: tagsTable,
 	pasteTags: pasteTagsTable,
-	realTimePastes: realTimePastesTable
+	realTimePastes: realTimePastesTable,
+	syntaxes: syntaxesTable
 }

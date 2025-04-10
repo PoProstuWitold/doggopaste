@@ -6,6 +6,7 @@ import {
 	foldersTable,
 	pasteTagsTable,
 	pastesTable,
+	syntaxesTable,
 	tagsTable
 } from '../db/schema.js'
 import { GenericException } from '../exceptions/generic-exception.js'
@@ -45,13 +46,7 @@ const app = new Hono<Env>()
 
 		// 2. User ID
 		const user = c.get('user')
-		let userId = null
-		if (user) {
-			userId = user.id
-		}
-		if (pasteAsGuest) {
-			userId = null
-		}
+		const userId = pasteAsGuest ? null : (user.id ?? null)
 
 		// 3. Create folder if it does not exist
 		let folderId = null
@@ -68,7 +63,21 @@ const app = new Hono<Env>()
 			folderId = dbFolder.id
 		}
 
-		// 4. Create or reuse tags
+		// 4. Find syntax by name
+		const [dbSyntax] = await db
+			.select({ id: syntaxesTable.id })
+			.from(syntaxesTable)
+			.where(eq(syntaxesTable.name, syntax))
+
+		if (!dbSyntax) {
+			throw new GenericException({
+				statusCode: 400,
+				name: 'Bad Request',
+				message: `Unknown syntax "${syntax}"`
+			})
+		}
+
+		// 5. Create or reuse tags
 		const tagIds: string[] = []
 		for (const tagName of tags) {
 			// try to find the tag by name
@@ -85,17 +94,15 @@ const app = new Hono<Env>()
 					.returning({ id: tagsTable.id })
 			}
 
-			if (dbTag) {
-				tagIds.push(dbTag.id)
-			}
+			if (dbTag) tagIds.push(dbTag.id)
 		}
 
-		// 5. Create paste
+		// 6. Create paste
 		const newPasteValues = {
 			title,
 			content,
 			category,
-			syntax,
+			syntaxId: dbSyntax.id,
 			expiration,
 			visibility,
 			folderId,
@@ -109,7 +116,7 @@ const app = new Hono<Env>()
 			.values(newPasteValues)
 			.returning()
 
-		// 6. Add tags to paste
+		// 7. Add tags to paste
 		if (tagIds.length > 0 && newPaste) {
 			await db.insert(pasteTagsTable).values(
 				tagIds.map((tagId) => ({
@@ -119,7 +126,7 @@ const app = new Hono<Env>()
 			)
 		}
 
-		// 7. Return response
+		// 8. Return response
 		c.status(201)
 		return c.json({
 			success: true,
@@ -136,8 +143,16 @@ const app = new Hono<Env>()
 			.where(eq(pastesTable.visibility, 'public'))
 
 		const pastes = await db
-			.select()
+			.select({
+				paste: pastesTable,
+				syntax: {
+					name: syntaxesTable.name,
+					extension: syntaxesTable.extension,
+					color: syntaxesTable.color
+				}
+			})
 			.from(pastesTable)
+			.leftJoin(syntaxesTable, eq(pastesTable.syntaxId, syntaxesTable.id))
 			.where(eq(pastesTable.visibility, 'public'))
 			.limit(limit)
 			.orderBy(desc(pastesTable.updatedAt))
@@ -147,8 +162,7 @@ const app = new Hono<Env>()
 			return c.json({ success: true, data: [], total: 0 })
 		}
 
-		const pasteIds = pastes.map((p) => p.id)
-
+		const pasteIds = pastes.map((p) => p.paste.id)
 		const tags = await db
 			.select({
 				pasteId: pasteTagsTable.pasteId,
@@ -164,35 +178,47 @@ const app = new Hono<Env>()
 			groupedTags[pasteId].push(name)
 		}
 
-		const enriched = pastes.map((p) => ({
-			...p,
-			tags: groupedTags[p.id] || []
+		const enrichedPastes = pastes.map(({ paste, syntax }) => ({
+			...paste,
+			tags: groupedTags[paste.id] || [],
+			syntax
 		}))
 
 		return c.json({
 			success: true,
-			data: enriched,
-			total: total.count
+			total: total.count,
+			data: enrichedPastes
 		})
 	})
 	.get('/:slug', validatorParamStringSlug, async (c) => {
 		const { slug } = c.req.valid('param')
 
-		// 1. Get paste by slug
-		const [paste] = await db
-			.select()
+		// 1. Get paste with syntax
+		const [row] = await db
+			.select({
+				paste: pastesTable,
+				syntax: {
+					name: syntaxesTable.name,
+					extension: syntaxesTable.extension,
+					color: syntaxesTable.color
+				}
+			})
 			.from(pastesTable)
+			.leftJoin(syntaxesTable, eq(pastesTable.syntaxId, syntaxesTable.id))
 			.where(eq(pastesTable.slug, slug))
 
-		if (!paste) {
+		if (!row) {
 			throw new GenericException({
 				statusCode: 404,
-				name: 'NotFound',
+				name: 'Not Found',
 				message: 'Paste not found'
 			})
 		}
 
-		// 2. Get tags for the paste
+		const paste = row.paste
+		const syntax = row.syntax
+
+		// 2. Get tags
 		const tags = await db
 			.select({ name: tagsTable.name })
 			.from(pasteTagsTable)
@@ -202,23 +228,18 @@ const app = new Hono<Env>()
 		// 3. Delete if burn_after_read BEFORE sending response
 		if (paste.expiration === 'burn_after_read') {
 			await db.delete(pastesTable).where(eq(pastesTable.id, paste.id))
-
-			// Optional: clean up orphan tags
-			await db.execute(`
-		  DELETE FROM tags
-		  WHERE id NOT IN (
-			SELECT DISTINCT tag_id FROM paste_tags
-		  )
-		`)
+			await DoggoUtils.removeUnusedTags()
 		}
 
-		// 4. Return response
+		const enrichedPaste = {
+			...paste,
+			tags: tags.map((t) => t.name),
+			syntax
+		}
+
 		return c.json({
 			success: true,
-			data: {
-				...paste,
-				tags: tags.map((t) => t.name)
-			}
+			data: enrichedPaste
 		})
 	})
 	.put(
@@ -252,7 +273,7 @@ const app = new Hono<Env>()
 			if (!paste) {
 				throw new GenericException({
 					statusCode: 404,
-					name: 'NotFound',
+					name: 'Not Found',
 					message: 'Paste not found'
 				})
 			}
@@ -267,7 +288,7 @@ const app = new Hono<Env>()
 			}
 
 			// 3. Create folder if it does not exist
-			let folderId = null
+			let folderId = paste.folderId
 			if (folder !== 'none') {
 				const [dbFolder] = await db
 					.insert(foldersTable)
@@ -281,7 +302,21 @@ const app = new Hono<Env>()
 				folderId = dbFolder?.id || paste.folderId
 			}
 
-			// 4. Update paste
+			// 4. Get syntaxId by name
+			const [dbSyntax] = await db
+				.select({ id: syntaxesTable.id })
+				.from(syntaxesTable)
+				.where(eq(syntaxesTable.name, syntax))
+
+			if (!dbSyntax) {
+				throw new GenericException({
+					statusCode: 400,
+					name: 'Bad Request',
+					message: `Unknown syntax "${syntax}"`
+				})
+			}
+
+			// 5. Update paste
 			const values = {
 				title,
 				slug: newSlug.length
@@ -289,7 +324,7 @@ const app = new Hono<Env>()
 					: await DoggoUtils.generateSlug(),
 				content,
 				category,
-				syntax,
+				syntaxId: dbSyntax.id,
 				expiration,
 				expiresAt: await DoggoUtils.calculateExpirationDate(expiration),
 				visibility,
@@ -298,22 +333,21 @@ const app = new Hono<Env>()
 					? await argon2.hash(password)
 					: null
 			}
-			const updatedPaste = await db
+
+			const [updatedPaste] = await db
 				.update(pastesTable)
 				.set(values)
 				.where(eq(pastesTable.slug, slug))
 				.returning()
 
-			// 5. Remove old tags
+			// 6. Remove old tags
 			await db
 				.delete(pasteTagsTable)
 				.where(eq(pasteTagsTable.pasteId, paste.id))
 
-			// 6. Add new tags
+			// 7. Add new tags
 			const tagIds: string[] = []
-
 			for (const tagName of tags) {
-				// 6.1. Check if tag exists
 				const [existingTag] = await db
 					.select({ id: tagsTable.id })
 					.from(tagsTable)
@@ -321,22 +355,17 @@ const app = new Hono<Env>()
 
 				let tagId = existingTag?.id
 
-				// if tag does not exist, create it
 				if (!tagId) {
 					const [newTag] = await db
 						.insert(tagsTable)
 						.values({ name: tagName })
 						.returning({ id: tagsTable.id })
-
 					tagId = newTag.id
 				}
 
-				if (tagId) {
-					tagIds.push(tagId)
-				}
+				if (tagId) tagIds.push(tagId)
 			}
 
-			// 7. Add tags to paste
 			if (tagIds.length > 0) {
 				await db.insert(pasteTagsTable).values(
 					tagIds.map((tagId) => ({
@@ -346,11 +375,14 @@ const app = new Hono<Env>()
 				)
 			}
 
-			// 7. Return response
+			// 8. Remove unused tags
+			await DoggoUtils.removeUnusedTags()
+
+			// 9. Return response
 			c.status(200)
 			return c.json({
 				success: true,
-				data: updatedPaste[0]
+				data: updatedPaste
 			})
 		}
 	)
@@ -367,7 +399,7 @@ const app = new Hono<Env>()
 		if (!paste) {
 			throw new GenericException({
 				statusCode: 404,
-				name: 'NotFound',
+				name: 'Not Found',
 				message: 'Paste not found'
 			})
 		}
@@ -383,6 +415,7 @@ const app = new Hono<Env>()
 
 		// 3. Delete the paste (cascade deletes tags via FK)
 		await db.delete(pastesTable).where(eq(pastesTable.id, paste.id))
+		await DoggoUtils.removeUnusedTags()
 
 		// 4. Return success
 		c.status(200)
@@ -394,20 +427,30 @@ const app = new Hono<Env>()
 	.get('/:slug/download', validatorParamStringSlug, async (c) => {
 		const { slug } = c.req.valid('param')
 
-		// 1. Get paste by slug
-		const [paste] = await db
-			.select()
+		// 1. Get paste with syntax extension
+		const [row] = await db
+			.select({
+				paste: pastesTable,
+				syntax: {
+					extension: syntaxesTable.extension
+				}
+			})
 			.from(pastesTable)
+			.leftJoin(syntaxesTable, eq(pastesTable.syntaxId, syntaxesTable.id))
 			.where(eq(pastesTable.slug, slug))
-		if (!paste) {
+
+		if (!row) {
 			throw new GenericException({
 				statusCode: 404,
-				name: 'NotFound',
+				name: 'Not Found',
 				message: 'Paste not found'
 			})
 		}
 
-		// TO DO
+		const paste = row.paste
+		const extension = row.syntax.extension
+
+		// 2. (Optional) Disable download if password is set
 		// if (paste.passwordHash) {
 		// 	throw new GenericException({
 		// 		statusCode: 403,
@@ -416,21 +459,17 @@ const app = new Hono<Env>()
 		// 	})
 		// }
 
+		// 3. Burn after read?
 		if (paste.expiration === 'burn_after_read') {
 			await db.delete(pastesTable).where(eq(pastesTable.id, paste.id))
-			// Optional: clean up orphan tags
-			await db.execute(`
-		  DELETE FROM tags
-		  WHERE id NOT IN (
-			SELECT DISTINCT tag_id FROM paste_tags
-		  )
-		`)
+			await DoggoUtils.removeUnusedTags()
 		}
 
-		const ext = DoggoUtils.getFileExtension(paste.syntax)
-		const safeTitle = DoggoUtils.sanitizeFileName(paste.title || slug)
-		const fileName = `${safeTitle}.${ext}`
+		// 4. Filename
+		const safeTitle = DoggoUtils.sanitizeFileName(paste.title)
+		const fileName = `${safeTitle}.${extension}`
 
+		// 5. Headers + response
 		c.header('Content-Type', 'text/plain; charset=utf-8')
 		c.header('Content-Disposition', `attachment; filename="${fileName}"`)
 		return c.body(paste.content)

@@ -11,6 +11,7 @@ import { requestId } from 'hono/request-id'
 import { secureHeaders } from 'hono/secure-headers'
 
 // custom
+import { seedSyntaxes } from './db/seed.js'
 import { GenericException } from './exceptions/index.js'
 import {
 	errorHandler,
@@ -30,6 +31,8 @@ if (!process.env.HONO_API_URL) {
 if (!process.env.NEXT_PUBLIC_APP_URL) {
 	throw new Error('NEXT_PUBLIC_APP_URL is required')
 }
+
+await seedSyntaxes()
 
 const app = new Hono<Env>().basePath('/api')
 const server = serve(

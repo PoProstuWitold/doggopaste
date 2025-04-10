@@ -1,4 +1,5 @@
 import { generate } from 'random-words'
+import { db } from '../db/index.js'
 
 export class DoggoUtils {
 	public static async generateSlug(): Promise<string> {
@@ -27,27 +28,10 @@ export class DoggoUtils {
 			case '2w':
 				return new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000)
 			case 'burn_after_read':
-				return new Date(now.getTime() + 24 * 60 * 60 * 1000) // to do: implement
+				return new Date(now.getTime() + 24 * 60 * 60 * 1000)
 			default: // also includes 'never'
 				return null
 		}
-	}
-
-	public static getFileExtension(syntax: string) {
-		const syntaxToExtension = {
-			plaintext: 'txt',
-			javascript: 'js',
-			typescript: 'ts',
-			python: 'py',
-			cpp: 'cpp',
-			html: 'html',
-			jsx: 'jsx',
-			tsx: 'tsx'
-		} as const
-
-		const extension =
-			syntaxToExtension[syntax as keyof typeof syntaxToExtension] || 'txt'
-		return extension
 	}
 
 	public static sanitizeFileName(title: string): string {
@@ -55,5 +39,15 @@ export class DoggoUtils {
 			.replace(/[^\w\s.-]/g, '')
 			.replace(/\s+/g, '_')
 			.slice(0, 100)
+	}
+
+	public static async removeUnusedTags() {
+		const result = await db.execute(`
+			DELETE FROM tags
+			WHERE NOT EXISTS (
+				SELECT 1 FROM paste_tags WHERE tags.id = paste_tags.tag_id
+			)
+		`)
+		console.log('Removed unused tags: ', result.rowCount)
 	}
 }

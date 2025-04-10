@@ -5,11 +5,7 @@ import { useState } from 'react'
 import { FaFileCode, FaInfoCircle } from 'react-icons/fa'
 import { useTheme } from '../context/ThemeContext'
 import type { Paste } from '../types'
-import {
-	extensions,
-	getContrastTextColor,
-	languageColors
-} from '../utils/functions'
+import { extensions, getContrastTextColor } from '../utils/functions'
 import { PasteButtons } from './PasteButton'
 
 export default function SinglePaste({
@@ -19,7 +15,7 @@ export default function SinglePaste({
 	slug: string
 	paste: Paste
 }) {
-	const bgColor = languageColors.get(paste.syntax) || '#999'
+	const bgColor = paste.syntax.color
 
 	const { cmTheme } = useTheme()
 	const [showWarning, setShowWarning] = useState<boolean>(
@@ -67,7 +63,7 @@ export default function SinglePaste({
 								<CodeMirror
 									value={paste.content}
 									extensions={[
-										extensions[paste.syntax] ?? []
+										extensions[paste.syntax.name] ?? []
 									]}
 									readOnly={true}
 									onChange={() => {}}
@@ -121,7 +117,7 @@ export default function SinglePaste({
 									color: getContrastTextColor(bgColor)
 								}}
 							>
-								{paste.syntax}
+								{paste.syntax.name}
 							</span>
 						}
 					/>

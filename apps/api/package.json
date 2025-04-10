@@ -12,7 +12,8 @@
 		"ncu": "ncu",
 		"db:push": "drizzle-kit push",
 		"db:generate": "drizzle-kit generate",
-		"db:migrate": "drizzle-kit migrate"
+		"db:migrate": "drizzle-kit migrate",
+		"db:seed": "node --env-file .env --import tsx src/db/seed.ts"
 	},
 	"dependencies": {
 		"@hono/node-server": "^1.14.0",
@@ -21,6 +22,7 @@
 		"argon2": "^0.41.1",
 		"better-auth": "^1.2.5",
 		"drizzle-orm": "^0.41.0",
+		"drizzle-seed": "^0.3.1",
 		"hono": "^4.7.6",
 		"hono-openapi": "^0.4.6",
 		"pg": "^8.14.1",

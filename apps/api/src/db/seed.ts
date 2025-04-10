@@ -1,0 +1,75 @@
+import { db } from './index.js'
+import { syntaxesTable } from './schema.js'
+
+const syntaxes = [
+	// Programming languages
+	{ name: 'JavaScript', color: '#f1e05a', extension: 'js' },
+	{ name: 'Python', color: '#3572A5', extension: 'py' },
+	{ name: 'TypeScript', color: '#3178c6', extension: 'ts' },
+	{ name: 'Java', color: '#b07219', extension: 'java' },
+	{ name: 'C#', color: '#178600', extension: 'cs' },
+	{ name: 'C++', color: '#f34b7d', extension: 'cpp' },
+	{ name: 'Go', color: '#00ADD8', extension: 'go' },
+	{ name: 'PHP', color: '#4F5D95', extension: 'php' },
+	{ name: 'Rust', color: '#dea584', extension: 'rs' },
+	{ name: 'Swift', color: '#F05138', extension: 'swift' },
+	{ name: 'Kotlin', color: '#A97BFF', extension: 'kt' },
+	{ name: 'Ruby', color: '#701516', extension: 'rb' },
+	{ name: 'Dart', color: '#00B4AB', extension: 'dart' },
+	{ name: 'C', color: '#555555', extension: 'c' },
+	{ name: 'Scala', color: '#c22d40', extension: 'scala' },
+	{ name: 'Lua', color: '#000080', extension: 'lua' },
+	{ name: 'Haskell', color: '#5e5086', extension: 'hs' },
+	{ name: 'Perl', color: '#0298c3', extension: 'pl' },
+	{ name: 'Erlang', color: '#B83998', extension: 'erl' },
+	{ name: 'Pascal', color: '#E3F171', extension: 'pas' },
+	{ name: 'Fortran', color: '#4d41b1', extension: 'f90' },
+	{ name: 'Cobol', color: '#0058A3', extension: 'cbl' },
+	{ name: 'HolyC', color: '#ffefaf', extension: 'hc' },
+	// Web & frontend syntaxes
+	{ name: 'HTML', color: '#e34c26', extension: 'html' },
+	{ name: 'CSS', color: '#663399', extension: 'css' },
+	{ name: 'Sass', color: '#a53b70', extension: 'scss' },
+	{ name: 'Less', color: '#1d365d', extension: 'less' },
+	{ name: 'JSX', color: '#61dafb', extension: 'jsx' },
+	{ name: 'TSX', color: '#3178c6', extension: 'tsx' },
+	{ name: 'Svelte', color: '#ff3e00', extension: 'svelte' },
+	{ name: 'Vue', color: '#41b883', extension: 'vue' },
+	{ name: 'Angular', color: '#dd1b16', extension: 'ng.ts' },
+	{ name: 'WebAssembly', color: '#04133b', extension: 'wasm' },
+	// Database syntaxes
+	{ name: 'PostgreSQL', color: '#336791', extension: 'sql' },
+	{ name: 'MySQL', color: '#00758f', extension: 'sql' },
+	{ name: 'SQLite', color: '#003b57', extension: 'sql' },
+	{ name: 'MariaDB', color: '#003545', extension: 'sql' },
+	{ name: 'SQL', color: '#e38c00', extension: 'sql' },
+	{ name: 'StandardSQL', color: '#e38c00', extension: 'sql' },
+	{ name: 'Cassandra', color: '#1287b1', extension: 'cql' },
+	// Configuration / Markup / Data formats
+	{ name: 'JSON', color: '#292929', extension: 'json' },
+	{ name: 'XML', color: '#0060ac', extension: 'xml' },
+	{ name: 'YAML', color: '#cb171e', extension: 'yaml' },
+	{ name: 'TOML', color: '#9c4221', extension: 'toml' },
+	{ name: 'Markdown', color: '#083fa1', extension: 'md' },
+	{ name: 'Dockerfile', color: '#384d54', extension: null },
+	{ name: 'PowerShell', color: '#012456', extension: 'ps1' },
+	{ name: 'Shell', color: '#89e051', extension: 'sh' },
+	{ name: 'CMake', color: '#DA3434', extension: 'cmake' },
+	{ name: 'Nginx', color: '#009639', extension: 'conf' },
+	// Other / Meta
+	{ name: 'Plaintext', color: '#808080', extension: 'txt' },
+	{ name: 'GraphQL', color: '#e10098', extension: 'graphql' }
+]
+
+export async function seedSyntaxes() {
+	try {
+		await Promise.all(
+			syntaxes.map((s) =>
+				db.insert(syntaxesTable).values(s).onConflictDoNothing()
+			)
+		)
+		console.info('Successfully seeded db with syntaxes')
+	} catch (err) {
+		console.error('Error seeding syntaxes to database:', err)
+	}
+}

@@ -50,7 +50,7 @@ export function PasteForm({
 						title: paste.title,
 						slug: paste.slug,
 						content: paste.content,
-						syntax: paste.syntax,
+						syntax: paste.syntax.name,
 						category: paste.category,
 						expiration: paste.expiration,
 						visibility: paste.visibility,

@@ -9,14 +9,14 @@ import {
 	FaUserAlt
 } from 'react-icons/fa'
 import type { Paste } from '../types'
-import { getContrastTextColor, languageColors } from '../utils/functions'
+import { getContrastTextColor } from '../utils/functions'
 
 interface PasteCardProps {
 	paste: Paste
 }
 
 export const PasteCard: React.FC<PasteCardProps> = ({ paste }) => {
-	const bgColor = languageColors.get(paste.syntax) || '#999'
+	const bgColor = paste.syntax.color
 
 	return (
 		<li
@@ -39,7 +39,7 @@ export const PasteCard: React.FC<PasteCardProps> = ({ paste }) => {
 							color: getContrastTextColor(bgColor)
 						}}
 					>
-						{paste.syntax}
+						{paste.syntax.name}
 					</span>
 				</div>
 

@@ -77,6 +77,12 @@ export interface PasteForm {
 	pasteAsGuest: boolean
 }
 
+export interface Syntax {
+	name: keyof typeof extensions
+	color: string
+	extension: string | null
+}
+
 export interface Paste {
 	id: string
 	createdAt: string
@@ -87,7 +93,7 @@ export interface Paste {
 	slug: string
 	category: string
 	content: string
-	syntax: keyof typeof extensions
+	syntax: Syntax
 	expiresAt: string | null
 	expiration: string
 	passwordHash: string | null
@@ -109,7 +115,7 @@ export interface RealtimePaste {
 	title: string
 	slug: string
 	content: string
-	syntax: keyof typeof extensions
+	syntax: Syntax
 	visibility: string
 	userId: string | null
 	folderId: string | null

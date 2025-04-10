@@ -122,62 +122,6 @@ export const extensions = {
 	TOML: StreamLanguage.define(toml)
 }
 
-export const languageColors = new Map<string, string>([
-	['JavaScript', '#f1e05a'],
-	['TypeScript', '#3178c6'],
-	['Python', '#3572A5'],
-	['C++', '#f34b7d'],
-	['HTML', '#e34c26'],
-	['CSS', '#663399'],
-	['Go', '#00ADD8'],
-	['Java', '#b07219'],
-	['PHP', '#4F5D95'],
-	['Rust', '#dea584'],
-	['Sass', '#a53b70'],
-	['C#', '#178600'],
-	['Svelte', '#ff3e00'],
-	['GraphQL', '#e10098'],
-	['Vue', '#41b883'],
-	['JSON', '#292929'],
-	['Markdown', '#083fa1'],
-	['WebAssembly', '#04133b'],
-	['XML', '#0060ac'],
-	['YAML', '#cb171e'],
-	['SQL', '#e38c00'],
-	['JSX', '#61dafb'], // non official
-	['TSX', '#3178c6'], // non official
-	['Angular', '#dd1b16'], // non official
-	['Less', '#1d365d'], // non official
-	['PostgreSQL', '#336791'], // non official
-	['MySQL', '#00758f'], // non official
-	['Cassandra', '#1287b1'], // non official
-	['SQLite', '#003b57'], // non official
-	['MariaDB', '#003545'], // non official
-	['StandardSQL', '#e38c00'], // non official
-	['Plaintext', '#808080'], // non official
-	// LEGACY MODES
-	['C', '#555555'],
-	['HolyC', '#ffefaf'],
-	['Dart', '#00B4AB'],
-	['Kotlin', '#A97BFF'],
-	['Scala', '#c22d40'],
-	['CMake', '#DA3434'],
-	['Cobol', '#0058A3'],
-	['Dockerfile', '#384d54'],
-	['Erlang', '#B83998'],
-	['Fortran', '#4d41b1'],
-	['Haskell', '#5e5086'],
-	['Lua', '#000080'],
-	['Nginx', '#009639'],
-	['Pascal', '#E3F171'],
-	['Perl', '#0298c3'],
-	['PowerShell', '#012456'],
-	['Shell', '#89e051'],
-	['Ruby', '#701516'],
-	['Swift', '#F05138'],
-	['TOML', '#9c4221']
-])
-
 export function getContrastTextColor(hex: string): string {
 	// Removes # if present
 	const trueHex = hex.replace('#', '')
