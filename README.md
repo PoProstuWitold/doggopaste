@@ -1,6 +1,6 @@
 # DoggoPaste
 
-## ***"Drop your code, let Doggo fetch it!"***
+## ***"Drop your code, let Doggo fetch it! Combination of a Pastebin and CodeShare. Free and selfhostable."***
 
 DoggoPaste project monorepo.
 
@@ -32,10 +32,20 @@ For complete documentation visit route **`http://localhost:3001/api/docs`**.
     - Public pastes feed with pagination
 - Realtime pastes/collab editors:
     - Real-time code collaboration
+- Other:
+    - Easy deployment with Docker and Caddy (WIP)
 
 ## Usage
 
-### Enviromental variables
+### Production
+
+Set environmental variables in ``docker-compose.prod.yaml`` and then launch it:
+
+```bash
+docker compose -f docker-compose.prod.yaml up
+```
+
+### Development
 
 Create ``.env`` in ``apps/api`` with following content:
 ```ini
@@ -43,6 +53,7 @@ Create ``.env`` in ``apps/api`` with following content:
 APP_NAME="DoggoPaste"
 NEXT_WEB_URL="http://localhost:3000"
 HONO_API_URL="http://localhost:3001"
+COOKIE_DOMAIN="*.example.com" # (optional) only for production
 
 # Database (matches docker-compose.dev.yaml)
 DATABASE_URL="postgresql://doggo:changeme@localhost:5432/doggopaste"
