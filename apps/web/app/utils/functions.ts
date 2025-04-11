@@ -46,6 +46,12 @@ import { csharp } from '@replit/codemirror-lang-csharp'
 import { svelte } from '@replit/codemirror-lang-svelte'
 import { graphql } from 'cm6-graphql'
 
+export const getBaseApiUrl = () => {
+	return typeof window === 'undefined'
+		? (process.env.INTERNAL_HONO_API_URL ?? 'http://doggopaste_api:3001')
+		: (process.env.NEXT_PUBLIC_HONO_API_URL ?? 'http://localhost:3001')
+}
+
 export const setThemeScript = `
 (function() {
 	try {

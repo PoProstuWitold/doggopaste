@@ -7,10 +7,15 @@ import { schema } from '../db/schema.js'
 
 export const auth = betterAuth({
 	appName: process.env.APP_NAME,
-	baseURL: process.env.BETTER_AUTH_URL,
+	baseURL: process.env.HONO_API_URL,
 	basePath: '/api/auth',
 	secret: process.env.BETTER_AUTH_SECRET,
-	trustedOrigins: [process.env.NEXT_PUBLIC_APP_URL, process.env.HONO_API_URL],
+	trustedOrigins: [
+		process.env.NEXT_WEB_URL,
+		process.env.HONO_API_URL,
+		'http://localhost:3000',
+		'http://localhost:3001'
+	],
 	ipAddress: {
 		ipAddressHeaders: ['x-client-ip', 'x-forwarded-for'],
 		disableIpTracking: false
@@ -36,12 +41,16 @@ export const auth = betterAuth({
 			sameSite: 'none',
 			secure: true,
 			partitioned: true
-		},
-		crossSubDomainCookies: {
-			enabled: true,
-			cookieDomain: process.env.COOKIE_DOMAIN,
-			domain: process.env.COOKIE_DOMAIN
 		}
+		// crossSubDomainCookies:
+		// 	process.env.COOKIE_DOMAIN && process.env.COOKIE_DOMAIN.length > 0
+		// 		? {
+		// 				enabled: true,
+		// 				cookieDomain: new URL(process.env.COOKIE_DOMAIN)
+		// 					.hostname,
+		// 				domain: new URL(process.env.COOKIE_DOMAIN).hostname
+		// 			}
+		// 		: undefined
 	},
 	user: {
 		modelName: 'users',

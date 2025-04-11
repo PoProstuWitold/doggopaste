@@ -1,5 +1,5 @@
 'use client'
-import { authClient } from '@/app/utils/auth-client'
+import { createDynamicAuthClient } from '@/app/utils/auth-client'
 import { wait } from '@/app/utils/functions'
 import { useRouter } from 'next/navigation'
 import type React from 'react'
@@ -10,6 +10,7 @@ import { FaFacebook, FaGithub, FaGoogle } from 'react-icons/fa'
 import type { SignInData, SignUpData } from '../types'
 
 export const Login: React.FC = () => {
+	const authClient = createDynamicAuthClient()
 	const router = useRouter()
 	const [isSignUp, setIsSignUp] = useState(false)
 
@@ -25,7 +26,7 @@ export const Login: React.FC = () => {
 	const onSubmit = async (formData: SignInData & SignUpData) => {
 		if (isSignUp) {
 			// sign up logic
-			console.log('Sign Up Data:', formData)
+			console.info('Sign Up Data:', formData)
 			const { email, password, name } = formData
 			const { data, error } = await authClient.signUp.email(
 				{
@@ -36,14 +37,14 @@ export const Login: React.FC = () => {
 				{
 					onRequest: (ctx) => {
 						//show loading
-						console.log('loading', ctx)
+						console.info('loading', ctx)
 						toast.loading('Loading...', {
 							duration: 1000
 						})
 					},
 					onSuccess: async (ctx) => {
 						//redirect to the dashboard
-						console.log('success', ctx)
+						console.info('success', ctx)
 						toast.success(
 							`Signed up successfully as ${ctx.data.user.name}. Redirecting...`
 						)
@@ -52,16 +53,16 @@ export const Login: React.FC = () => {
 						router.refresh()
 					},
 					onError: (ctx) => {
-						console.log('error', ctx)
+						console.info('error', ctx)
 						toast.error(ctx.error.message)
 					}
 				}
 			)
-			console.log('data', data)
-			console.log('error', error)
+			console.info('data', data)
+			console.info('error', error)
 		} else {
 			// sign in logic
-			console.log('Sign In Data:', formData)
+			console.info('Sign In Data:', formData)
 			const { email, password, rememberMe } = formData
 			const { data, error } = await authClient.signIn.email(
 				{
@@ -72,14 +73,14 @@ export const Login: React.FC = () => {
 				{
 					onRequest: (ctx) => {
 						//show loading
-						console.log('loading', ctx)
+						console.info('loading', ctx)
 						toast.loading('Loading...', {
 							duration: 1000
 						})
 					},
 					onSuccess: async (ctx) => {
 						//redirect to the dashboard
-						console.log('success', ctx)
+						console.info('success', ctx)
 						toast.success(
 							`Signed in successfully as ${ctx.data.user.name}. Redirecting...`
 						)
@@ -88,13 +89,13 @@ export const Login: React.FC = () => {
 						router.refresh()
 					},
 					onError: (ctx) => {
-						console.log('error', ctx)
+						console.info('error', ctx)
 						toast.error(ctx.error.message)
 					}
 				}
 			)
-			console.log('data', data)
-			console.log('error', error)
+			console.info('data', data)
+			console.info('error', error)
 		}
 	}
 
@@ -110,7 +111,7 @@ export const Login: React.FC = () => {
 			callbackURL: '/api/redirect'
 		})
 
-		console.log(data, error)
+		console.info(data, error)
 		if (data) {
 			toast.success(
 				`Signed in successfully with ${provider}. Redirecting...`

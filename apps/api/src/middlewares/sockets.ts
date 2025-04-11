@@ -8,29 +8,33 @@ export function initWebSockets(server: ServerType) {
 	io = new WebSocketsServer(server, {
 		path: '/ws',
 		cors: {
-			origin: process.env.NEXT_PUBLIC_APP_URL,
+			origin: [
+				process.env.NEXT_WEB_URL,
+				'http://localhost:3000',
+				'http://localhost:3001'
+			],
 			credentials: true
 		},
 		connectionStateRecovery: {}
 	})
 
 	io.on('error', (err) => {
-		console.log(err)
+		console.error(err)
 	})
 
 	io.on('connection', (socket) => {
-		console.log(`Socket ${socket.id} connected!`)
+		console.info(`Socket ${socket.id} connected!`)
 		socket.on('disconnect', (reason) => {
-			console.log(`Socket ${socket.id} disconnected! Reason '${reason}'`)
+			console.info(`Socket ${socket.id} disconnected! Reason '${reason}'`)
 		})
 
 		socket.on('message', (msg, _callback) => {
-			console.log(`Received message from socket ${socket.id}: "${msg}"`)
+			console.info(`Received message from socket ${socket.id}: "${msg}"`)
 		})
 
 		// PROJECT SPECIFIC EVENTS
 		socket.on('join-room', (slug: string) => {
-			console.log(`Socket ${socket.id} joined room ${slug}`)
+			console.info(`Socket ${socket.id} joined room ${slug}`)
 			socket.join(slug)
 		})
 

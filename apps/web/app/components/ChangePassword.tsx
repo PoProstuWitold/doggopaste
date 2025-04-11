@@ -3,10 +3,11 @@ import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import toast from 'react-hot-toast'
 import type { ChangePasswordData } from '../types'
-import { authClient } from '../utils/auth-client'
+import { createDynamicAuthClient } from '../utils/auth-client'
 import { wait } from '../utils/functions'
 
 export const ChangePassword: React.FC = () => {
+	const authClient = createDynamicAuthClient()
 	const router = useRouter()
 	const {
 		register,
@@ -15,7 +16,7 @@ export const ChangePassword: React.FC = () => {
 	} = useForm<ChangePasswordData>()
 
 	const onSubmit = async (formData: ChangePasswordData) => {
-		console.log('Change password data:', formData)
+		console.info('Change password data:', formData)
 		const { currentPassword, newPassword, revokeOtherSessions } = formData
 		const { data, error } = await authClient.changePassword(
 			{
@@ -26,27 +27,27 @@ export const ChangePassword: React.FC = () => {
 			{
 				onRequest: (ctx) => {
 					//show loading
-					console.log('loading', ctx)
+					console.info('loading', ctx)
 					toast.loading('Loading...', {
 						duration: 1000
 					})
 				},
 				onSuccess: async (ctx) => {
 					//redirect to the dashboard
-					console.log('success', ctx)
+					console.info('success', ctx)
 					toast.success('Updated user data')
 					await wait(500)
 					router.replace('/profile')
 					router.refresh()
 				},
 				onError: (ctx) => {
-					console.log('error', ctx)
+					console.info('error', ctx)
 					toast.error(ctx.error.message)
 				}
 			}
 		)
-		console.log('data', data)
-		console.log('error', error)
+		console.info('data', data)
+		console.info('error', error)
 	}
 
 	return (

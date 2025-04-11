@@ -1,0 +1,56 @@
+services:
+  doggopaste_web:
+    container_name: doggopaste_web
+    build:
+      context: .
+      dockerfile: ./apps/web/Dockerfile
+    environment:
+      INTERNAL_HONO_API_URL: "http://doggopaste_api:3001"
+    restart: unless-stopped
+    depends_on:
+      - doggopaste_api
+    ports:
+      - 3000:3000
+    networks:
+      - doggopaste_network
+  doggopaste_api:
+    container_name: doggopaste_api
+    build:
+      context: .
+      dockerfile: ./apps/api/Dockerfile
+    environment:
+      APP_NAME: "DoggoPaste"
+      NEXT_WEB_URL: "http://doggopaste_web:3000"
+      HONO_API_URL: "http://doggopaste_api:3001"
+      DATABASE_URL: "postgresql://doggo:changeme@doggopaste_db_prod:5432/doggopaste"
+      BETTER_AUTH_SECRET: "super_secret_doggo"
+      GITHUB_CLIENT_ID: "your_github_client_id"
+      GITHUB_CLIENT_SECRET: "your_github_client_secret"
+      # COOKIE_DOMAIN: "*.example.com" # (optional) only for production
+    restart: unless-stopped
+    depends_on:
+      - doggopaste_db_prod
+    ports:
+      - 3001:3001
+    networks:
+      - doggopaste_network
+  doggopaste_db_prod:
+    image: postgres:17
+    container_name: doggopaste_db_prod
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: doggo
+      POSTGRES_PASSWORD: changeme
+      POSTGRES_DB: doggopaste
+    ports:
+      - 5432:5432
+    volumes:
+      - doggopaste_db_prod_data:/var/lib/postgresql/data
+    networks:
+      - doggopaste_network
+
+volumes:
+  doggopaste_db_prod_data:
+networks:
+  doggopaste_network:
+    driver: bridge

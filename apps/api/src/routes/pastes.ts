@@ -46,7 +46,7 @@ const app = new Hono<Env>()
 
 		// 2. User ID
 		const user = c.get('user')
-		const userId = pasteAsGuest ? null : (user.id ?? null)
+		const userId = pasteAsGuest ? null : (user?.id ?? null)
 
 		// 3. Create folder if it does not exist
 		let folderId = null

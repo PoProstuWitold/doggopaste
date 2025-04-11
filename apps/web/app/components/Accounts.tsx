@@ -1,5 +1,5 @@
 'use client'
-import { authClient } from '@/app/utils/auth-client'
+import { createDynamicAuthClient } from '@/app/utils/auth-client'
 import { wait } from '@/app/utils/functions'
 import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
@@ -17,6 +17,7 @@ export const Accounts: React.FC<AccountsProps> = ({
 	accounts,
 	hasCredentialAccount
 }) => {
+	const authClient = createDynamicAuthClient()
 	const router = useRouter()
 	const providers: ('google' | 'github' | 'facebook')[] = [
 		'google',
@@ -29,8 +30,8 @@ export const Accounts: React.FC<AccountsProps> = ({
 			provider,
 			callbackURL: '/api/redirect'
 		})
-		console.log(data)
-		console.log(error)
+		console.info(data)
+		console.info(error)
 
 		if (data) {
 			toast.success(`Linked ${provider} account`)
@@ -53,8 +54,8 @@ export const Accounts: React.FC<AccountsProps> = ({
 		const { data, error } = await authClient.unlinkAccount({
 			providerId
 		})
-		console.log(data)
-		console.log(error)
+		console.info(data)
+		console.info(error)
 
 		if (data) {
 			toast.success(`Unlinked ${providerId} account`)

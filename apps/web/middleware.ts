@@ -1,5 +1,6 @@
 import { headers } from 'next/headers'
 import { type NextRequest, NextResponse } from 'next/server'
+import { getBaseApiUrl } from './app/utils/functions'
 
 export async function middleware(req: NextRequest) {
 	const path = req.nextUrl.pathname
@@ -12,7 +13,7 @@ export async function middleware(req: NextRequest) {
 		return NextResponse.next()
 	}
 
-	console.log('[middleware] Triggered:', path)
+	console.info('[middleware] Triggered:', path)
 
 	// Only for not logged in users
 	const publicOnlyPaths = ['/login']
@@ -23,12 +24,9 @@ export async function middleware(req: NextRequest) {
 	let isLoggedIn = false
 
 	// Try to get user info from the API
-	const me = await fetch(
-		`${process.env.NEXT_PUBLIC_HONO_API_URL}/api/auth/get-session`,
-		{
-			headers: await headers()
-		}
-	)
+	const me = await fetch(`${getBaseApiUrl()}/api/auth/get-session`, {
+		headers: await headers()
+	})
 	if (me.ok) {
 		const text = await me.text()
 		if (text) {
@@ -45,7 +43,7 @@ export async function middleware(req: NextRequest) {
 
 	// Now we can redirect the user if needed
 	if (isLoggedIn && publicOnlyPaths.includes(path)) {
-		console.log(
+		console.info(
 			'[middleware] Redirecting logged-in user from public-only path:',
 			path
 		)
@@ -53,7 +51,7 @@ export async function middleware(req: NextRequest) {
 	}
 
 	if (!isLoggedIn && protectedPaths.some((p) => path.startsWith(p))) {
-		console.log(
+		console.info(
 			'[middleware] Redirecting anon user from protected path:',
 			path
 		)

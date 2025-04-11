@@ -28,8 +28,8 @@ if (!process.env.HONO_API_URL) {
 	throw new Error('HONO_API_URL is required')
 }
 
-if (!process.env.NEXT_PUBLIC_APP_URL) {
-	throw new Error('NEXT_PUBLIC_APP_URL is required')
+if (!process.env.NEXT_WEB_URL) {
+	throw new Error('NEXT_WEB_URL is required')
 }
 
 await seedSyntaxes()
@@ -41,7 +41,7 @@ const server = serve(
 		port: 3001
 	},
 	(info) => {
-		console.log(
+		console.info(
 			`Server is running at ${
 				info.address === '::' ? 'localhost:' : info.address
 			}${info.port} with ${info.family}. GLHF!`
@@ -54,7 +54,11 @@ app.use(compress())
 app.use(
 	'*',
 	cors({
-		origin: process.env.NEXT_PUBLIC_APP_URL,
+		origin: [
+			process.env.NEXT_WEB_URL,
+			'http://localhost:3000',
+			'http://localhost:3001'
+		],
 		allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'HEAD'],
 		allowHeaders: ['Content-Type', 'Authorization'],
 		exposeHeaders: ['Content-Type'],
@@ -117,7 +121,7 @@ app.use('*', async (c, next) => {
 })
 app.on(['POST', 'GET'], '/auth/**', (c) => auth.handler(c.req.raw))
 app.on('GET', '/redirect', (c) =>
-	c.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/profile`)
+	c.redirect(`${process.env.NEXT_WEB_URL}/profile`)
 )
 // Routes
 app.route('/pastes', pasteRoutes)

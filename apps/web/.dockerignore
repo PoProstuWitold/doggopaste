@@ -1,0 +1,12 @@
+# folders
+.next
+.turbo
+node_modules
+
+# files
+.env.local
+.gitignore
+README.md
+tsconfig.tsbuildinfo
+Dockerfile
+entrypoint.sh

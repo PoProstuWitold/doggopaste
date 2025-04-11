@@ -8,6 +8,7 @@ import { BsFiletypeRaw } from 'react-icons/bs'
 import { FaCodeFork, FaCopy } from 'react-icons/fa6'
 import { ImEmbed2 } from 'react-icons/im'
 import { MdDelete, MdDownload, MdEdit } from 'react-icons/md'
+import { getBaseApiUrl } from '../utils/functions'
 import { CustomDialog } from './CustomDialog'
 
 export const PasteButtons = ({ slug }: { slug: string }) => {
@@ -15,13 +16,10 @@ export const PasteButtons = ({ slug }: { slug: string }) => {
 
 	const handleDeletePaste = async () => {
 		try {
-			const res = await fetch(
-				`${process.env.NEXT_PUBLIC_HONO_API_URL}/api/pastes/${slug}`,
-				{
-					method: 'DELETE',
-					credentials: 'include'
-				}
-			)
+			const res = await fetch(`${getBaseApiUrl()}/api/pastes/${slug}`, {
+				method: 'DELETE',
+				credentials: 'include'
+			})
 			const json = await res.json()
 
 			if (res.ok) {
@@ -49,7 +47,7 @@ export const PasteButtons = ({ slug }: { slug: string }) => {
 				</div>
 			</Link>
 			<a
-				href={`${process.env.NEXT_PUBLIC_HONO_API_URL}/api/pastes/${slug}/download`}
+				href={`${getBaseApiUrl()}/api/pastes/${slug}/download`}
 				className='btn btn-sm btn-success'
 			>
 				<div className='flex items-center gap-1 font-extrabold'>

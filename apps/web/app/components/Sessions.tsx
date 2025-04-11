@@ -1,6 +1,6 @@
 'use client'
 
-import { authClient } from '@/app/utils/auth-client'
+import { createDynamicAuthClient } from '@/app/utils/auth-client'
 import { wait } from '@/app/utils/functions'
 import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
@@ -16,13 +16,16 @@ export const Sessions: React.FC<SessionsProps> = ({
 	allSessions,
 	currentSessionToken
 }) => {
+	const authClient = createDynamicAuthClient()
 	const router = useRouter()
-	const { data: currentSession } = authClient.useSession()
+	const currentSession = allSessions.find(
+		(session) => session.token === currentSessionToken
+	)
 
 	const revokeSession = async (token: string) => {
 		const { data, error } = await authClient.revokeSession({ token })
-		console.log(data)
-		console.log(error)
+		console.info(data)
+		console.info(error)
 
 		if (data?.status) {
 			toast.success('Session revoked')
@@ -40,8 +43,8 @@ export const Sessions: React.FC<SessionsProps> = ({
 
 	const revokeAllSessions = async () => {
 		const { data, error } = await authClient.revokeSessions()
-		console.log(data)
-		console.log(error)
+		console.info(data)
+		console.info(error)
 
 		if (data?.status) {
 			toast.success('All sessions revoked')
@@ -57,8 +60,8 @@ export const Sessions: React.FC<SessionsProps> = ({
 
 	const revokeOtherSessions = async () => {
 		const { data, error } = await authClient.revokeOtherSessions()
-		console.log(data)
-		console.log(error)
+		console.info(data)
+		console.info(error)
 
 		if (data?.status) {
 			toast.success('Other sessions revoked')
@@ -119,14 +122,12 @@ export const Sessions: React.FC<SessionsProps> = ({
 								>
 									Revoke other sessions
 								</button>
-								{currentSession?.session ? (
+								{currentSession ? (
 									<button
 										type='button'
 										className='btn btn-error'
 										onClick={() =>
-											revokeSession(
-												currentSession?.session.token
-											)
+											revokeSession(currentSession.token)
 										}
 									>
 										Revoke current session

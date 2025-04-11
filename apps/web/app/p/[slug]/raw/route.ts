@@ -1,3 +1,4 @@
+import { getBaseApiUrl } from '@/app/utils/functions'
 import { NextResponse } from 'next/server'
 
 export async function GET(
@@ -6,10 +7,9 @@ export async function GET(
 ) {
 	const { slug } = await params
 
-	const res = await fetch(
-		`${process.env.NEXT_PUBLIC_HONO_API_URL}/api/pastes/${slug}`,
-		{ credentials: 'include' }
-	)
+	const res = await fetch(`${getBaseApiUrl()}/api/pastes/${slug}`, {
+		credentials: 'include'
+	})
 
 	if (!res.ok) {
 		return new NextResponse('Not found', { status: 404 })

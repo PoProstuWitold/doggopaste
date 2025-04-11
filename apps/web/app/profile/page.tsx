@@ -1,7 +1,7 @@
 import { Accounts } from '@/app/components/Accounts'
 import { Profile } from '@/app/components/Profile'
 import { Sessions } from '@/app/components/Sessions'
-import { authClient } from '@/app/utils/auth-client'
+import { createDynamicAuthClient } from '@/app/utils/auth-client'
 import { wait } from '@/app/utils/functions'
 import type { Metadata } from 'next'
 import { headers } from 'next/headers'
@@ -9,6 +9,7 @@ import { redirect } from 'next/navigation'
 import type { Session } from '../types'
 
 export async function generateMetadata(): Promise<Metadata> {
+	const authClient = createDynamicAuthClient()
 	const currentSession = await authClient.getSession({
 		fetchOptions: {
 			headers: await headers()
@@ -25,6 +26,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function ProfilePage() {
+	const authClient = createDynamicAuthClient()
 	const allSessions = await authClient.listSessions({
 		fetchOptions: {
 			headers: await headers()

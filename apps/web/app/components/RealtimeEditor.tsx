@@ -9,9 +9,9 @@ import { EditorView, basicSetup } from 'codemirror'
 import { useEffect, useRef } from 'react'
 import io from 'socket.io-client'
 import type { RealtimePaste } from '../types'
-import { extensions } from '../utils/functions'
+import { extensions, getBaseApiUrl } from '../utils/functions'
 
-const socket = io(process.env.NEXT_PUBLIC_HONO_API_URL, {
+const socket = io(getBaseApiUrl(), {
 	path: '/ws',
 	withCredentials: true
 })

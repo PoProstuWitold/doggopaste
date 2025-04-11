@@ -1,17 +1,15 @@
 import EditPasteForm from '@/app/components/EditPasteForm'
 import type { PasteResponse } from '@/app/types'
+import { getBaseApiUrl } from '@/app/utils/functions'
 import type { Metadata } from 'next'
 
 async function fetchResponse(slug: string): Promise<PasteResponse> {
-	const res = await fetch(
-		`${process.env.NEXT_PUBLIC_HONO_API_URL}/api/pastes/${slug}`,
-		{
-			method: 'GET',
-			headers: {
-				'Content-Type': 'application/json'
-			}
+	const res = await fetch(`${getBaseApiUrl()}/api/pastes/${slug}`, {
+		method: 'GET',
+		headers: {
+			'Content-Type': 'application/json'
 		}
-	)
+	})
 	const json = await res.json()
 	return json
 }

@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { headers } from 'next/headers'
-import { authClient } from './utils/auth-client'
+import { createDynamicAuthClient } from './utils/auth-client'
 
 export const metadata: Metadata = {
 	title: 'DoggoPaste',
@@ -9,6 +9,7 @@ export const metadata: Metadata = {
 }
 
 export default async function HomePage() {
+	const authClient = createDynamicAuthClient()
 	const session = await authClient.getSession({
 		fetchOptions: {
 			headers: await headers()

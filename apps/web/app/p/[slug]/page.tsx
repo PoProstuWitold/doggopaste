@@ -1,11 +1,10 @@
 import SinglePaste from '@/app/components/SinglePaste'
 import type { PasteResponse } from '@/app/types'
+import { getBaseApiUrl } from '@/app/utils/functions'
 import type { Metadata } from 'next'
 
 async function fetchResponse(slug: string): Promise<PasteResponse> {
-	const res = await fetch(
-		`${process.env.NEXT_PUBLIC_HONO_API_URL}/api/pastes/${slug}`
-	)
+	const res = await fetch(`${getBaseApiUrl()}/api/pastes/${slug}`)
 	const json = await res.json()
 	return json
 }

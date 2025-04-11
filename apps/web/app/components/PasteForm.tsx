@@ -7,7 +7,7 @@ import toast from 'react-hot-toast'
 import { FaFileCode } from 'react-icons/fa'
 import { useTheme } from '../context/ThemeContext'
 import type { Paste, PasteForm as PasteFormType } from '../types'
-import { extensions, wait } from '../utils/functions'
+import { extensions, getBaseApiUrl, wait } from '../utils/functions'
 import { useSensitiveContentChecker } from '../utils/useSensitiveContentChecker'
 import { CustomDialog } from './CustomDialog'
 
@@ -100,8 +100,8 @@ export function PasteForm({
 	const onSubmit = async (data: PasteFormType) => {
 		const endpoint =
 			mode === 'create'
-				? `${process.env.NEXT_PUBLIC_HONO_API_URL}/api/pastes`
-				: `${process.env.NEXT_PUBLIC_HONO_API_URL}/api/pastes/${slug}`
+				? `${getBaseApiUrl()}/api/pastes`
+				: `${getBaseApiUrl()}/api/pastes/${slug}`
 
 		const method = mode === 'create' ? 'POST' : 'PUT'
 

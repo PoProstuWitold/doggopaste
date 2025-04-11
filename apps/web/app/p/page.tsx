@@ -4,6 +4,7 @@ import { FaGithub, FaShieldDog } from 'react-icons/fa6'
 import { FiPlus } from 'react-icons/fi'
 import { PasteCard } from '../components/PasteCard'
 import type { Paste } from '../types'
+import { getBaseApiUrl } from '../utils/functions'
 
 export const dynamic = 'force-dynamic'
 
@@ -23,7 +24,7 @@ export default async function PublicPastes({
 	const offset = (page - 1) * limit
 
 	const res = await fetch(
-		`${process.env.NEXT_PUBLIC_HONO_API_URL}/api/pastes?limit=${limit}&offset=${offset}`,
+		`${getBaseApiUrl()}/api/pastes?limit=${limit}&offset=${offset}`,
 		{ next: { revalidate: 0 } }
 	)
 

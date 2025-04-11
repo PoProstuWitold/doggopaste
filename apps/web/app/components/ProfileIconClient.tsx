@@ -1,6 +1,6 @@
 'use client'
 
-import { authClient } from '@/app/utils/auth-client'
+import { createDynamicAuthClient } from '@/app/utils/auth-client'
 import { wait } from '@/app/utils/functions'
 import Link from 'next/link'
 import toast from 'react-hot-toast'
@@ -14,6 +14,7 @@ interface ProfileIconClientProps {
 export const ProfileIconClient: React.FC<ProfileIconClientProps> = ({
 	user
 }) => {
+	const authClient = createDynamicAuthClient()
 	const handleSignOut = async () => {
 		try {
 			const { data, error } = await authClient.signOut()

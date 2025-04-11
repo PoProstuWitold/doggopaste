@@ -48,6 +48,6 @@ export class DoggoUtils {
 				SELECT 1 FROM paste_tags WHERE tags.id = paste_tags.tag_id
 			)
 		`)
-		console.log('Removed unused tags: ', result.rowCount)
+		console.info('Removed unused tags: ', result.rowCount)
 	}
 }

@@ -40,23 +40,17 @@ For complete documentation visit route **`http://localhost:3001/api/docs`**.
 Create ``.env`` in ``apps/api`` with following content:
 ```ini
 # App
-APP_NAME=DoggoPaste
+APP_NAME="DoggoPaste"
+NEXT_WEB_URL="http://localhost:3000"
+HONO_API_URL="http://localhost:3001"
 
 # Database (matches docker-compose.dev.yaml)
-DATABASE_URL=postgresql://doggo:changeme@localhost:5432/doggopaste
+DATABASE_URL="postgresql://doggo:changeme@localhost:5432/doggopaste"
 
-# Better Auth - basic
-BETTER_AUTH_SECRET=super_secret_doggo # replace with output of "openssl rand -base64 32"
-BETTER_AUTH_URL=http://localhost:3001
-
-# Better Auth - OAuth2
-GITHUB_CLIENT_ID=your_github_client_id
-GITHUB_CLIENT_SECRET=your_github_client_secret
-
-# URLs
-NEXT_PUBLIC_APP_URL="http://localhost:3000"
-HONO_API_URL="http://localhost:3001"
-COOKIE_DOMAIN="localhost"
+# Better Auth
+BETTER_AUTH_SECRET="super_secret_doggo" # replace with output of "openssl rand -base64 32"
+GITHUB_CLIENT_ID="your_github_client_id"
+GITHUB_CLIENT_SECRET="your_github_client_secret"
 ```
 
 Create ``.env.local`` in ``apps/web`` with following content:
@@ -64,6 +58,7 @@ Create ``.env.local`` in ``apps/web`` with following content:
 # URLs
 NEXT_PUBLIC_APP_URL="http://localhost:3000"
 NEXT_PUBLIC_HONO_API_URL="http://localhost:3001"
+INTERNAL_HONO_API_URL="http://localhost:3001" # for server-side requests; different in Docker than NEXT_PUBLIC_*
 ```
 
 - Global monorepo scripts (``turbo run <command>``)
