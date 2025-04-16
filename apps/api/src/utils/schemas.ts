@@ -86,7 +86,19 @@ const createPasteSchema = z.object({
 			}
 		)
 		.default('none'),
-	tags: z.array(z.string().transform((val) => val.toLowerCase())).default([]),
+	tags: z
+		.array(
+			z
+				.string()
+				.min(1, 'Tag cannot be empty')
+				.max(16, 'Tag is too long (max 16 characters)')
+				.regex(
+					/^[a-z][a-z0-9]*$/,
+					'Tag must start with a letter and contain only lowercase letters or digits'
+				)
+				.transform((val) => val.toLowerCase())
+		)
+		.default([]),
 	syntax: z.string().min(1, 'Syntax is required'),
 	expiration: z
 		.enum(['never', 'burn_after_read', '10m', '1h', '1d', '1w', '2w'], {

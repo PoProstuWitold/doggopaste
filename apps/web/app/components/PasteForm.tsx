@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Controller, useForm } from 'react-hook-form'
 import toast from 'react-hot-toast'
 import { FaFileCode } from 'react-icons/fa'
+import { IoIosClose } from 'react-icons/io'
 import { useTheme } from '../context/ThemeContext'
 import type { Paste, PasteForm as PasteFormType } from '../types'
 import { extensions, getBaseApiUrl, wait } from '../utils/functions'
@@ -81,9 +82,35 @@ export function PasteForm({
 	const tags = watch('tags', paste?.tags ?? [])
 
 	const addTag = (event: React.KeyboardEvent<HTMLInputElement>) => {
+		const isAllowed =
+			/^[a-z0-9]$/.test(event.key) ||
+			[
+				'Backspace',
+				'Enter',
+				'Tab',
+				',',
+				'ArrowLeft',
+				'ArrowRight'
+			].includes(event.key)
+
+		if (!isAllowed) {
+			event.preventDefault()
+		}
+
 		if (event.key === 'Enter' || event.key === ',') {
 			event.preventDefault()
 			const value = event.currentTarget.value.trim()
+
+			if (!/^[a-z]/.test(value)) {
+				toast.error('Tag must start with a letter')
+				return
+			}
+
+			if (value.length > 16) {
+				toast.error('Tag is too long (max 16 characters)')
+				return
+			}
+
 			if (value && !tags.includes(value)) {
 				const updatedTags = [...tags, value]
 				setValue('tags', updatedTags, { shouldValidate: true })
@@ -170,10 +197,12 @@ export function PasteForm({
 								type='text'
 								className='input input-bordered w-full'
 								placeholder='Paste Title'
+								name='title'
 							/>
 							{errors.title && (
 								<p className='text-error'>
-									{errors.title.message}
+									{errors.title.message ||
+										'Title is required'}
 								</p>
 							)}
 						</label>
@@ -187,6 +216,7 @@ export function PasteForm({
 								type='text'
 								className='input input-bordered w-full'
 								placeholder='Paste Slug'
+								name='slug'
 							/>
 							{errors.slug && (
 								<p className='text-error'>
@@ -226,24 +256,32 @@ export function PasteForm({
 								{tags.map((tag, index) => (
 									<span
 										key={`${index}:${tag}`}
-										className='badge badge-accent flex items-center gap-2'
+										className='badge badge-accent flex items-center'
 									>
-										#{tag}
-										<button
-											type='button'
-											onClick={() => removeTag(tag)}
-											className='ml-1 text-white'
+										<span>#{tag}</span>
+										{/* button breaks functionality for some reason */}
+										<span
+											className='cursor-pointer text-error'
+											onClick={(e) => {
+												e.stopPropagation()
+												removeTag(tag)
+											}}
+											// has to be that way so linter
+											// is happy
+											onKeyDown={(e) => {}}
 										>
-											x
-										</button>
+											<IoIosClose className='w-8 h-8' />
+										</span>
 									</span>
 								))}
 							</div>
 							<input
 								type='text'
-								placeholder='Enter tag and press Enter'
+								maxLength={16}
+								placeholder='Enter tag'
 								className='input input-bordered w-full mt-2'
 								onKeyDown={addTag}
+								name='tags'
 							/>
 						</label>
 
@@ -320,6 +358,7 @@ export function PasteForm({
 								type='checkbox'
 								className='checkbox'
 								{...register('passwordEnabled')}
+								name='passwordEnabled'
 							/>
 							<span>Password Protect?</span>
 						</label>
@@ -330,6 +369,7 @@ export function PasteForm({
 								type='password'
 								className='input input-bordered w-full'
 								placeholder='Password'
+								name='password'
 							/>
 						)}
 
@@ -338,6 +378,7 @@ export function PasteForm({
 								type='checkbox'
 								className='checkbox'
 								{...register('pasteAsGuest')}
+								name='pasteAsGuest'
 							/>
 							<span>Paste as guest</span>
 						</label>
@@ -348,7 +389,14 @@ export function PasteForm({
 					<div className='w-full lg:w-4/5 flex flex-col gap-4 min-w-0'>
 						<div className='form-control w-full flex-1 min-w-0'>
 							<div className='label'>
-								<span className='label-text'>Content</span>
+								<span className='label-text flex md:flex-row gap-2'>
+									Content{' '}
+									{errors.content && (
+										<p className='text-error'>
+											{errors.content.message}
+										</p>
+									)}
+								</span>
 							</div>
 							<div className='min-w-0'>
 								<Controller
