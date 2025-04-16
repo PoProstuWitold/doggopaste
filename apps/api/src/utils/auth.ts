@@ -35,7 +35,9 @@ export const auth = betterAuth({
 		usePlural: true
 	}),
 	advanced: {
-		generateId: false,
+		database: {
+			generateId: false
+		},
 		cookiePrefix: 'doggopaste',
 		defaultCookieAttributes: {
 			sameSite: 'none',
