@@ -77,9 +77,17 @@ const createPasteSchema = z.object({
 				'none',
 				'cryptocurrency',
 				'cybersecurity',
-				'software',
 				'fixit',
-				'gaming'
+				'gaming',
+				'help',
+				'software',
+				'note',
+				'config',
+				'question',
+				'log',
+				'project',
+				'snippet',
+				'education'
 			],
 			{
 				errorMap: () => ({ message: 'Invalid category' })

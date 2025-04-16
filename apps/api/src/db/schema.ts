@@ -128,9 +128,17 @@ export const categoryEnum = pgEnum('category', [
 	'none',
 	'cryptocurrency',
 	'cybersecurity',
-	'software',
 	'fixit',
-	'gaming'
+	'gaming',
+	'help',
+	'software',
+	'note',
+	'config',
+	'question',
+	'log',
+	'project',
+	'snippet',
+	'education'
 ])
 
 export const syntaxesTable = pgTable('syntaxes', {

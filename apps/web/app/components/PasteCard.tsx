@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { BiCategory } from 'react-icons/bi'
 import { BsShieldLock } from 'react-icons/bs'
 import {
 	FaClock,
@@ -8,8 +9,14 @@ import {
 	FaRegEdit,
 	FaUserAlt
 } from 'react-icons/fa'
+import { FaRegHourglassHalf } from 'react-icons/fa6'
 import type { Paste } from '../types'
-import { getContrastTextColor } from '../utils/functions'
+import {
+	firstLetterUppercase,
+	getCategoryLabel,
+	getContrastTextColor,
+	getExpirationLabel
+} from '../utils/functions'
 
 interface PasteCardProps {
 	paste: Paste
@@ -57,21 +64,23 @@ export const PasteCard: React.FC<PasteCardProps> = ({ paste }) => {
 				<div className='flex flex-wrap gap-2 mt-2 text-sm'>
 					{paste.category && paste.category !== 'none' && (
 						<span className='badge badge-secondary'>
-							{paste.category}
+							<BiCategory /> {getCategoryLabel(paste.category)}
 						</span>
 					)}
 
 					<span className='badge badge-outline'>
-						<FaEye className='mr-1' /> {paste.hits} views
+						<FaEye className='mr-1' /> {paste.hits} Hits
 					</span>
 
 					<span className='badge badge-outline'>
-						<FaGlobe className='mr-1' /> {paste.visibility}
+						<FaGlobe className='mr-1' />{' '}
+						{firstLetterUppercase(paste.visibility)}
 					</span>
 
 					{paste.expiration !== 'never' && (
 						<span className='badge badge-outline'>
-							⏳ expires: {paste.expiration}
+							<FaRegHourglassHalf /> Expiration:{' '}
+							{getExpirationLabel(paste.expiration)}
 						</span>
 					)}
 
@@ -83,11 +92,11 @@ export const PasteCard: React.FC<PasteCardProps> = ({ paste }) => {
 
 					{paste.userId ? (
 						<span className='badge badge-outline'>
-							<FaUserAlt className='mr-1' /> user paste
+							<FaUserAlt className='mr-1' /> User Paste
 						</span>
 					) : (
 						<span className='badge badge-outline'>
-							<FaUserAlt className='mr-1' /> guest paste
+							<FaUserAlt className='mr-1' /> Guest Paste
 						</span>
 					)}
 

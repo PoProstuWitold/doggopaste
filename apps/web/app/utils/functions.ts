@@ -143,3 +143,42 @@ export function getContrastTextColor(hex: string): string {
 	// If light background → dark text, otherwise light
 	return luminance > 0.5 ? '#000000' : '#ffffff'
 }
+
+export const categories = [
+	['none', 'None'],
+	['cryptocurrency', 'Cryptocurrency'],
+	['cybersecurity', 'Cybersecurity'],
+	['fixit', 'Fix It'],
+	['gaming', 'Gaming'],
+	['help', 'Help'],
+	['software', 'Software'],
+	['note', 'Note'],
+	['config', 'Config'],
+	['question', 'Question'],
+	['log', 'Log'],
+	['project', 'Project'],
+	['snippet', 'Snippet'],
+	['education', 'Education']
+] as const
+
+export function getCategoryLabel(value: string): string {
+	const found = categories.find(([val]) => val === value)
+	return found ? found[1] : value
+}
+
+export function firstLetterUppercase(str: string): string {
+	return str.charAt(0).toUpperCase() + str.slice(1)
+}
+
+export const expirationLabels = {
+	never: 'Never',
+	burn_after_read: 'Burn After Read',
+	'10m': '10 Minutes',
+	'1h': '1 Hour',
+	'1d': '1 Day',
+	'1w': '1 Week',
+	'2w': '2 Weeks'
+}
+export function getExpirationLabel(value: string): string {
+	return expirationLabels[value as keyof typeof expirationLabels] || value
+}

@@ -8,7 +8,7 @@ import { FaFileCode } from 'react-icons/fa'
 import { IoIosClose } from 'react-icons/io'
 import { useTheme } from '../context/ThemeContext'
 import type { Paste, PasteForm as PasteFormType } from '../types'
-import { extensions, getBaseApiUrl, wait } from '../utils/functions'
+import { categories, extensions, getBaseApiUrl, wait } from '../utils/functions'
 import { useSensitiveContentChecker } from '../utils/useSensitiveContentChecker'
 import { CustomDialog } from './CustomDialog'
 
@@ -233,16 +233,11 @@ export function PasteForm({
 								{...register('category')}
 								className='select select-bordered w-full'
 							>
-								<option value='none'>None</option>
-								<option value='cryptocurrency'>
-									Cryptocurrency
-								</option>
-								<option value='cybersecurity'>
-									Cybersecurity
-								</option>
-								<option value='software'>Software</option>
-								<option value='fixit'>Fix It</option>
-								<option value='gaming'>Gaming</option>
+								{categories.map(([value, label]) => (
+									<option key={value} value={value}>
+										{label}
+									</option>
+								))}
 							</select>
 						</label>
 

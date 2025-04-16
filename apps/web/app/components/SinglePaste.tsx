@@ -5,7 +5,13 @@ import { useState } from 'react'
 import { FaFileCode, FaInfoCircle } from 'react-icons/fa'
 import { useTheme } from '../context/ThemeContext'
 import type { Paste } from '../types'
-import { extensions, getContrastTextColor } from '../utils/functions'
+import {
+	extensions,
+	firstLetterUppercase,
+	getCategoryLabel,
+	getContrastTextColor,
+	getExpirationLabel
+} from '../utils/functions'
 import { PasteButtons } from './PasteButton'
 
 export default function SinglePaste({
@@ -100,13 +106,34 @@ export default function SinglePaste({
 								<span>No category</span>
 							) : (
 								<span className='badge badge-secondary'>
-									{paste.category}
+									{getCategoryLabel(paste.category)}
 								</span>
 							)
 						}
 					/>
-					<PasteDetail label='Visibility' value={paste.visibility} />
-					<PasteDetail label='Expiration' value={paste.expiration} />
+					<PasteDetail
+						label='Visibility'
+						value={firstLetterUppercase(paste.visibility)}
+					/>
+					<PasteDetail
+						label='Expiration'
+						value={
+							<span className='flex md:flex-row flex-col gap-2 items-center'>
+								{paste.expiresAt
+									? getExpirationLabel(paste.expiration)
+									: 'Never'}
+								{paste.expiresAt && (
+									<span>
+										(
+										{new Date(
+											paste.expiresAt
+										).toLocaleString('pl-PL')}
+										)
+									</span>
+								)}
+							</span>
+						}
+					/>
 					<PasteDetail
 						label='Syntax'
 						value={
@@ -143,19 +170,28 @@ export default function SinglePaste({
 						value={paste.passwordHash ? 'Enabled' : 'Disabled'}
 					/>
 					<PasteDetail
-						label='Created at'
-						value={new Date(paste.createdAt).toLocaleString(
-							'pl-PL'
-						)}
+						label='Created (Updated)'
+						value={
+							<span className='flex md:flex-row flex-col gap-2 items-center'>
+								{new Date(paste.createdAt).toLocaleString(
+									'pl-PL'
+								)}
+								{paste.updatedAt && (
+									<span>
+										(
+										{new Date(
+											paste.updatedAt
+										).toLocaleString('pl-PL')}
+										)
+									</span>
+								)}
+							</span>
+						}
 					/>
-					{paste.expiresAt && (
-						<PasteDetail
-							label='Expires at'
-							value={new Date(paste.expiresAt).toLocaleString(
-								'pl-PL'
-							)}
-						/>
-					)}
+					<PasteDetail
+						label='Hits'
+						value={paste.hits ? paste.hits : '0'}
+					/>
 				</div>
 			</div>
 		</>
