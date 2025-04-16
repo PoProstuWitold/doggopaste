@@ -1,7 +1,9 @@
 import SinglePaste from '@/app/components/SinglePaste'
-import type { PasteResponse } from '@/app/types'
+import type { PasteResponse, User } from '@/app/types'
+import { createDynamicAuthClient } from '@/app/utils/auth-client'
 import { getBaseApiUrl } from '@/app/utils/functions'
 import type { Metadata } from 'next'
+import { headers } from 'next/headers'
 
 async function fetchResponse(slug: string): Promise<PasteResponse> {
 	const res = await fetch(`${getBaseApiUrl()}/api/pastes/${slug}`)
@@ -30,6 +32,14 @@ export default async function SinglePastePage({
 }: {
 	params: Props['params']
 }) {
+	const authClient = createDynamicAuthClient()
+	const session = await authClient.getSession({
+		fetchOptions: {
+			headers: await headers()
+		}
+	})
+	const user = session.data?.user || null
+
 	const { slug } = await params
 	const { data, success } = await fetchResponse(slug)
 
@@ -39,7 +49,7 @@ export default async function SinglePastePage({
 
 	return (
 		<>
-			<SinglePaste slug={slug} paste={data} />
+			<SinglePaste slug={slug} paste={data} user={user} />
 		</>
 	)
 }

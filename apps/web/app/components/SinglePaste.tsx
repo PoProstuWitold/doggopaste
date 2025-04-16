@@ -4,7 +4,7 @@ import CodeMirror from '@uiw/react-codemirror'
 import { useState } from 'react'
 import { FaFileCode, FaInfoCircle } from 'react-icons/fa'
 import { useTheme } from '../context/ThemeContext'
-import type { Paste } from '../types'
+import type { Paste, User } from '../types'
 import {
 	extensions,
 	firstLetterUppercase,
@@ -16,10 +16,12 @@ import { PasteButtons } from './PasteButton'
 
 export default function SinglePaste({
 	slug,
-	paste
+	paste,
+	user
 }: {
 	slug: string
 	paste: Paste
+	user: User | null
 }) {
 	const bgColor = paste.syntax.color
 
@@ -56,7 +58,7 @@ export default function SinglePaste({
 						Paste "{slug}"
 					</div>
 					<div className='divider lg:divider-horizontal' />
-					<PasteButtons slug={slug} />
+					<PasteButtons paste={paste} user={user} />
 				</div>
 
 				<div className='flex flex-col lg:flex-row gap-4'>

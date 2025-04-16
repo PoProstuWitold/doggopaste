@@ -19,7 +19,14 @@ export async function middleware(req: NextRequest) {
 	const publicOnlyPaths = ['/login']
 
 	// Only for logged in users
-	const protectedPaths = ['/profile']
+	const protectedPaths: (string | RegExp)[] = [
+		'/profile',
+		/^\/p\/[a-zA-Z0-9-]+\/edit$/
+	]
+
+	const isProtected = protectedPaths.some((route) =>
+		route instanceof RegExp ? route.test(path) : route === path
+	)
 
 	let isLoggedIn = false
 
@@ -50,7 +57,7 @@ export async function middleware(req: NextRequest) {
 		return NextResponse.redirect(new URL('/', req.url))
 	}
 
-	if (!isLoggedIn && protectedPaths.some((p) => path.startsWith(p))) {
+	if (!isLoggedIn && isProtected) {
 		console.info(
 			'[middleware] Redirecting anon user from protected path:',
 			path
