@@ -68,6 +68,7 @@ HONO_API_URL="http://localhost:3001"
 # Production
 # NEXT_WEB_URL="https://doggopaste.example.com"
 # HONO_API_URL="https://doggopaste-api.example.com"
+# COOKIE_DOMAIN=".example.com"
 # ------------------
 ```
 

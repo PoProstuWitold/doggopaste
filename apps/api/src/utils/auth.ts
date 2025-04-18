@@ -36,10 +36,19 @@ export const auth = betterAuth({
 		},
 		cookiePrefix: 'doggopaste',
 		defaultCookieAttributes: {
-			sameSite: 'none',
 			secure: true,
-			partitioned: true
-		}
+			httpOnly: true,
+			sameSite: 'none', // Allows CORS-based cookie sharing across subdomains
+			partitioned: true // New browser standards will mandate this for foreign cookies
+		},
+		...(process.env.COOKIE_DOMAIN
+			? {
+					crossSubDomainCookies: {
+						enabled: true,
+						domain: process.env.COOKIE_DOMAIN // e.g., ".example.com"
+					}
+				}
+			: {})
 	},
 	user: {
 		modelName: 'users',

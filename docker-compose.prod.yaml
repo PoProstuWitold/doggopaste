@@ -26,6 +26,7 @@ services:
       APP_NAME: "DoggoPaste"
       NEXT_WEB_URL: "https://doggopaste.example.com"
       HONO_API_URL: "https://doggopaste-api.example.com"
+      COOKIE_DOMAIN: ".example.com"
       DATABASE_URL: "postgresql://doggo:changeme@doggopaste_db_prod:5432/doggopaste"
       BETTER_AUTH_SECRET: "super_secret_doggo"
       GITHUB_CLIENT_ID: "your_github_client_id"
