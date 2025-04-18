@@ -16,10 +16,13 @@ RUN turbo prune web --docker
 FROM base AS installer
 WORKDIR /app
 
+ARG NEXT_PUBLIC_APP_URL=http://localhost:3000
+ARG NEXT_PUBLIC_HONO_API_URL=http://localhost:3001
+
+ENV NEXT_PUBLIC_APP_URL=$NEXT_PUBLIC_APP_URL
+ENV NEXT_PUBLIC_HONO_API_URL=$NEXT_PUBLIC_HONO_API_URL
 ENV NODE_ENV=production
 ENV NEXT_PRIVATE_STANDALONE=true
-ENV NEXT_PUBLIC_APP_URL=http://localhost:3000
-ENV NEXT_PUBLIC_HONO_API_URL=http://localhost:3001
 
 COPY --from=builder /app/out/json/ ./
 RUN pnpm install

@@ -4,9 +4,10 @@ services:
     build:
       context: .
       dockerfile: ./apps/web/Dockerfile
+      args:
+        NEXT_PUBLIC_APP_URL: "https://doggopaste.example.com"
+        NEXT_PUBLIC_HONO_API_URL: "https://doggopaste-api.example.com"
     environment:
-      NEXT_PUBLIC_APP_URL: "https://doggopaste.example.com"
-      NEXT_PUBLIC_HONO_API_URL: "https://doggopaste-api.example.com"
       INTERNAL_HONO_API_URL: "http://doggopaste_api:3001"
     restart: unless-stopped
     depends_on:
