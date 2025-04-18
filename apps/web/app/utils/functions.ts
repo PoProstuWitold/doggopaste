@@ -47,9 +47,15 @@ import { svelte } from '@replit/codemirror-lang-svelte'
 import { graphql } from 'cm6-graphql'
 
 export const getBaseApiUrl = () => {
-	return typeof window === 'undefined'
-		? (process.env.INTERNAL_HONO_API_URL ?? 'http://doggopaste_api:3001')
-		: `${window.location.protocol}//${window.location.hostname}:3001` // do zmiany
+	if (typeof window === 'undefined') {
+		return process.env.INTERNAL_HONO_API_URL ?? 'http://doggopaste_api:3001'
+	}
+
+	const isHttps = window.location.protocol === 'https:'
+	const hostname = window.location.hostname
+	const port = isHttps ? 443 : 3001
+
+	return process.env.NEXT_PUBLIC_HONO_API_URL ?? `${window.location.protocol}//${hostname}:${port}`
 }
 
 export const setThemeScript = `

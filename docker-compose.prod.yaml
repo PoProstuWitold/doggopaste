@@ -5,6 +5,8 @@ services:
       context: .
       dockerfile: ./apps/web/Dockerfile
     environment:
+      NEXT_PUBLIC_APP_URL: "https://doggopaste.example.com"
+      NEXT_PUBLIC_HONO_API_URL: "https://doggopaste-api.example.com"
       INTERNAL_HONO_API_URL: "http://doggopaste_api:3001"
     restart: unless-stopped
     depends_on:
@@ -13,6 +15,7 @@ services:
       - 3000:3000
     networks:
       - doggopaste_network
+      - caddy
   doggopaste_api:
     container_name: doggopaste_api
     build:
@@ -20,13 +23,12 @@ services:
       dockerfile: ./apps/api/Dockerfile
     environment:
       APP_NAME: "DoggoPaste"
-      NEXT_WEB_URL: "http://doggopaste_web:3000"
-      HONO_API_URL: "http://doggopaste_api:3001"
+      NEXT_WEB_URL: "https://doggopaste.example.com"
+      HONO_API_URL: "https://doggopaste-api.example.com"
       DATABASE_URL: "postgresql://doggo:changeme@doggopaste_db_prod:5432/doggopaste"
       BETTER_AUTH_SECRET: "super_secret_doggo"
       GITHUB_CLIENT_ID: "your_github_client_id"
       GITHUB_CLIENT_SECRET: "your_github_client_secret"
-      # COOKIE_DOMAIN: "*.example.com" # (optional) only for production
     restart: unless-stopped
     depends_on:
       - doggopaste_db_prod
@@ -34,6 +36,7 @@ services:
       - 3001:3001
     networks:
       - doggopaste_network
+      - caddy
   doggopaste_db_prod:
     image: postgres:17
     container_name: doggopaste_db_prod
@@ -54,3 +57,6 @@ volumes:
 networks:
   doggopaste_network:
     driver: bridge
+  caddy:
+    name: caddy
+    external: true

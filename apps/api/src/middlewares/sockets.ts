@@ -1,6 +1,7 @@
 import type { ServerType } from '@hono/node-server'
 import { createMiddleware } from 'hono/factory'
 import { Server as WebSocketsServer } from 'socket.io'
+import { origins } from '../utils/contants'
 
 let io: WebSocketsServer | null
 
@@ -8,11 +9,7 @@ export function initWebSockets(server: ServerType) {
 	io = new WebSocketsServer(server, {
 		path: '/ws',
 		cors: {
-			origin: [
-				process.env.NEXT_WEB_URL,
-				'http://localhost:3000',
-				'http://localhost:3001'
-			],
+			origin: origins,
 			credentials: true
 		},
 		connectionStateRecovery: {}

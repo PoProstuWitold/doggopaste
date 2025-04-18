@@ -36,8 +36,9 @@ export const auth = betterAuth({
 		},
 		cookiePrefix: 'doggopaste',
 		defaultCookieAttributes: {
-			sameSite: 'lax',
-			secure: process.env.NODE_ENV === 'production'
+			sameSite: 'none',
+			secure: true,
+			partitioned: true
 		}		
 	},
 	user: {

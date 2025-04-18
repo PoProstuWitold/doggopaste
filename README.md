@@ -49,27 +49,41 @@ docker compose -f docker-compose.prod.yaml up
 
 Create ``.env`` in ``apps/api`` with following content:
 ```ini
+# ------ ALL -------
 # App
 APP_NAME="DoggoPaste"
-NEXT_WEB_URL="http://localhost:3000"
-HONO_API_URL="http://localhost:3001"
-COOKIE_DOMAIN="*.example.com" # (optional) only for production
-
-# Database (matches docker-compose.dev.yaml)
 DATABASE_URL="postgresql://doggo:changeme@localhost:5432/doggopaste"
 
 # Better Auth
 BETTER_AUTH_SECRET="super_secret_doggo" # replace with output of "openssl rand -base64 32"
 GITHUB_CLIENT_ID="your_github_client_id"
 GITHUB_CLIENT_SECRET="your_github_client_secret"
+# ------------------
+
+# --- CHOOSE ONE ---
+# Local
+NEXT_WEB_URL="http://localhost:3000"
+HONO_API_URL="http://localhost:3001"
+
+# Production
+# NEXT_WEB_URL="https://doggopaste.example.com"
+# HONO_API_URL="https://doggopaste-api.example.com"
+# ------------------
 ```
 
 Create ``.env.local`` in ``apps/web`` with following content:
 ```ini
-# URLs
+# --- CHOOSE ONE ---
+# Local
 NEXT_PUBLIC_APP_URL="http://localhost:3000"
 NEXT_PUBLIC_HONO_API_URL="http://localhost:3001"
-INTERNAL_HONO_API_URL="http://localhost:3001" # for server-side requests; different in Docker than NEXT_PUBLIC_*
+INTERNAL_HONO_API_URL="http://localhost:3001" # for server-side requests
+
+# Production
+# NEXT_PUBLIC_APP_URL="https://doggopaste.example.com"
+# NEXT_PUBLIC_HONO_API_URL="https://doggopaste-api.example.com"
+# INTERNAL_HONO_API_URL="http://doggopaste_api:3001" # for server-side requests
+# ------------------
 ```
 
 - Global monorepo scripts (``turbo run <command>``)
