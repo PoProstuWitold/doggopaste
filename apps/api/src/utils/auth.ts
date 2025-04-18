@@ -4,18 +4,14 @@ import { admin, openAPI, organization } from 'better-auth/plugins'
 
 import { db } from '../db/index.js'
 import { schema } from '../db/schema.js'
+import { origins } from './contants.js'
 
 export const auth = betterAuth({
 	appName: process.env.APP_NAME,
 	baseURL: process.env.HONO_API_URL,
 	basePath: '/api/auth',
 	secret: process.env.BETTER_AUTH_SECRET,
-	trustedOrigins: [
-		process.env.NEXT_WEB_URL,
-		process.env.HONO_API_URL,
-		'http://localhost:3000',
-		'http://localhost:3001'
-	],
+	trustedOrigins: origins,
 	ipAddress: {
 		ipAddressHeaders: ['x-client-ip', 'x-forwarded-for'],
 		disableIpTracking: false
@@ -40,19 +36,9 @@ export const auth = betterAuth({
 		},
 		cookiePrefix: 'doggopaste',
 		defaultCookieAttributes: {
-			sameSite: 'none',
-			secure: true,
-			partitioned: true
-		}
-		// crossSubDomainCookies:
-		// 	process.env.COOKIE_DOMAIN && process.env.COOKIE_DOMAIN.length > 0
-		// 		? {
-		// 				enabled: true,
-		// 				cookieDomain: new URL(process.env.COOKIE_DOMAIN)
-		// 					.hostname,
-		// 				domain: new URL(process.env.COOKIE_DOMAIN).hostname
-		// 			}
-		// 		: undefined
+			sameSite: 'lax',
+			secure: process.env.NODE_ENV === 'production'
+		}		
 	},
 	user: {
 		modelName: 'users',

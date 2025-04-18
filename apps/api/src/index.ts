@@ -23,6 +23,7 @@ import {
 import pasteRoutes from './routes/pastes.js'
 import type { Env } from './types'
 import { auth, openApiSpec } from './utils/index.js'
+import { origins } from './utils/contants.js'
 
 if (!process.env.HONO_API_URL) {
 	throw new Error('HONO_API_URL is required')
@@ -54,11 +55,7 @@ app.use(compress())
 app.use(
 	'*',
 	cors({
-		origin: [
-			process.env.NEXT_WEB_URL,
-			'http://localhost:3000',
-			'http://localhost:3001'
-		],
+		origin: origins,
 		allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'HEAD'],
 		allowHeaders: ['Content-Type', 'Authorization'],
 		exposeHeaders: ['Content-Type'],

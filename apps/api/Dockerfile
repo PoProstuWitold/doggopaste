@@ -1,5 +1,6 @@
 # --- Stage: base (Node.js v22 LTS Alpine) ---
 FROM node:jod-alpine AS base
+ENV NODE_ENV=production
 
 RUN apk update \
   && apk add --no-cache libc6-compat postgresql-client \
@@ -14,8 +15,6 @@ RUN turbo prune api --docker
 # --- Stage: installer (deps + build) ---
 FROM base AS installer
 WORKDIR /app
-
-ENV NODE_ENV=production
 
 COPY --from=builder /app/out/json/ ./
 RUN pnpm install

@@ -21,7 +21,7 @@ const essentialColumns = {
 
 export const usersTable = pgTable('users', {
 	...essentialColumns,
-	name: varchar({ length: 512 }).notNull(),
+	name: varchar({ length: 512 }).notNull().unique(),
 	email: varchar({ length: 512 }).notNull().unique(),
 	emailVerified: boolean('email_verified').notNull().default(false),
 	image: varchar({ length: 512 }),
