@@ -1,7 +1,7 @@
 import type { ServerType } from '@hono/node-server'
 import { createMiddleware } from 'hono/factory'
 import { Server as WebSocketsServer } from 'socket.io'
-import { origins } from '../utils/contants'
+import { origins } from '../utils/contants.js'
 
 let io: WebSocketsServer | null
 

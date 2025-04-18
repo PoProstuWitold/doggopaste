@@ -55,7 +55,10 @@ export const getBaseApiUrl = () => {
 	const hostname = window.location.hostname
 	const port = isHttps ? 443 : 3001
 
-	return process.env.NEXT_PUBLIC_HONO_API_URL ?? `${window.location.protocol}//${hostname}:${port}`
+	return (
+		process.env.NEXT_PUBLIC_HONO_API_URL ??
+		`${window.location.protocol}//${hostname}:${port}`
+	)
 }
 
 export const setThemeScript = `

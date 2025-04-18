@@ -22,8 +22,8 @@ import {
 } from './middlewares/index.js'
 import pasteRoutes from './routes/pastes.js'
 import type { Env } from './types'
-import { auth, openApiSpec } from './utils/index.js'
 import { origins } from './utils/contants.js'
+import { auth, openApiSpec } from './utils/index.js'
 
 if (!process.env.HONO_API_URL) {
 	throw new Error('HONO_API_URL is required')
