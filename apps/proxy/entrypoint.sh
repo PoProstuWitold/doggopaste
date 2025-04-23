@@ -11,20 +11,10 @@ done
 echo "Database is ready!"
 
 echo "Generating migrations..."
-if pnpm --filter api run db:generate; then
-  echo "Migrations generated successfully!"
-else
-  echo "Failed to generate migrations!"
-  exit 1
-fi
+pnpm --filter api run db:generate
 
 echo "Running migrations..."
-if pnpm --filter api run db:migrate; then
-  echo "Migrations applied successfully!"
-else
-  echo "Failed to run migrations!"
-  exit 1
-fi
+pnpm --filter api run db:migrate
 
 # Start the API with PM2
 echo "Starting with PM2 Runtime..."

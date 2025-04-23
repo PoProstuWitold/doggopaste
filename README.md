@@ -5,7 +5,7 @@
 DoggoPaste project monorepo.
 
 ## Documentation
-For complete documentation visit route **`http://localhost:3001/api/docs`**.
+For complete documentation visit route **`http://localhost:3002/api/docs`**.
 
 ## Features
 - User:
@@ -46,6 +46,31 @@ docker compose -f docker-compose.prod.yaml up
 ```
 
 ### Development
+
+1. Create `.env` file in `apps/api`:
+
+```ini
+DATABASE_URL="postgresql://doggo:changeme@localhost:5432/doggopaste"
+```
+
+2. Create `.env` file in `apps/proxy`:
+```ini
+# API
+APP_NAME="DoggoPaste"
+APP_URL="http://localhost:3002"
+APP_LAN="http://192.168.x.x:3002" # replace with your LAN IP
+DATABASE_URL="postgresql://doggo:changeme@localhost:5432/doggopaste"
+BETTER_AUTH_SECRET="super_secret_doggo" # replace with output of "openssl rand -base64 32"
+GITHUB_CLIENT_ID="your_github_client_id"
+GITHUB_CLIENT_SECRET="your_github_client_secret"
+
+# WEB
+NEXT_PUBLIC_APP_URL="http://localhost:3002" # different in production
+NEXT_PUBLIC_CONTAINER_URL="http://localhost:3002" # different in Docker
+```
+
+3. Install dependencies and run ``turbo run dev --filter=proxy`` to run app on ``http://localhost:3002``
+
 - Global monorepo scripts (``turbo run <command>``)
     - **``dev --filter=proxy``** - runs all apps in development mode with hot-reload on single port using proxy
     - **``build``** - builds all apps for production
