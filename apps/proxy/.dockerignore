@@ -1,0 +1,11 @@
+# folders
+.turbo
+build
+node_modules
+
+# files
+.env
+.gitignore
+README.md
+Dockerfile
+entrypoint.sh

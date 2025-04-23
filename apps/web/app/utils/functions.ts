@@ -46,19 +46,32 @@ import { csharp } from '@replit/codemirror-lang-csharp'
 import { svelte } from '@replit/codemirror-lang-svelte'
 import { graphql } from 'cm6-graphql'
 
-export const getBaseApiUrl = () => {
+export const getBaseApiUrl = (): string => {
+	let basicUrl = ''
+
 	if (typeof window === 'undefined') {
-		return process.env.INTERNAL_HONO_API_URL ?? 'http://doggopaste_api:3001'
+		basicUrl = process.env.APP_URL ?? 'http://doggopaste:3002'
+		console.log('[server] using APP_URL:', basicUrl)
+		return basicUrl
 	}
 
-	const isHttps = window.location.protocol === 'https:'
-	const hostname = window.location.hostname
-	const port = isHttps ? 443 : 3001
+	const { protocol, hostname, port } = window.location
+	const isHttps = protocol === 'https:'
 
-	return (
-		process.env.NEXT_PUBLIC_HONO_API_URL ??
-		`${window.location.protocol}//${hostname}:${port}`
-	)
+	const actualPort = port || (isHttps ? '443' : '80') // <--- KLUCZOWA ZMIANA
+
+	if (isHttps) {
+		basicUrl = `${protocol}//${hostname}`
+		console.log('[https] using HTTPS domain-based API:', basicUrl)
+	} else if (actualPort === '3002') {
+		basicUrl = `${protocol}//${hostname}:${actualPort}`
+		console.log('[proxy] using shared proxy at port 3002:', basicUrl)
+	} else {
+		basicUrl = `${protocol}//${hostname}:3001`
+		console.log('[local dev] using separate API on port 3001:', basicUrl)
+	}
+
+	return basicUrl
 }
 
 export const setThemeScript = `

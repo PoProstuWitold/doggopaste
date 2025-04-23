@@ -26,7 +26,8 @@ const ipOrigins = getLocalIPv4Addresses().flatMap((ip) => [
 export const origins = [
 	'http://localhost:3000',
 	'http://localhost:3001',
-	...(process.env.NEXT_WEB_URL ? [process.env.NEXT_WEB_URL] : []),
-	...(process.env.HONO_API_URL ? [process.env.HONO_API_URL] : []),
+	'http://localhost:3002',
+	...(process.env.APP_URL ? [process.env.APP_URL] : []),
+	...(process.env.APP_LAN ? [process.env.APP_LAN] : []),
 	...ipOrigins
 ]

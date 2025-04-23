@@ -25,12 +25,12 @@ import type { Env } from './types'
 import { origins } from './utils/contants.js'
 import { auth, openApiSpec } from './utils/index.js'
 
-if (!process.env.HONO_API_URL) {
-	throw new Error('HONO_API_URL is required')
+if (!process.env.APP_URL) {
+	throw new Error('APP_URL is required')
 }
 
-if (!process.env.NEXT_WEB_URL) {
-	throw new Error('NEXT_WEB_URL is required')
+if (!process.env.APP_LAN) {
+	throw new Error('APP_LAN is required')
 }
 
 await seedSyntaxes()
@@ -117,8 +117,6 @@ app.use('*', async (c, next) => {
 	return next()
 })
 app.on(['POST', 'GET'], '/auth/**', (c) => auth.handler(c.req.raw))
-app.on('GET', '/redirect', (c) =>
-	c.redirect(`${process.env.NEXT_WEB_URL}/profile`)
-)
+app.on('GET', '/redirect', (c) => c.redirect(`${process.env.APP_URL}/profile`))
 // Routes
 app.route('/pastes', pasteRoutes)

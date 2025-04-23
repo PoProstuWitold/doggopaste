@@ -8,7 +8,7 @@ import { origins } from './contants.js'
 
 export const auth = betterAuth({
 	appName: process.env.APP_NAME,
-	baseURL: process.env.HONO_API_URL,
+	baseURL: process.env.APP_URL,
 	basePath: '/api/auth',
 	secret: process.env.BETTER_AUTH_SECRET,
 	trustedOrigins: origins,
@@ -36,9 +36,9 @@ export const auth = betterAuth({
 		},
 		cookiePrefix: 'doggopaste',
 		defaultCookieAttributes: {
-			secure: true,
+			secure: false,
 			httpOnly: true,
-			sameSite: 'none', // Allows CORS-based cookie sharing across subdomains
+			sameSite: 'Lax', // Allows CORS-based cookie sharing across subdomains
 			partitioned: true // New browser standards will mandate this for foreign cookies
 		},
 		...(process.env.COOKIE_DOMAIN
