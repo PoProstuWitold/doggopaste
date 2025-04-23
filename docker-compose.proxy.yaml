@@ -13,6 +13,7 @@ services:
       GITHUB_CLIENT_ID: "your_github_client_id"
       GITHUB_CLIENT_SECRET: "your_github_client_secret"
       NEXT_PUBLIC_APP_URL: "https://doggopaste.example.com"
+      NEXT_PUBLIC_CONTAINER_URL: "http://doggopaste:3002" # SRR, Docker: http://doggopaste:3002, dev: http://localhost:3002
     ports:
       - 3002:3002
     restart: unless-stopped

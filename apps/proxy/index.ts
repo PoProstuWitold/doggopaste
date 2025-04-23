@@ -7,6 +7,18 @@ import * as connect from 'connect'
 import * as finalhandler from 'finalhandler'
 import { createProxyMiddleware } from 'http-proxy-middleware'
 
+function isPortFree(port: number): Promise<boolean> {
+	return new Promise((resolve) => {
+		const server = createServer()
+		server.once('error', () => resolve(false))
+		server.once('listening', () => {
+			server.close()
+			resolve(true)
+		})
+		server.listen(port)
+	})
+}
+
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 const root = resolve(__dirname, '../../')
@@ -15,15 +27,29 @@ const mode = process.env.NODE_ENV || 'development'
 const command = mode === 'production' ? 'start' : 'dev'
 
 console.info(`[proxy] ${mode} mode`)
-spawn('pnpm', ['--filter', 'web', command], {
-	cwd: root,
-	stdio: 'inherit',
-	env: process.env
+isPortFree(3000).then((free) => {
+	if (free) {
+		console.info('[proxy] starting web')
+		spawn('pnpm', ['--filter', 'web', command], {
+			cwd: root,
+			stdio: 'inherit',
+			env: process.env
+		})
+	} else {
+		console.warn('[proxy] skipping web (port 3000 already in use)')
+	}
 })
-spawn('pnpm', ['--filter', 'api', command], {
-	cwd: root,
-	stdio: 'inherit',
-	env: process.env
+isPortFree(3001).then((free) => {
+	if (free) {
+		console.info('[proxy] starting api')
+		spawn('pnpm', ['--filter', 'api', command], {
+			cwd: root,
+			stdio: 'inherit',
+			env: process.env
+		})
+	} else {
+		console.warn('[proxy] skipping api (port 3001 already in use)')
+	}
 })
 
 const app = connect.default()

@@ -8,9 +8,23 @@ until pg_isready -h doggopaste_db_prod -p 5432 -U doggo; do
   sleep 2
 done
 
-# Migrate the database
-echo "Migrating database..."
-pnpm --filter api run db:push
+echo "Database is ready!"
+
+echo "Generating migrations..."
+if pnpm --filter api run db:generate; then
+  echo "Migrations generated successfully!"
+else
+  echo "Failed to generate migrations!"
+  exit 1
+fi
+
+echo "Running migrations..."
+if pnpm --filter api run db:migrate; then
+  echo "Migrations applied successfully!"
+else
+  echo "Failed to run migrations!"
+  exit 1
+fi
 
 # Start the API with PM2
 echo "Starting with PM2 Runtime..."

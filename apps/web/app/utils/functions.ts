@@ -50,15 +50,16 @@ export const getBaseApiUrl = (): string => {
 	let basicUrl = ''
 
 	if (typeof window === 'undefined') {
-		basicUrl = process.env.APP_URL ?? 'http://doggopaste:3002'
-		console.log('[server] using APP_URL:', basicUrl)
+		basicUrl =
+			process.env.NEXT_PUBLIC_CONTAINER_URL ?? 'http://doggopaste:3002'
+		console.log('[server] using NEXT_PUBLIC_CONTAINER_URL:', basicUrl)
 		return basicUrl
 	}
 
 	const { protocol, hostname, port } = window.location
 	const isHttps = protocol === 'https:'
 
-	const actualPort = port || (isHttps ? '443' : '80') // <--- KLUCZOWA ZMIANA
+	const actualPort = port || (isHttps ? '443' : '80')
 
 	if (isHttps) {
 		basicUrl = `${protocol}//${hostname}`

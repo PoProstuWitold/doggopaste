@@ -39,6 +39,8 @@ RUN addgroup --system --gid 1001 doggo \
 COPY --from=installer --chown=doggo:doggo /app/apps/api/build ./apps/api/build
 COPY --from=installer --chown=doggo:doggo /app/apps/api/node_modules ./apps/api/node_modules
 COPY --from=installer --chown=doggo:doggo /app/apps/api/package.json ./apps/api/package.json
+COPY --from=installer --chown=doggo:doggo /app/apps/api/drizzle.config.ts ./apps/api/drizzle.config.ts
+COPY --from=installer --chown=doggo:doggo /app/apps/api/src/db/schema.ts ./apps/api/src/db/schema.ts
 # WEB
 COPY --from=installer --chown=doggo:doggo /app/apps/web/.next ./apps/web/.next
 COPY --from=installer --chown=doggo:doggo /app/apps/web/public ./apps/web/public
