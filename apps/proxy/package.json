@@ -8,13 +8,16 @@
 	"scripts": {
 		"build": "tsc -p tsconfig.json",
 		"start": "NODE_ENV='production' node --env-file .env build/index.js",
-		"dev": "NODE_ENV='development' node --env-file .env --watch --import tsx index.ts"
+		"dev": "NODE_ENV='development' node --env-file .env --watch --import tsx index.ts",
+		"check-types": "tsc --noEmit",
+		"ncu-u": "ncu -u && pnpm install",
+		"ncu": "ncu"
 	},
 	"devDependencies": {
 		"@types/connect": "^3.4.38",
 		"@types/finalhandler": "^1.2.3",
-		"@types/node": "^22.14.1",
-		"tsx": "^4.19.3"
+		"@types/node": "^22.15.3",
+		"tsx": "^4.19.4"
 	},
 	"dependencies": {
 		"connect": "^3.7.0",

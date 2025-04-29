@@ -12,15 +12,15 @@
 		"check:fix": "biome check . --write"
 	},
 	"devDependencies": {
-		"@biomejs/biome": "1.9.4",
-		"turbo": "^2.5.0",
-		"typescript": "5.8.3"
+		"@biomejs/biome": "^1.9.4",
+		"turbo": "^2.5.2",
+		"typescript": "^5.8.3"
 	},
-	"packageManager": "pnpm@10.8.1",
+	"packageManager": "pnpm@10.10.0",
 	"engines": {
 		"node": ">=22"
 	},
 	"volta": {
-		"node": "22.14.0"
+		"node": "22.15.0"
 	}
 }
