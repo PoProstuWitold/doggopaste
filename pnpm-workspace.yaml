@@ -1,8 +1,8 @@
 packages:
   - apps/*
-
 onlyBuiltDependencies:
   - '@biomejs/biome'
+  - '@tailwindcss/oxide'
   - argon2
   - esbuild
   - sharp
