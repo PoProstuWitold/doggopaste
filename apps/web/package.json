@@ -1,8 +1,9 @@
 {
 	"name": "web",
 	"version": "0.1.0",
-	"type": "module",
 	"private": true,
+	"type": "module",
+	"description": "Web client for DoggoPaste. Built with Next.js and Tailwind CSS",
 	"scripts": {
 		"dev": "next dev --turbopack --port 3000",
 		"build": "next build",

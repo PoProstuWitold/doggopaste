@@ -3,6 +3,7 @@
 	"version": "0.1.0",
 	"private": true,
 	"type": "module",
+	"description": "REST API and WebSocket server for DoggoPaste. Built with Hono and Drizzle ORM",
 	"scripts": {
 		"dev": "pnpm run db:push && NODE_ENV='development' node --watch --import tsx src/index.ts",
 		"build": "tsc -p tsconfig.json",

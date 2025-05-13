@@ -1,6 +1,6 @@
 {
 	"name": "doggopaste",
-	"description": "Drop your code, let Doggo fetch it!",
+	"description": "Drop your code, let Doggo fetch it! Combination of a Pastebin and CodeShare. Free and selfhostable ",
 	"version": "0.1.0",
 	"private": true,
 	"scripts": {

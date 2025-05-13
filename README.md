@@ -33,7 +33,7 @@ For complete documentation visit route **`http://localhost:3002/api/docs`**.
 - Realtime pastes/collab editors:
     - Real-time code collaboration
 - Other:
-    - Easy deployment with Docker and Caddy (WIP)
+    - Easy deployment with Docker and Caddy
 
 ## Usage
 
