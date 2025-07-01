@@ -5,7 +5,7 @@
 DoggoPaste project monorepo.
 
 ## Documentation
-For complete documentation visit route **`http://localhost:3002/api/docs`**.
+For complete documentation visit route **`/api/docs`** on proxy URL (default: `http://localhost:3002`).
 
 ## Features
 - User:
