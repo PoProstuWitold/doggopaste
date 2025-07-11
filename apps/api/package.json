@@ -17,27 +17,27 @@
 		"db:seed": "node --env-file .env --import tsx src/db/seed.ts"
 	},
 	"dependencies": {
-		"@hono/node-server": "^1.14.1",
-		"@hono/zod-validator": "^0.5.0",
-		"@scalar/hono-api-reference": "^0.8.9",
+		"@hono/node-server": "^1.15.0",
+		"@hono/zod-validator": "^0.7.0",
+		"@scalar/hono-api-reference": "^0.9.10",
 		"argon2": "^0.43.0",
-		"better-auth": "^1.2.7",
-		"drizzle-orm": "^0.43.1",
+		"better-auth": "^1.2.12",
+		"drizzle-orm": "^0.44.2",
 		"drizzle-seed": "^0.3.1",
-		"hono": "^4.7.9",
+		"hono": "^4.8.4",
 		"hono-openapi": "^0.4.8",
-		"pg": "^8.16.0",
+		"pg": "^8.16.3",
 		"random-words": "^2.0.1",
 		"socket.io": "^4.8.1",
-		"zod": "^3.24.4"
+		"zod": "^4.0.5"
 	},
 	"devDependencies": {
-		"@types/node": "^22.15.17",
-		"@types/pg": "^8.15.1",
-		"drizzle-kit": "^0.31.1",
+		"@types/node": "^24.0.13",
+		"@types/pg": "^8.15.4",
+		"drizzle-kit": "^0.31.4",
 		"rimraf": "^6.0.1",
 		"tslib": "^2.8.1",
-		"tsx": "^4.19.4",
+		"tsx": "^4.20.3",
 		"typescript": "^5.8.3"
 	}
 }

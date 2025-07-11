@@ -7,9 +7,5 @@ export const metadata: Metadata = {
 }
 
 export default function NotFound() {
-	return (
-		<>
-			<NotFoundClient />
-		</>
-	)
+	return <NotFoundClient />
 }

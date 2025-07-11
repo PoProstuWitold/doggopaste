@@ -1,9 +1,9 @@
 'use client'
 
-import { createDynamicAuthClient } from '@/app/utils/auth-client'
-import { wait } from '@/app/utils/functions'
 import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
+import { createDynamicAuthClient } from '@/app/utils/auth-client'
+import { wait } from '@/app/utils/functions'
 import type { Session as SessionType } from '../types'
 import { Session } from './Session'
 
@@ -75,69 +75,67 @@ export const Sessions: React.FC<SessionsProps> = ({
 	}
 
 	return (
-		<>
-			<details className='collapse bg-base-200 collapse-arrow'>
-				<summary className='collapse-title text-xl font-medium'>
-					<div className='flex items-center gap-2'>
-						<p>Sessions</p>
-						<span className='badge badge-accent'>
-							{allSessions?.length
-								? `${allSessions.length} active session(s)`
-								: null}
-						</span>
-					</div>
-				</summary>
-				<div className='collapse-content flex flex-col gap-2 p-2'>
-					<div className='p-2 flex flex-col gap-4'>
-						{allSessions.map((session) => (
-							<Session
-								key={session.id}
-								currentSessionToken={currentSessionToken}
-								session={session}
-								revokeSession={revokeSession}
-							/>
-						))}
-					</div>
-					<div className='p-2'>
-						<div className='p-4 border border-error rounded-lg shadow-lg flex flex-col gap-4'>
-							<h2 className='text-xl font-bold text-error'>
-								Danger Zone
-							</h2>
-							<p className='text-error'>
-								Be careful! These actions cannot be undone and
-								will affect your active sessions.
-							</p>
-							<div className='flex flex-col md:flex-row gap-4'>
+		<details className='collapse bg-base-200 collapse-arrow'>
+			<summary className='collapse-title text-xl font-medium'>
+				<div className='flex items-center gap-2'>
+					<p>Sessions</p>
+					<span className='badge badge-accent'>
+						{allSessions?.length
+							? `${allSessions.length} active session(s)`
+							: null}
+					</span>
+				</div>
+			</summary>
+			<div className='collapse-content flex flex-col gap-2 p-2'>
+				<div className='p-2 flex flex-col gap-4'>
+					{allSessions.map((session) => (
+						<Session
+							key={session.id}
+							currentSessionToken={currentSessionToken}
+							session={session}
+							revokeSession={revokeSession}
+						/>
+					))}
+				</div>
+				<div className='p-2'>
+					<div className='p-4 border border-error rounded-lg shadow-lg flex flex-col gap-4'>
+						<h2 className='text-xl font-bold text-error'>
+							Danger Zone
+						</h2>
+						<p className='text-error'>
+							Be careful! These actions cannot be undone and will
+							affect your active sessions.
+						</p>
+						<div className='flex flex-col md:flex-row gap-4'>
+							<button
+								type='button'
+								className='btn btn-error'
+								onClick={revokeAllSessions}
+							>
+								Revoke all sessions
+							</button>
+							<button
+								type='button'
+								className='btn btn-error'
+								onClick={revokeOtherSessions}
+							>
+								Revoke other sessions
+							</button>
+							{currentSession ? (
 								<button
 									type='button'
 									className='btn btn-error'
-									onClick={revokeAllSessions}
+									onClick={() =>
+										revokeSession(currentSession.token)
+									}
 								>
-									Revoke all sessions
+									Revoke current session
 								</button>
-								<button
-									type='button'
-									className='btn btn-error'
-									onClick={revokeOtherSessions}
-								>
-									Revoke other sessions
-								</button>
-								{currentSession ? (
-									<button
-										type='button'
-										className='btn btn-error'
-										onClick={() =>
-											revokeSession(currentSession.token)
-										}
-									>
-										Revoke current session
-									</button>
-								) : null}
-							</div>
+							) : null}
 						</div>
 					</div>
 				</div>
-			</details>
-		</>
+			</div>
+		</details>
 	)
 }

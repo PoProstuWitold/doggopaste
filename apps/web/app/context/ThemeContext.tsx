@@ -73,6 +73,7 @@ export const ThemeProvider = ({
 }) => {
 	const [theme, setTheme] = useState<Theme>(defaultTheme)
 
+	// biome-ignore lint: Can't add applyTheme to dependencies
 	useEffect(() => {
 		const savedTheme =
 			(localStorage.getItem('theme') as Theme) || defaultTheme

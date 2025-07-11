@@ -255,6 +255,7 @@ export function PasteForm({
 									>
 										<span>#{tag}</span>
 										{/* button breaks functionality for some reason */}
+										{/* biome-ignore lint: Has to be span, no button */}
 										<span
 											className='cursor-pointer text-error'
 											onClick={(e) => {
@@ -263,7 +264,7 @@ export function PasteForm({
 											}}
 											// has to be that way so linter
 											// is happy
-											onKeyDown={(e) => {}}
+											onKeyDown={(_e) => {}}
 										>
 											<IoIosClose className='w-8 h-8' />
 										</span>

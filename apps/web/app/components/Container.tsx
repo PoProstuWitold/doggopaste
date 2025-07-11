@@ -4,9 +4,8 @@ interface ContainerProps {
 
 export const Container: React.FC<ContainerProps> = ({ children }) => {
 	return (
-		<>
-			<main
-				className={`
+		<main
+			className={`
 					pt-20 
 					min-h-[100rem] 
 					px-4 
@@ -15,9 +14,8 @@ export const Container: React.FC<ContainerProps> = ({ children }) => {
 					lg:pt-24
 					lg:mx-auto
 				`}
-			>
-				{children}
-			</main>
-		</>
+		>
+			{children}
+		</main>
 	)
 }

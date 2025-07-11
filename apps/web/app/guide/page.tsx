@@ -8,9 +8,5 @@ export const metadata: Metadata = {
 }
 
 export default function GuidePage() {
-	return (
-		<>
-			<h1>Guide</h1>
-		</>
-	)
+	return <h1>Guide</h1>
 }

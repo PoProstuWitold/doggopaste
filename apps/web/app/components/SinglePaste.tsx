@@ -155,7 +155,7 @@ export default function SinglePaste({
 						value={
 							<div className='flex flex-wrap gap-2'>
 								{paste.tags.length
-									? paste.tags.map((tag, index) => (
+									? paste.tags.map((tag, _index) => (
 											<span
 												key={tag}
 												className='badge badge-accent'

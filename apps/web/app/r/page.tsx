@@ -30,7 +30,7 @@ export default async function PublicPastes({
 	const params = await searchParams
 	const page = Number.parseInt(params?.page || '1', 10)
 	const limit = 10
-	const offset = (page - 1) * limit
+	const _offset = (page - 1) * limit
 
 	return (
 		<div className='max-w-5xl mx-auto px-6 py-12 flex flex-col gap-10'>

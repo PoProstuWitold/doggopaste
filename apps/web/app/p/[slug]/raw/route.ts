@@ -1,5 +1,5 @@
-import { getBaseApiUrl } from '@/app/utils/functions'
 import { NextResponse } from 'next/server'
+import { getBaseApiUrl } from '@/app/utils/functions'
 
 export async function GET(
 	_: Request,

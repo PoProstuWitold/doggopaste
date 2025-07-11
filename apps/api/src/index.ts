@@ -2,13 +2,13 @@
 import { serve } from '@hono/node-server'
 import { Scalar } from '@scalar/hono-api-reference'
 import { Hono } from 'hono'
-import { openAPISpecs } from 'hono-openapi'
 import { compress } from 'hono/compress'
 import { cors } from 'hono/cors'
 import { logger } from 'hono/logger'
 import { prettyJSON } from 'hono/pretty-json'
 import { requestId } from 'hono/request-id'
 import { secureHeaders } from 'hono/secure-headers'
+import { openAPISpecs } from 'hono-openapi'
 
 // custom
 import { seedSyntaxes } from './db/seed.js'

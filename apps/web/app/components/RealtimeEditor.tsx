@@ -4,7 +4,7 @@ import { indentWithTab } from '@codemirror/commands'
 import { indentUnit } from '@codemirror/language'
 import { EditorState } from '@codemirror/state'
 import { keymap } from '@codemirror/view'
-import { EditorView, basicSetup } from 'codemirror'
+import { basicSetup, EditorView } from 'codemirror'
 
 import { useEffect, useRef } from 'react'
 import io from 'socket.io-client'

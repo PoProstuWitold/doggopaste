@@ -4,8 +4,8 @@ import { Hono } from 'hono'
 import { db } from '../db/index.js'
 import {
 	foldersTable,
-	pasteTagsTable,
 	pastesTable,
+	pasteTagsTable,
 	syntaxesTable,
 	tagsTable
 } from '../db/schema.js'
@@ -13,10 +13,10 @@ import { GenericException } from '../exceptions/generic-exception.js'
 import { userGuard } from '../middlewares/user-guard.js'
 import type { Env } from '../types.js'
 import {
+	DoggoUtils,
 	validatorCreatePasteJson,
 	validatorParamStringSlug
 } from '../utils/index.js'
-import { DoggoUtils } from '../utils/index.js'
 
 const app = new Hono<Env>()
 	.post('/', validatorCreatePasteJson, async (c) => {

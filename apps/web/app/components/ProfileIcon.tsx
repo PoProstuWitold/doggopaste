@@ -1,5 +1,5 @@
-import { createDynamicAuthClient } from '@/app/utils/auth-client'
 import { headers } from 'next/headers'
+import { createDynamicAuthClient } from '@/app/utils/auth-client'
 import { ProfileIconClient } from './ProfileIconClient'
 
 export const ProfileIcon = async () => {

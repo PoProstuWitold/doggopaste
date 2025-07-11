@@ -1,9 +1,9 @@
+import type { Metadata } from 'next'
+import { headers } from 'next/headers'
 import EditPasteForm from '@/app/components/EditPasteForm'
 import type { PasteResponse } from '@/app/types'
 import { createDynamicAuthClient } from '@/app/utils/auth-client'
 import { getBaseApiUrl } from '@/app/utils/functions'
-import type { Metadata } from 'next'
-import { headers } from 'next/headers'
 
 async function fetchResponse(slug: string): Promise<PasteResponse> {
 	const res = await fetch(`${getBaseApiUrl()}/api/pastes/${slug}`, {
@@ -56,9 +56,5 @@ export default async function EditPastePage({
 		return <div>Paste not found</div>
 	}
 
-	return (
-		<>
-			<EditPasteForm slug={slug} paste={data} />
-		</>
-	)
+	return <EditPasteForm slug={slug} paste={data} />
 }

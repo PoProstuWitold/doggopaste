@@ -4,7 +4,7 @@ import { GenericException } from '../exceptions/index.js'
 
 const paramStringSlug = z.object({
 	slug: z.string({
-		message: 'Id must be a string'
+		error: 'Id must be a string'
 	})
 })
 
@@ -33,7 +33,7 @@ export const validatorParamStringSlug = zValidator(
 
 const paramStringId = z.object({
 	id: z.string({
-		message: 'Id must be a string'
+		error: 'Id must be a string'
 	})
 })
 
@@ -90,7 +90,7 @@ const createPasteSchema = z.object({
 				'education'
 			],
 			{
-				errorMap: () => ({ message: 'Invalid category' })
+				error: 'Invalid category'
 			}
 		)
 		.default('none'),
@@ -110,12 +110,12 @@ const createPasteSchema = z.object({
 	syntax: z.string().min(1, 'Syntax is required'),
 	expiration: z
 		.enum(['never', 'burn_after_read', '10m', '1h', '1d', '1w', '2w'], {
-			errorMap: () => ({ message: 'Invalid expiration option' })
+			error: 'Invalid expiration option'
 		})
 		.default('never'),
 	visibility: z
 		.enum(['public', 'private', 'unlisted'], {
-			errorMap: () => ({ message: 'Invalid visibility option' })
+			error: 'Invalid visibility option'
 		})
 		.default('public'),
 	folder: z.string().optional().default('none'),

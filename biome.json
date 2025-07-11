@@ -1,5 +1,5 @@
 {
-	"$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
+	"$schema": "https://biomejs.dev/schemas/2.1.1/schema.json",
 	"vcs": {
 		"enabled": false,
 		"clientKind": "git",
@@ -7,33 +7,32 @@
 	},
 	"files": {
 		"ignoreUnknown": true,
-		"ignore": [
-			"apps/**/node_modules",
-			"apps/**/.next",
-			"apps/**/build",
-			"node_modules",
-			"package-lock.json",
-			"apps/**/package-lock.json",
-			".turbo",
-			"apps/**/.turbo",
-			".vscode",
-			"NavBar.tsx",
-			"globals.css"
+		"includes": [
+			"**",
+			"!**/apps/**/node_modules",
+			"!**/apps/**/.next",
+			"!**/apps/**/build",
+			"!**/node_modules",
+			"!**/package-lock.json",
+			"!**/apps/**/package-lock.json",
+			"!**/.turbo",
+			"!**/apps/**/.turbo",
+			"!**/.vscode",
+			"!**/NavBar.tsx",
+			"!**/globals.css"
 		]
 	},
 	"formatter": {
 		"enabled": true,
 		"formatWithErrors": false,
-		"ignore": [],
+		"includes": ["**"],
 		"attributePosition": "auto",
 		"indentStyle": "tab",
 		"indentWidth": 4,
 		"lineWidth": 80,
 		"lineEnding": "lf"
 	},
-	"organizeImports": {
-		"enabled": true
-	},
+	"assist": { "actions": { "source": { "organizeImports": "on" } } },
 	"linter": {
 		"enabled": true,
 		"rules": {

@@ -1,12 +1,12 @@
 'use client'
-import { createDynamicAuthClient } from '@/app/utils/auth-client'
-import { wait } from '@/app/utils/functions'
 import { useRouter } from 'next/navigation'
 import type React from 'react'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import toast from 'react-hot-toast'
 import { FaFacebook, FaGithub, FaGoogle } from 'react-icons/fa'
+import { createDynamicAuthClient } from '@/app/utils/auth-client'
+import { wait } from '@/app/utils/functions'
 import type { SignInData, SignUpData } from '../types'
 
 export const Login: React.FC = () => {

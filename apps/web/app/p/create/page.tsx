@@ -1,5 +1,5 @@
-import CreatePasteForm from '@/app/components/CreatePasteForm'
 import type { Metadata } from 'next'
+import CreatePasteForm from '@/app/components/CreatePasteForm'
 
 export const metadata: Metadata = {
 	title: 'Create Paste',
@@ -7,9 +7,5 @@ export const metadata: Metadata = {
 }
 
 export default function CreatePastePage() {
-	return (
-		<>
-			<CreatePasteForm />
-		</>
-	)
+	return <CreatePasteForm />
 }

@@ -1,9 +1,13 @@
 'use client'
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react'
 import Link from 'next/link'
-import { AiFillBook, AiOutlineMenu } from 'react-icons/ai'
-import { AiOutlineInfoCircle } from 'react-icons/ai'
-import { AiOutlineClose, AiOutlineMail } from 'react-icons/ai'
+import {
+	AiFillBook,
+	AiOutlineClose,
+	AiOutlineInfoCircle,
+	AiOutlineMail,
+	AiOutlineMenu
+} from 'react-icons/ai'
 import { MdComputer } from 'react-icons/md'
 
 export const MobileMenu = () => {

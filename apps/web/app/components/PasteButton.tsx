@@ -1,9 +1,8 @@
 'use client'
 
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
-
-import Link from 'next/link'
 import { BsFiletypeRaw } from 'react-icons/bs'
 import { FaCodeFork, FaCopy } from 'react-icons/fa6'
 import { ImEmbed2 } from 'react-icons/im'
@@ -15,7 +14,10 @@ import { CustomDialog } from './CustomDialog'
 export const PasteButtons = ({
 	paste,
 	user
-}: { paste: Paste; user: User | null }) => {
+}: {
+	paste: Paste
+	user: User | null
+}) => {
 	const router = useRouter()
 	const handleDeletePaste = async () => {
 		try {
@@ -35,7 +37,7 @@ export const PasteButtons = ({
 			} else {
 				toast.error(json.message || 'Failed to delete paste')
 			}
-		} catch (err) {
+		} catch (_err) {
 			toast.error('Something went wrong while deleting')
 		}
 	}

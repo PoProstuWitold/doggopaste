@@ -1,5 +1,5 @@
-import { Login } from '@/app/components/Login'
 import type { Metadata } from 'next'
+import { Login } from '@/app/components/Login'
 
 export const dynamic = 'force-dynamic'
 
@@ -9,9 +9,5 @@ export const metadata: Metadata = {
 }
 
 export default function LoginPage() {
-	return (
-		<>
-			<Login />
-		</>
-	)
+	return <Login />
 }

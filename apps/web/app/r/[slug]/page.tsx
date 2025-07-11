@@ -1,5 +1,5 @@
-import { RealtimeEditor } from '@/app/components/RealtimeEditor'
 import type { Metadata } from 'next'
+import { RealtimeEditor } from '@/app/components/RealtimeEditor'
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
 	const { slug } = await params
@@ -24,9 +24,5 @@ export default async function SinglePastePage({
 }) {
 	const { slug } = await params
 
-	return (
-		<>
-			<RealtimeEditor slug={slug} />
-		</>
-	)
+	return <RealtimeEditor slug={slug} />
 }

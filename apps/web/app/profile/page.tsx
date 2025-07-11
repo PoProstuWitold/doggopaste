@@ -1,11 +1,11 @@
+import type { Metadata } from 'next'
+import { headers } from 'next/headers'
+import { redirect } from 'next/navigation'
 import { Accounts } from '@/app/components/Accounts'
 import { Profile } from '@/app/components/Profile'
 import { Sessions } from '@/app/components/Sessions'
 import { createDynamicAuthClient } from '@/app/utils/auth-client'
 import { wait } from '@/app/utils/functions'
-import type { Metadata } from 'next'
-import { headers } from 'next/headers'
-import { redirect } from 'next/navigation'
 import type { Session } from '../types'
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -65,21 +65,19 @@ export default async function ProfilePage() {
 		false
 
 	return (
-		<>
-			<div className='flex flex-col gap-4'>
-				<Profile
-					currentSession={currentSession.data}
-					hasCredentialAccount={hasCredentialAccount}
-				/>
-				<Accounts
-					accounts={accounts.data}
-					hasCredentialAccount={hasCredentialAccount}
-				/>
-				<Sessions
-					allSessions={processedSessions}
-					currentSessionToken={currentSession.data.session.token}
-				/>
-			</div>
-		</>
+		<div className='flex flex-col gap-4'>
+			<Profile
+				currentSession={currentSession.data}
+				hasCredentialAccount={hasCredentialAccount}
+			/>
+			<Accounts
+				accounts={accounts.data}
+				hasCredentialAccount={hasCredentialAccount}
+			/>
+			<Sessions
+				allSessions={processedSessions}
+				currentSessionToken={currentSession.data.session.token}
+			/>
+		</div>
 	)
 }
