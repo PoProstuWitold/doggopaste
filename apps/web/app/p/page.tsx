@@ -36,8 +36,8 @@ export default async function PublicPastes({
 	return (
 		<div className='max-w-5xl mx-auto px-6 py-12 flex flex-col gap-10'>
 			<div className='flex flex-col items-center gap-4 text-center'>
-				<div className='flex flex-col items-center gap-2'>
-					<div className='text-5xl flex p-2 items-center gap-2 font-extrabold'>
+				<div className='flex flex-col items-center gap-10 md:gap-2'>
+					<div className='flex flex-col md:flex-row text-5xl md:p-2 items-center gap-1 font-extrabold'>
 						<Image
 							src='./img/doggo.svg'
 							alt='Doggo'
