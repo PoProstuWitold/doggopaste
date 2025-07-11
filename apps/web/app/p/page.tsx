@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
+import Image from 'next/image'
 import Link from 'next/link'
-import { FaGithub, FaShieldDog } from 'react-icons/fa6'
+import { FaGithub } from 'react-icons/fa6'
 import { FiPlus } from 'react-icons/fi'
 import { PasteCard } from '../components/PasteCard'
 import type { Paste } from '../types'
@@ -37,7 +38,13 @@ export default async function PublicPastes({
 			<div className='flex flex-col items-center gap-4 text-center'>
 				<div className='flex flex-col items-center gap-2'>
 					<div className='text-5xl flex p-2 items-center gap-2 font-extrabold'>
-						<FaShieldDog className='text-5xl' />
+						<Image
+							src='./img/doggo.svg'
+							alt='Doggo'
+							className='w-24 h-24'
+							width={24}
+							height={24}
+						/>
 						<span>DoggoPaste</span>
 					</div>
 					<h1 className='text-4xl font-bold'>

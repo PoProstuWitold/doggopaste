@@ -1,15 +1,16 @@
 import { setThemeScript } from '@/app/utils/functions'
 import Link from 'next/link'
 import { FaQuestionCircle } from 'react-icons/fa'
-import { FaBookOpen, FaFileCode, FaShieldDog, FaUsers } from 'react-icons/fa6'
+import { FaBookOpen, FaFileCode, FaUsers } from 'react-icons/fa6'
 import { MobileMenu } from './MobileMenu'
 import { ProfileIcon } from './ProfileIcon'
 import { ThemeSelector } from './ThemeSelector'
+import Image from 'next/image'
 
 export const Navbar: React.FC = () => {
 	return (
 		<>
-			<nav className='lg:bg-clip-padding lg:backdrop-filter lg:backdrop-blur-sm lg:bg-opacity-90 fixed z-50 navbar transition ease-in-out delay-[50ms] bg-base-200 shadow-primary-content shadow-md'>
+			<nav className='lg:bg-clip-padding lg:backdrop-filter lg:backdrop-blur-sm lg:bg-opacity-90 fixed z-50 navbar transition ease-in-out delay-[50ms] bg-base-200'>
 				<div className='navbar-start'>
 					<div className='lg:hidden'>
 						<MobileMenu />
@@ -18,7 +19,7 @@ export const Navbar: React.FC = () => {
 						href='/'
 						className='text-xl normal-case hover:text-primary transition-all ease-in-out delay-[100ms] flex p-2 items-center gap-2 font-extrabold'
 					>
-						<FaShieldDog className='w-10 h-10' />
+						<Image src='./img/doggo.svg' alt='Doggo' className='w-10 h-10' width={10} height={10} />
 						<span className='hidden md:flex'>DoggoPaste</span>
 					</Link>
 				</div>
@@ -63,12 +64,12 @@ export const Navbar: React.FC = () => {
 					</ul>
 				</div>
 				<div className='navbar-end'>
-					<ul className='flex flex-row items-center px-4 gap-4'>
-						<li>
-							<ProfileIcon />
-						</li>
+					<ul className='flex flex-row items-center px-4 gap-2'>
 						<li>
 							<ThemeSelector />
+						</li>
+						<li>
+							<ProfileIcon />
 						</li>
 					</ul>
 				</div>

@@ -2,6 +2,8 @@
 
 import Link from 'next/link'
 import toast from 'react-hot-toast'
+import { BiLogIn } from 'react-icons/bi'
+import { FaUserAlt } from 'react-icons/fa'
 import { createDynamicAuthClient } from '@/app/utils/auth-client'
 import { wait } from '@/app/utils/functions'
 
@@ -34,11 +36,12 @@ export const ProfileIconClient: React.FC<ProfileIconClientProps> = ({
 		<>
 			{/* Show dropdown if user is logged in */}
 			{user ? (
-				<div className='dropdown dropdown-start'>
-					<button type='button' className='btn btn-outline'>
-						{user.name || 'Profile'}
+				<div className='dropdown dropdown-end'>
+					<button type='button' className='btn btn-ghost'>
+						<FaUserAlt className='w-5 h-5' />
 					</button>
-					<ul className='dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow gap-3'>
+					<ul className='dropdown-content menu bg-base-100 rounded-box z-[1] p-2 w-52 shadow gap-3'>
+						<li>Hello, {user.name}!</li>
 						<li>
 							<Link
 								className='btn btn-primary btn-sm'
@@ -60,8 +63,10 @@ export const ProfileIconClient: React.FC<ProfileIconClientProps> = ({
 				</div>
 			) : (
 				// Show login link if no user is logged in
-				<Link href='/login' className='btn btn-outline'>
-					Login
+				<Link href='/login'>
+					<button type='button' className='btn btn-ghost'>
+						<BiLogIn className='w-7 h-7' />
+					</button>
 				</Link>
 			)}
 		</>
