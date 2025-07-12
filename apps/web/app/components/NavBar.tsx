@@ -19,7 +19,7 @@ export const Navbar: React.FC = () => {
 						href='/'
 						className='text-xl normal-case hover:text-primary transition-all ease-in-out delay-[100ms] flex p-2 items-center gap-2 font-extrabold'
 					>
-						<Image src='./img/doggo.svg' alt='Doggo' className='w-10 h-10' width={10} height={10} />
+						<Image src='/img/doggo.svg' alt='Doggo' className='w-10 h-10' width={10} height={10} />
 						<span className='hidden md:flex'>DoggoPaste</span>
 					</Link>
 				</div>

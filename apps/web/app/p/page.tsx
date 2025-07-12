@@ -39,7 +39,7 @@ export default async function PublicPastes({
 				<div className='flex flex-col items-center gap-10 md:gap-2'>
 					<div className='flex flex-col md:flex-row text-5xl md:p-2 items-center gap-1 font-extrabold'>
 						<Image
-							src='./img/doggo.svg'
+							src='/img/doggo.svg'
 							alt='Doggo'
 							className='w-24 h-24'
 							width={24}
