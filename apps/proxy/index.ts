@@ -26,12 +26,22 @@ const root = resolve(__dirname, '../../')
 const mode = process.env.NODE_ENV || 'development'
 const command = mode === 'production' ? 'start' : 'dev'
 
+const isDocker = () => {
+	return process.env.DOCKER === 'true'
+}
+
 console.info(`[proxy] ${mode} mode`)
 isPortFree(3000).then((free) => {
 	if (free) {
 		console.info('[proxy] starting web')
-		spawn('pnpm', ['--filter', 'web', command], {
-			cwd: root,
+
+		const isInDocker = isDocker()
+		const webCommand = isInDocker
+			? ['node', '/app/apps/web/server.js']
+			: ['pnpm', '--filter', 'web', command]
+
+		spawn(webCommand[0], webCommand.slice(1), {
+			cwd: isInDocker ? '/app/apps/web' : root,
 			stdio: 'inherit',
 			env: process.env
 		})
