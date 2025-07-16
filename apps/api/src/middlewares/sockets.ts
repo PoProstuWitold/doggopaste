@@ -66,35 +66,31 @@ export function initWebSockets(server: ServerType) {
 			}
 		})
 
-		socket.on('meta-sync', async ({ slug, title, syntax }) => {
-			if (!slug) return
+		socket.on('meta-sync', async ({ slug, title, syntaxName }) => {
+			if (!slug || !syntaxName) return
 
 			try {
-				let syntaxId: string | null = null
+				const [syntax] = await db
+					.select()
+					.from(syntaxesTable)
+					.where(eq(syntaxesTable.name, syntaxName))
 
-				if (syntax) {
-					const [found] = await db
-						.select({ id: syntaxesTable.id })
-						.from(syntaxesTable)
-						.where(eq(syntaxesTable.name, syntax))
-
-					syntaxId = found?.id ?? null
+				if (!syntax) {
+					console.warn(`[WS] Syntax "${syntaxName}" not found`)
+					return
 				}
 
 				await db
 					.update(realTimePastesTable)
 					.set({
 						title: title || slug,
-						syntaxId,
+						syntaxId: syntax.id,
 						updatedAt: new Date()
 					})
 					.where(eq(realTimePastesTable.slug, slug))
 
-				// Notify all clients in the room about the metadata change
-				socket.to(slug).emit('meta-change', {
-					title,
-					syntax
-				})
+				// Notify ALL clients. Including the one that sent the event
+				io.to(slug).emit('meta-change', { title, syntax })
 			} catch (err) {
 				console.error(`[WS] Failed to sync metadata for ${slug}:`, err)
 			}

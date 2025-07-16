@@ -1,7 +1,8 @@
 'use client'
 
+import Link from 'next/link'
+import { BsFiletypeRaw } from 'react-icons/bs'
 import { FaCopy } from 'react-icons/fa6'
-import { ImEmbed2 } from 'react-icons/im'
 import { MdDownload } from 'react-icons/md'
 import type { RealtimePaste } from '../types'
 import { getBaseApiUrl } from '../utils/functions'
@@ -18,6 +19,14 @@ export const RealtimePasteButtons = ({
 					Copy <FaCopy />
 				</div>
 			</button>
+			<Link
+				href={`/r/${realtimePaste.slug}/raw`}
+				className='btn btn-sm btn-warning'
+			>
+				<div className='flex items-center gap-1 font-extrabold'>
+					Raw <BsFiletypeRaw />
+				</div>
+			</Link>
 			<a
 				href={`${getBaseApiUrl()}/api/pastes-realtime/${realtimePaste?.slug}/download`}
 				className='btn btn-sm btn-success'
@@ -26,11 +35,6 @@ export const RealtimePasteButtons = ({
 					Download <MdDownload />
 				</div>
 			</a>
-			<button type='button' className='btn btn-sm btn-info'>
-				<div className='flex items-center gap-1 font-extrabold'>
-					Embed <ImEmbed2 />
-				</div>
-			</button>
 		</div>
 	)
 }

@@ -2,14 +2,14 @@ import { eq } from 'drizzle-orm'
 import { Hono } from 'hono'
 import { db } from '../db/index.js'
 import { realTimePastesTable, syntaxesTable } from '../db/schema.js'
+import { GenericException } from '../exceptions/generic-exception.js'
 import type { Env, Session } from '../types.js'
 import { auth } from '../utils/auth.js'
+import { DoggoUtils } from '../utils/doggo-utils.js'
 import { validatorParamStringSlug } from '../utils/schemas.js'
 
-const app = new Hono<Env>().post(
-	'/:slug',
-	validatorParamStringSlug,
-	async (c) => {
+const app = new Hono<Env>()
+	.post('/:slug', validatorParamStringSlug, async (c) => {
 		const { slug } = c.req.valid('param')
 
 		let session = null
@@ -90,7 +90,84 @@ const app = new Hono<Env>().post(
 			},
 			session
 		})
-	}
-)
+	})
+	.get('/:slug/download', validatorParamStringSlug, async (c) => {
+		const { slug } = c.req.valid('param')
+
+		// 1. Get realtime paste with syntax extension
+		const [row] = await db
+			.select({
+				paste: realTimePastesTable,
+				syntax: {
+					extension: syntaxesTable.extension
+				}
+			})
+			.from(realTimePastesTable)
+			.leftJoin(
+				syntaxesTable,
+				eq(realTimePastesTable.syntaxId, syntaxesTable.id)
+			)
+			.where(eq(realTimePastesTable.slug, slug))
+
+		if (!row) {
+			throw new GenericException({
+				statusCode: 404,
+				name: 'Not Found',
+				message: 'Paste not found'
+			})
+		}
+
+		const paste = row.paste
+		const extension = row.syntax.extension
+
+		// 2. Filename
+		const safeTitle = DoggoUtils.sanitizeFileName(paste.title)
+		const fileName = `${safeTitle}.${extension}`
+
+		// 3. Headers + response
+		c.header('Content-Type', 'text/plain; charset=utf-8')
+		c.header('Content-Disposition', `attachment; filename="${fileName}"`)
+		return c.body(paste.content)
+	})
+	.get('/:slug', validatorParamStringSlug, async (c) => {
+		const { slug } = c.req.valid('param')
+
+		const [row] = await db
+			.select({
+				paste: realTimePastesTable,
+				syntax: {
+					name: syntaxesTable.name,
+					extension: syntaxesTable.extension,
+					color: syntaxesTable.color
+				}
+			})
+			.from(realTimePastesTable)
+			.leftJoin(
+				syntaxesTable,
+				eq(realTimePastesTable.syntaxId, syntaxesTable.id)
+			)
+			.where(eq(realTimePastesTable.slug, slug))
+
+		if (!row) {
+			throw new GenericException({
+				statusCode: 404,
+				name: 'Not Found',
+				message: 'Paste not found'
+			})
+		}
+
+		const paste = row.paste
+		const syntax = row.syntax
+
+		const enrichedPaste = {
+			...paste,
+			syntax
+		}
+
+		return c.json({
+			success: true,
+			data: enrichedPaste
+		})
+	})
 
 export default app

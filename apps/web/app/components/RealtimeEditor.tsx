@@ -8,8 +8,13 @@ import { basicSetup, EditorView } from 'codemirror'
 import { useEffect, useRef, useState } from 'react'
 import { FaFileCode } from 'react-icons/fa'
 import io from 'socket.io-client'
+import { useTheme } from '../context/ThemeContext'
 import type { RealtimePaste, Session, User } from '../types'
-import { extensions, getBaseApiUrl } from '../utils/functions'
+import {
+	extensions,
+	getBaseApiUrl,
+	getContrastTextColor
+} from '../utils/functions'
 import { RealtimePasteButtons } from './RealtimePasteButtons'
 
 const socket = io(getBaseApiUrl(), {
@@ -29,11 +34,13 @@ export const RealtimeEditor = ({
 		user: User
 	}
 }) => {
-	const syntax = realtimePaste?.syntax.name || 'Plaintext'
-	const [title, setTitle] = useState(realtimePaste.title || '')
+	const { cmTheme } = useTheme()
+
+	const syntax = realtimePaste?.syntax?.name || 'Plaintext'
 	const [selectedSyntax, setSelectedSyntax] = useState(
-		realtimePaste.syntax.name || 'Plaintext'
+		realtimePaste.syntax ?? { name: 'Plaintext' }
 	)
+	const [title, setTitle] = useState(realtimePaste.title || '')
 	const editorRef = useRef<HTMLDivElement>(null)
 	const viewRef = useRef<EditorView | null>(null)
 	const socketIdRef = useRef<string | null>(null)
@@ -55,6 +62,7 @@ export const RealtimeEditor = ({
 				indentUnit.of('    '),
 				keymap.of([indentWithTab]),
 				extensions[syntax as keyof typeof extensions],
+				cmTheme,
 				EditorView.updateListener.of((update) => {
 					if (isRemoteChange.current) {
 						isRemoteChange.current = false
@@ -104,7 +112,7 @@ export const RealtimeEditor = ({
 			socket.off('code-change')
 			view.destroy()
 		}
-	}, [slug, syntax, realtimePaste?.content])
+	}, [slug, syntax, realtimePaste?.content, cmTheme])
 
 	// Every 5 seconds, send the current content to the server
 	useEffect(() => {
@@ -146,7 +154,8 @@ export const RealtimeEditor = ({
 			basicSetup,
 			indentUnit.of('    '),
 			keymap.of([indentWithTab]),
-			extensions[selectedSyntax as keyof typeof extensions],
+			extensions[selectedSyntax.name as keyof typeof extensions],
+			cmTheme,
 			EditorView.updateListener.of((update) => {
 				if (isRemoteChange.current) {
 					isRemoteChange.current = false
@@ -172,7 +181,7 @@ export const RealtimeEditor = ({
 		viewRef.current.dispatch({
 			effects: StateEffect.reconfigure.of(newExtensions)
 		})
-	}, [selectedSyntax])
+	}, [selectedSyntax, cmTheme])
 
 	return (
 		<div className='flex flex-col gap-10'>
@@ -214,7 +223,7 @@ export const RealtimeEditor = ({
 							socket.emit('meta-sync', {
 								slug,
 								title: newTitle,
-								syntax: selectedSyntax
+								syntaxName: selectedSyntax.name
 							})
 						}}
 					/>
@@ -226,15 +235,24 @@ export const RealtimeEditor = ({
 					</div>
 					<select
 						className='select select-bordered w-full'
-						value={selectedSyntax}
+						style={{
+							color: getContrastTextColor(selectedSyntax.color),
+							backgroundColor: selectedSyntax.color
+						}}
+						value={selectedSyntax.name}
 						onChange={(e) => {
-							const newSyntax = e.target
-								.value as keyof typeof extensions
-							setSelectedSyntax(newSyntax)
+							const selectedName = e.target.value
+
+							setSelectedSyntax({
+								...selectedSyntax,
+								// @ts-ignore
+								name: selectedName
+							})
+
 							socket.emit('meta-sync', {
 								slug,
 								title,
-								syntax: newSyntax
+								syntaxName: selectedName
 							})
 						}}
 					>
