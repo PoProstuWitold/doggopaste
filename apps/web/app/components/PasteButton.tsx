@@ -4,11 +4,12 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
 import { BsFiletypeRaw } from 'react-icons/bs'
-import { FaCodeFork, FaCopy } from 'react-icons/fa6'
+import { FaCodeFork } from 'react-icons/fa6'
 import { ImEmbed2 } from 'react-icons/im'
 import { MdDelete, MdDownload, MdEdit } from 'react-icons/md'
 import type { Paste, User } from '../types'
 import { getBaseApiUrl } from '../utils/functions'
+import { CopyButton } from './CopyButton'
 import { CustomDialog } from './CustomDialog'
 
 export const PasteButtons = ({
@@ -44,11 +45,7 @@ export const PasteButtons = ({
 
 	return (
 		<div className='flex flex-wrap gap-2 justify-center'>
-			<button type='button' className='btn btn-sm btn-primary'>
-				<div className='flex items-center gap-1 font-extrabold'>
-					Copy <FaCopy />
-				</div>
-			</button>
+			<CopyButton text={paste.content} />
 			<Link
 				href={`/p/${paste.slug}/raw`}
 				className='btn btn-sm btn-warning'

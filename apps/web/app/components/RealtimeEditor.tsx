@@ -41,6 +41,7 @@ export const RealtimeEditor = ({
 		realtimePaste.syntax ?? { name: 'Plaintext' }
 	)
 	const [title, setTitle] = useState(realtimePaste.title || '')
+	const [content, setContent] = useState(realtimePaste?.content || '')
 	const editorRef = useRef<HTMLDivElement>(null)
 	const viewRef = useRef<EditorView | null>(null)
 	const socketIdRef = useRef<string | null>(null)
@@ -64,6 +65,11 @@ export const RealtimeEditor = ({
 				extensions[syntax as keyof typeof extensions],
 				cmTheme,
 				EditorView.updateListener.of((update) => {
+					if (update.docChanged) {
+						const newDoc = update.state.doc.toString()
+						setContent(newDoc)
+					}
+
 					if (isRemoteChange.current) {
 						isRemoteChange.current = false
 						return
@@ -157,6 +163,11 @@ export const RealtimeEditor = ({
 			extensions[selectedSyntax.name as keyof typeof extensions],
 			cmTheme,
 			EditorView.updateListener.of((update) => {
+				if (update.docChanged) {
+					const newDoc = update.state.doc.toString()
+					setContent(newDoc)
+				}
+
 				if (isRemoteChange.current) {
 					isRemoteChange.current = false
 					return
@@ -204,7 +215,10 @@ export const RealtimeEditor = ({
 					Paste "{slug}"
 				</div>
 				<div className='divider lg:divider-horizontal' />
-				<RealtimePasteButtons realtimePaste={realtimePaste} />
+				<RealtimePasteButtons
+					realtimePaste={realtimePaste}
+					content={content}
+				/>
 			</div>
 			<div className='w-full flex flex-col md:flex-row gap-4'>
 				<label className='form-control w-full'>

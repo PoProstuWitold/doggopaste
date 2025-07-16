@@ -2,23 +2,21 @@
 
 import Link from 'next/link'
 import { BsFiletypeRaw } from 'react-icons/bs'
-import { FaCopy } from 'react-icons/fa6'
 import { MdDownload } from 'react-icons/md'
 import type { RealtimePaste } from '../types'
 import { getBaseApiUrl } from '../utils/functions'
+import { CopyButton } from './CopyButton'
 
 export const RealtimePasteButtons = ({
-	realtimePaste
+	realtimePaste,
+	content
 }: {
 	realtimePaste: RealtimePaste
+	content: string
 }) => {
 	return (
 		<div className='flex flex-wrap gap-2 justify-center'>
-			<button type='button' className='btn btn-sm btn-primary'>
-				<div className='flex items-center gap-1 font-extrabold'>
-					Copy <FaCopy />
-				</div>
-			</button>
+			<CopyButton text={content} />
 			<Link
 				href={`/r/${realtimePaste.slug}/raw`}
 				className='btn btn-sm btn-warning'
