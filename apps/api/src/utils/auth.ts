@@ -1,6 +1,6 @@
 import { betterAuth } from 'better-auth'
 import { drizzleAdapter } from 'better-auth/adapters/drizzle'
-import { admin, openAPI, organization } from 'better-auth/plugins'
+import { admin, oneTimeToken, openAPI, organization } from 'better-auth/plugins'
 
 import { db } from '../db/index.js'
 import { schema } from '../db/schema.js'
@@ -19,6 +19,9 @@ export const auth = betterAuth({
 	plugins: [
 		openAPI({
 			path: '/docs'
+		}),
+		oneTimeToken({
+			expiresIn: 60 // in minutes
 		}),
 		admin(),
 		organization()

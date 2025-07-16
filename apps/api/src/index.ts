@@ -21,6 +21,7 @@ import {
 	wsMiddleware
 } from './middlewares/index.js'
 import pasteRoutes from './routes/pastes.js'
+import pasteRealtimeRoutes from './routes/pastes-realtime.js'
 import type { Env } from './types'
 import { origins } from './utils/contants.js'
 import { auth, openApiSpec } from './utils/index.js'
@@ -120,3 +121,4 @@ app.on(['POST', 'GET'], '/auth/**', (c) => auth.handler(c.req.raw))
 app.on('GET', '/redirect', (c) => c.redirect(`${process.env.APP_URL}/profile`))
 // Routes
 app.route('/pastes', pasteRoutes)
+app.route('/pastes-realtime', pasteRealtimeRoutes)
