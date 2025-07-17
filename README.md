@@ -2,12 +2,7 @@
 
 ## ***"Drop your code, let Doggo fetch it! Combination of a Pastebin and CodeShare. Free and selfhostable."***
 
-DoggoPaste project monorepo.
-
----
-
-## Documentation
-For complete documentation visit route **`/api/docs`** on proxy URL (default: `http://localhost:3002`).
+DoggoPaste project monorepo. For complete documentation visit route **`/api/docs`** on proxy URL (default: `http://localhost:3002`).
 
 ---
 
