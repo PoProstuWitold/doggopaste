@@ -4,8 +4,12 @@
 
 DoggoPaste project monorepo.
 
+---
+
 ## Documentation
 For complete documentation visit route **`/api/docs`** on proxy URL (default: `http://localhost:3002`).
+
+---
 
 ## Features
 ### User:
@@ -35,6 +39,8 @@ For complete documentation visit route **`/api/docs`** on proxy URL (default: `h
 - Live cursors showing participants' positions
 ### Other:
 - Easy deployment with Docker and Caddy
+
+---
 
 ## Usage
 
@@ -109,6 +115,8 @@ NEXT_PUBLIC_CONTAINER_URL="http://localhost:3002" # different in Docker
         - **``db:migrate``** - pushes migration
     - **``apps/web``**
         - **``analyze``** - shows analytics for Next.js web app
+
+---
 
 ## Tech stack:
 - [Turborepo](https://turbo.build/repo/docs) as monorepo solution
