@@ -37,7 +37,11 @@ export const ProfileIconClient: React.FC<ProfileIconClientProps> = ({
 			{/* Show dropdown if user is logged in */}
 			{user ? (
 				<div className='dropdown dropdown-end'>
-					<button type='button' className='btn btn-ghost'>
+					<button
+						type='button'
+						className='btn btn-ghost'
+						aria-label='User menu'
+					>
 						<FaUserAlt className='w-5 h-5' />
 					</button>
 					<ul className='dropdown-content menu bg-base-100 rounded-box z-[1] p-2 w-52 shadow gap-3'>
@@ -46,6 +50,7 @@ export const ProfileIconClient: React.FC<ProfileIconClientProps> = ({
 							<Link
 								className='btn btn-primary btn-sm'
 								href='/profile'
+								aria-label='Go to profile'
 							>
 								Profile
 							</Link>
@@ -55,6 +60,7 @@ export const ProfileIconClient: React.FC<ProfileIconClientProps> = ({
 								onClick={handleSignOut}
 								type='button'
 								className='w-full btn btn-error btn-sm'
+								aria-label='Sign out'
 							>
 								Sign Out
 							</button>
@@ -62,9 +68,8 @@ export const ProfileIconClient: React.FC<ProfileIconClientProps> = ({
 					</ul>
 				</div>
 			) : (
-				// Show login link if no user is logged in
-				<Link href='/login'>
-					<button type='button' className='btn btn-ghost'>
+				<Link href='/login' aria-label='Go to login'>
+					<button type='button' className='btn btn-ghost' aria-label='Login'>
 						<BiLogIn className='w-7 h-7' />
 					</button>
 				</Link>
