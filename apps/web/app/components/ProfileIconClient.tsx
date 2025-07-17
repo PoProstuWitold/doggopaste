@@ -69,7 +69,11 @@ export const ProfileIconClient: React.FC<ProfileIconClientProps> = ({
 				</div>
 			) : (
 				<Link href='/login' aria-label='Go to login'>
-					<button type='button' className='btn btn-ghost' aria-label='Login'>
+					<button
+						type='button'
+						className='btn btn-ghost'
+						aria-label='Login'
+					>
 						<BiLogIn className='w-7 h-7' />
 					</button>
 				</Link>
