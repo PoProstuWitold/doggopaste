@@ -36,6 +36,7 @@ export function initWebSockets(server: ServerType) {
 		socket.on('join-room', (slug: string) => {
 			console.info(`Socket ${socket.id} joined room ${slug}`)
 			socket.join(slug)
+			socket.data.slug = slug
 		})
 
 		// Sending code changes to all clients in the room
@@ -93,6 +94,25 @@ export function initWebSockets(server: ServerType) {
 				io.to(slug).emit('meta-change', { title, syntax })
 			} catch (err) {
 				console.error(`[WS] Failed to sync metadata for ${slug}:`, err)
+			}
+		})
+
+		socket.on('cursor-move', ({ x, y, name }) => {
+			const slug = socket.data.slug
+			if (!slug) return
+
+			socket.to(slug).emit('cursor-move', {
+				id: socket.id,
+				x,
+				y,
+				name: name || 'Anon'
+			})
+		})
+
+		socket.on('disconnect', () => {
+			const slug = socket.data.slug
+			if (slug) {
+				socket.to(slug).emit('cursor-leave', { id: socket.id })
 			}
 		})
 	})

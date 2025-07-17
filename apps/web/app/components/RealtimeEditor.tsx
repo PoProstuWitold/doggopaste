@@ -15,6 +15,7 @@ import {
 	getBaseApiUrl,
 	getContrastTextColor
 } from '../utils/functions'
+import { RealtimeCursors } from './RealtimeCursors'
 import { RealtimePasteButtons } from './RealtimePasteButtons'
 
 const socket = io(getBaseApiUrl(), {
@@ -196,6 +197,11 @@ export const RealtimeEditor = ({
 
 	return (
 		<div className='flex flex-col gap-10'>
+			<RealtimeCursors
+				slug={slug}
+				name={session?.user.name}
+				socket={socket}
+			/>
 			<div className='relative'>
 				<div className='absolute top-0 right-0 text-sm text-base-content/70'>
 					{session ? (
@@ -278,7 +284,10 @@ export const RealtimeEditor = ({
 					</select>
 				</label>
 			</div>
-			<div ref={editorRef} className='border rounded-md min-h-[400px]' />
+			<div
+				ref={editorRef}
+				className='border rounded-md min-h-[400px] z-0 relative'
+			/>
 		</div>
 	)
 }
