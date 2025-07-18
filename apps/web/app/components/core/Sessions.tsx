@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
 import { createDynamicAuthClient } from '@/app/utils/auth-client'
 import { wait } from '@/app/utils/functions'
-import type { Session as SessionType } from '../types'
+import type { Session as SessionType } from '../../types'
 import { Session } from './Session'
 
 interface SessionsProps {

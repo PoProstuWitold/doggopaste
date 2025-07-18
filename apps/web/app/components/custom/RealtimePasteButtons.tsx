@@ -3,8 +3,8 @@
 import Link from 'next/link'
 import { BsFiletypeRaw } from 'react-icons/bs'
 import { MdDownload } from 'react-icons/md'
-import type { RealtimePaste } from '../types'
-import { getBaseApiUrl } from '../utils/functions'
+import type { RealtimePaste } from '../../types'
+import { getBaseApiUrl } from '../../utils/functions'
 import { CopyButton } from './CopyButton'
 
 export const RealtimePasteButtons = ({

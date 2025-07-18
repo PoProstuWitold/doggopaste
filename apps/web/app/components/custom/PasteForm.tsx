@@ -6,11 +6,16 @@ import { Controller, useForm } from 'react-hook-form'
 import toast from 'react-hot-toast'
 import { FaFileCode } from 'react-icons/fa'
 import { IoIosClose } from 'react-icons/io'
-import { useTheme } from '../context/ThemeContext'
-import type { Paste, PasteForm as PasteFormType } from '../types'
-import { categories, extensions, getBaseApiUrl, wait } from '../utils/functions'
-import { useSensitiveContentChecker } from '../utils/useSensitiveContentChecker'
-import { CustomDialog } from './CustomDialog'
+import { useTheme } from '../../context/ThemeContext'
+import type { Paste, PasteForm as PasteFormType } from '../../types'
+import {
+	categories,
+	extensions,
+	getBaseApiUrl,
+	wait
+} from '../../utils/functions'
+import { useSensitiveContentChecker } from '../../utils/useSensitiveContentChecker'
+import { CustomDialog } from '../core/CustomDialog'
 
 export function PasteForm({
 	mode,

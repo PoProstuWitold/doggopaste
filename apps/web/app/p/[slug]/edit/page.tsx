@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { headers } from 'next/headers'
-import EditPasteForm from '@/app/components/EditPasteForm'
+import EditPasteForm from '@/app/components/custom/EditPasteForm'
 import type { PasteResponse } from '@/app/types'
 import { createDynamicAuthClient } from '@/app/utils/auth-client'
 import { getBaseApiUrl } from '@/app/utils/functions'

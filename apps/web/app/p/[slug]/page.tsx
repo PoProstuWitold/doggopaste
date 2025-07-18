@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { headers } from 'next/headers'
-import SinglePaste from '@/app/components/SinglePaste'
+import SinglePaste from '@/app/components/custom/SinglePaste'
 import type { PasteResponse } from '@/app/types'
 import { createDynamicAuthClient } from '@/app/utils/auth-client'
 import { getBaseApiUrl } from '@/app/utils/functions'

@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import { FaCheck } from 'react-icons/fa'
 import { FaXmark } from 'react-icons/fa6'
-import type { Session, User } from '../types'
+import type { Session, User } from '../../types'
 import { ChangePassword } from './ChangePassword'
 import { CustomDialog } from './CustomDialog'
 import { EditUser } from './EditUser'

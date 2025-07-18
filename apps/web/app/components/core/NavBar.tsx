@@ -2,10 +2,10 @@ import { setThemeScript } from '@/app/utils/functions'
 import Link from 'next/link'
 import { FaQuestionCircle } from 'react-icons/fa'
 import { FaBookOpen, FaFileCode, FaUsers } from 'react-icons/fa6'
-import { MobileMenu } from './MobileMenu'
-import { ProfileIcon } from './ProfileIcon'
-import { ThemeSelector } from './ThemeSelector'
 import Image from 'next/image'
+import { MobileMenu } from './MobileMenu'
+import { ThemeSelector } from './ThemeSelector'
+import { ProfileIcon } from './ProfileIcon'
 
 export const Navbar: React.FC = () => {
 	return (

@@ -3,16 +3,16 @@
 import CodeMirror from '@uiw/react-codemirror'
 import { useState } from 'react'
 import { FaFileCode, FaInfoCircle } from 'react-icons/fa'
-import { useTheme } from '../context/ThemeContext'
-import type { Paste, User } from '../types'
+import { useTheme } from '../../context/ThemeContext'
+import type { Paste, User } from '../../types'
 import {
 	extensions,
 	firstLetterUppercase,
 	getCategoryLabel,
 	getContrastTextColor,
 	getExpirationLabel
-} from '../utils/functions'
-import { PasteButtons } from './PasteButton'
+} from '../../utils/functions'
+import { PasteButtons } from './PasteButtons'
 
 export default function SinglePaste({
 	slug,

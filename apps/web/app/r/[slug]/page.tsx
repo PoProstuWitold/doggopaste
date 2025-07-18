@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { headers } from 'next/headers'
-import { RealtimeEditor } from '@/app/components/RealtimeEditor'
+import { RealtimeEditor } from '@/app/components/custom/RealtimeEditor'
 import { createDynamicAuthClient } from '@/app/utils/auth-client'
 import { getBaseApiUrl } from '@/app/utils/functions'
 

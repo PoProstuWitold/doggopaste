@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Login } from '@/app/components/Login'
+import { Login } from '@/app/components/core/Login'
 
 export const dynamic = 'force-dynamic'
 

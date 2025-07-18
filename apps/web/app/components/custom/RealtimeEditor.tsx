@@ -8,13 +8,13 @@ import { basicSetup, EditorView } from 'codemirror'
 import { useEffect, useRef, useState } from 'react'
 import { FaFileCode } from 'react-icons/fa'
 import io, { type Socket } from 'socket.io-client'
-import { useTheme } from '../context/ThemeContext'
-import type { RealtimePaste, Session, User } from '../types'
+import { useTheme } from '../../context/ThemeContext'
+import type { RealtimePaste, Session, User } from '../../types'
 import {
 	extensions,
 	getBaseApiUrl,
 	getContrastTextColor
-} from '../utils/functions'
+} from '../../utils/functions'
 import { RealtimeCursors } from './RealtimeCursors'
 import { RealtimePasteButtons } from './RealtimePasteButtons'
 

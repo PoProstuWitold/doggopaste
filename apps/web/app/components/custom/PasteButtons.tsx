@@ -7,10 +7,10 @@ import { BsFiletypeRaw } from 'react-icons/bs'
 import { FaCodeFork } from 'react-icons/fa6'
 import { ImEmbed2 } from 'react-icons/im'
 import { MdDelete, MdDownload, MdEdit } from 'react-icons/md'
-import type { Paste, User } from '../types'
-import { getBaseApiUrl } from '../utils/functions'
+import type { Paste, User } from '../../types'
+import { getBaseApiUrl } from '../../utils/functions'
 import { CopyButton } from './CopyButton'
-import { CustomDialog } from './CustomDialog'
+import { CustomDialog } from '../core/CustomDialog'
 
 export const PasteButtons = ({
 	paste,

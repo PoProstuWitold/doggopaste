@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { UAParser } from 'ua-parser-js'
-import type { Session as SessionType } from '../types'
+import type { Session as SessionType } from '../../types'
 
 interface SessionProps {
 	session: SessionType

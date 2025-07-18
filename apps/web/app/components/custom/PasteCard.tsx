@@ -10,13 +10,13 @@ import {
 	FaUserAlt
 } from 'react-icons/fa'
 import { FaRegHourglassHalf } from 'react-icons/fa6'
-import type { Paste } from '../types'
+import type { Paste } from '../../types'
 import {
 	firstLetterUppercase,
 	getCategoryLabel,
 	getContrastTextColor,
 	getExpirationLabel
-} from '../utils/functions'
+} from '../../utils/functions'
 
 interface PasteCardProps {
 	paste: Paste

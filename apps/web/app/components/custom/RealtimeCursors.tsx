@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { FaMousePointer } from 'react-icons/fa'
 import type { Socket } from 'socket.io-client'
-import { getContrastTextColor } from '../utils/functions'
+import { getContrastTextColor } from '../../utils/functions'
 
 const generateRandomColor = () =>
 	`#${Math.floor(Math.random() * 16777215)

@@ -1,9 +1,9 @@
 import './globals.css'
 import type { Metadata } from 'next'
 import { Toaster } from 'react-hot-toast'
-import { Container } from './components/Container'
-import { Footer } from './components/Footer'
-import { Navbar } from './components/NavBar'
+import { Container } from './components/core/Container'
+import { Footer } from './components/core/Footer'
+import { Navbar } from './components/core/NavBar'
 import { ThemeProvider } from './context/ThemeContext'
 
 export const metadata: Metadata = {

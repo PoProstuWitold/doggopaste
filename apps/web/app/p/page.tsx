@@ -3,7 +3,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { FaGithub } from 'react-icons/fa6'
 import { FiPlus } from 'react-icons/fi'
-import { PasteCard } from '../components/PasteCard'
+import { PasteCard } from '../components/custom/PasteCard'
 import type { Paste } from '../types'
 import { getBaseApiUrl } from '../utils/functions'
 

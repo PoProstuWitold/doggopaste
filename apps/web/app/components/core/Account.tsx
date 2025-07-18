@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { FaFacebook, FaGithub, FaGoogle } from 'react-icons/fa6'
 import { RiLockPasswordFill } from 'react-icons/ri'
-import type { Account as AccountType } from '../types'
+import type { Account as AccountType } from '../../types'
 
 interface AccountProps {
 	account: AccountType

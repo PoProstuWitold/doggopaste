@@ -2,9 +2,9 @@
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import toast from 'react-hot-toast'
-import type { EditUserData } from '../types'
-import { createDynamicAuthClient } from '../utils/auth-client'
-import { wait } from '../utils/functions'
+import type { EditUserData } from '../../types'
+import { createDynamicAuthClient } from '../../utils/auth-client'
+import { wait } from '../../utils/functions'
 
 export const EditUser: React.FC = () => {
 	const authClient = createDynamicAuthClient()

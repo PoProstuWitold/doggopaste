@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { NotFoundClient } from './components/NotFoundClient'
+import { NotFoundClient } from './components/core/NotFoundClient'
 
 export const metadata: Metadata = {
 	title: '404 Not Found',

@@ -13,7 +13,7 @@ import {
 	FaSun
 } from 'react-icons/fa'
 import { HiOutlineColorSwatch } from 'react-icons/hi'
-import { useTheme } from '../context/ThemeContext'
+import { useTheme } from '../../context/ThemeContext'
 
 export function ThemeSelector() {
 	const { theme, setTheme } = useTheme()

@@ -4,7 +4,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { FaBookOpen, FaGithub, FaQuestionCircle } from 'react-icons/fa'
 import { MdLightbulb, MdMenuBook, MdSchool } from 'react-icons/md'
-import { FeatureSection } from './components/FeatureSection'
+import { FeatureSection } from './components/custom/FeatureSection'
 import { createDynamicAuthClient } from './utils/auth-client'
 
 export const metadata: Metadata = {

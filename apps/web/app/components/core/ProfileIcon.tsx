@@ -14,5 +14,3 @@ export const ProfileIcon = async () => {
 
 	return <ProfileIconClient user={user} />
 }
-
-export default ProfileIcon

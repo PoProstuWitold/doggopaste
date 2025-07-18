@@ -1,4 +1,4 @@
-import type { Paste } from '../types'
+import type { Paste } from '../../types'
 import { PasteForm } from './PasteForm'
 
 export default function EditPasteForm({

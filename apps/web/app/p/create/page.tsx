@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import CreatePasteForm from '@/app/components/CreatePasteForm'
+import CreatePasteForm from '@/app/components/custom/CreatePasteForm'
 
 export const metadata: Metadata = {
 	title: 'Create Paste',
