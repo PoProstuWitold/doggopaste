@@ -416,7 +416,7 @@ export function PasteForm({
 												history: true,
 												syntaxHighlighting: true
 											}}
-											className='rounded-lg border overflow-auto h-[650px]'
+											className='overflow-auto h-[650px]'
 											theme={cmTheme}
 										/>
 									)}

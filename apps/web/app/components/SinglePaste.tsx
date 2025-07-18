@@ -84,7 +84,7 @@ export default function SinglePaste({
 										history: false,
 										syntaxHighlighting: true
 									}}
-									className='rounded-lg border overflow-auto h-[650px]'
+									className='overflow-auto max-h-[650px]'
 									theme={cmTheme}
 								/>
 							</div>
