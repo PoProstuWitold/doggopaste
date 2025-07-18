@@ -17,14 +17,14 @@
 		"db:seed": "node --env-file .env --import tsx src/db/seed.ts"
 	},
 	"dependencies": {
-		"@hono/node-server": "^1.15.0",
-		"@hono/zod-validator": "^0.7.0",
-		"@scalar/hono-api-reference": "^0.9.10",
-		"argon2": "^0.43.0",
+		"@hono/node-server": "^1.16.0",
+		"@hono/zod-validator": "^0.7.1",
+		"@scalar/hono-api-reference": "^0.9.11",
+		"argon2": "^0.43.1",
 		"better-auth": "^1.2.12",
-		"drizzle-orm": "^0.44.2",
+		"drizzle-orm": "^0.44.3",
 		"drizzle-seed": "^0.3.1",
-		"hono": "^4.8.4",
+		"hono": "^4.8.5",
 		"hono-openapi": "^0.4.8",
 		"pg": "^8.16.3",
 		"random-words": "^2.0.1",
@@ -32,7 +32,7 @@
 		"zod": "^4.0.5"
 	},
 	"devDependencies": {
-		"@types/node": "^24.0.13",
+		"@types/node": "^24.0.14",
 		"@types/pg": "^8.15.4",
 		"drizzle-kit": "^0.31.4",
 		"rimraf": "^6.0.1",
