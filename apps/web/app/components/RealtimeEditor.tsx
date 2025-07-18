@@ -7,7 +7,7 @@ import { keymap } from '@codemirror/view'
 import { basicSetup, EditorView } from 'codemirror'
 import { useEffect, useRef, useState } from 'react'
 import { FaFileCode } from 'react-icons/fa'
-import io from 'socket.io-client'
+import io, { type Socket } from 'socket.io-client'
 import { useTheme } from '../context/ThemeContext'
 import type { RealtimePaste, Session, User } from '../types'
 import {
@@ -17,11 +17,6 @@ import {
 } from '../utils/functions'
 import { RealtimeCursors } from './RealtimeCursors'
 import { RealtimePasteButtons } from './RealtimePasteButtons'
-
-const socket = io(getBaseApiUrl(), {
-	path: '/ws',
-	withCredentials: true
-})
 
 export const RealtimeEditor = ({
 	slug,
@@ -47,19 +42,39 @@ export const RealtimeEditor = ({
 	const viewRef = useRef<EditorView | null>(null)
 	const socketIdRef = useRef<string | null>(null)
 	const isRemoteChange = useRef(false)
+	const socket = useRef<Socket | null>(null)
 
 	useEffect(() => {
-		if (!editorRef.current) return
+		const s = io(getBaseApiUrl(), {
+			path: '/ws',
+			withCredentials: true
+		})
+		socket.current = s
 
-		socket.on('connect', () => {
-			//@ts-ignore
-			socketIdRef.current = socket.id
-			socket.emit('join-room', slug)
+		return () => {
+			s.disconnect()
+		}
+	}, [])
+
+	// biome-ignore lint: Can't add another dependency
+	useEffect(() => {
+		if (!editorRef.current || viewRef.current) return
+
+		socket.current?.on('connect', () => {
+			socketIdRef.current = socket.current?.id as string
+			socket.current?.emit('join-room', slug)
 		})
 
 		const state = EditorState.create({
 			doc: realtimePaste?.content || '',
-			extensions: [
+			extensions: []
+		})
+
+		const view = new EditorView({ state, parent: editorRef.current })
+		viewRef.current = view
+
+		view.dispatch({
+			effects: StateEffect.reconfigure.of([
 				basicSetup,
 				indentUnit.of('    '),
 				keymap.of([indentWithTab]),
@@ -79,7 +94,7 @@ export const RealtimeEditor = ({
 					if (update.docChanged && socketIdRef.current) {
 						update.changes.iterChanges(
 							(fromA, toA, _fromB, _toB, inserted) => {
-								socket.emit('code-change', {
+								socket.current?.emit('code-change', {
 									from: fromA,
 									to: toA,
 									insert: inserted.toString(),
@@ -90,36 +105,80 @@ export const RealtimeEditor = ({
 						)
 					}
 				})
-			]
+			])
 		})
 
-		const view = new EditorView({
-			state,
-			parent: editorRef.current
-		})
-
-		viewRef.current = view
-
-		socket.on('code-change', ({ from, to, insert, sender }) => {
+		socket.current?.on('code-change', ({ from, to, insert, sender }) => {
 			if (sender === socketIdRef.current) return
-
 			isRemoteChange.current = true
-
-			viewRef.current?.dispatch({
-				changes: { from, to, insert }
-			})
+			view.dispatch({ changes: { from, to, insert } })
 		})
 
 		return () => {
-			// Send the last content on disconnect
-			socket.emit('content-sync', {
+			socket.current?.emit('content-sync', {
 				slug,
 				content: view.state.doc.toString()
 			})
-			socket.off('code-change')
+			socket.current?.off('code-change')
 			view.destroy()
 		}
-	}, [slug, syntax, realtimePaste?.content, cmTheme])
+	}, [slug])
+
+	useEffect(() => {
+		const interval = setInterval(() => {
+			if (!viewRef.current) return
+			const content = viewRef.current.state.doc.toString()
+			socket.current?.emit('content-sync', { slug, content })
+			socket.current?.emit('meta-sync', {
+				slug,
+				title,
+				syntax: selectedSyntax
+			})
+		}, 5000)
+
+		return () => clearInterval(interval)
+	}, [slug, title, selectedSyntax])
+
+	// biome-ignore lint: Can't add another dependency
+	useEffect(() => {
+		if (!viewRef.current) return
+
+		const newExtensions = [
+			basicSetup,
+			indentUnit.of('    '),
+			keymap.of([indentWithTab]),
+			extensions[selectedSyntax.name as keyof typeof extensions],
+			cmTheme,
+			EditorView.updateListener.of((update) => {
+				if (update.docChanged) {
+					const newDoc = update.state.doc.toString()
+					setContent(newDoc)
+				}
+
+				if (isRemoteChange.current) {
+					isRemoteChange.current = false
+					return
+				}
+				if (update.docChanged && socketIdRef.current) {
+					update.changes.iterChanges(
+						(fromA, toA, _fromB, _toB, inserted) => {
+							socket.current?.emit('code-change', {
+								from: fromA,
+								to: toA,
+								insert: inserted.toString(),
+								sender: socketIdRef.current,
+								slug
+							})
+						}
+					)
+				}
+			})
+		]
+
+		viewRef.current.dispatch({
+			effects: StateEffect.reconfigure.of(newExtensions)
+		})
+	}, [selectedSyntax, cmTheme])
 
 	// Every 5 seconds, send the current content to the server
 	useEffect(() => {
@@ -127,12 +186,12 @@ export const RealtimeEditor = ({
 			if (!viewRef.current) return
 
 			const content = viewRef.current.state.doc.toString()
-			socket.emit('content-sync', {
+			socket.current?.emit('content-sync', {
 				slug,
 				content
 			})
 
-			socket.emit('meta-sync', {
+			socket.current?.emit('meta-sync', {
 				slug,
 				title,
 				syntax: selectedSyntax
@@ -143,13 +202,13 @@ export const RealtimeEditor = ({
 	}, [slug, title, selectedSyntax])
 
 	useEffect(() => {
-		socket.on('meta-change', ({ title, syntax }) => {
+		socket.current?.on('meta-change', ({ title, syntax }) => {
 			setTitle(title)
 			setSelectedSyntax(syntax)
 		})
 
 		return () => {
-			socket.off('meta-change')
+			socket.current?.off('meta-change')
 		}
 	}, [])
 
@@ -177,7 +236,7 @@ export const RealtimeEditor = ({
 				if (update.docChanged && socketIdRef.current) {
 					update.changes.iterChanges(
 						(fromA, toA, _fromB, _toB, inserted) => {
-							socket.emit('code-change', {
+							socket.current?.emit('code-change', {
 								from: fromA,
 								to: toA,
 								insert: inserted.toString(),
@@ -200,7 +259,7 @@ export const RealtimeEditor = ({
 			<RealtimeCursors
 				slug={slug}
 				name={session?.user.name}
-				socket={socket}
+				socket={socket.current}
 			/>
 			<div className='relative'>
 				<div className='absolute top-0 right-0 text-sm text-base-content/70'>
@@ -240,7 +299,7 @@ export const RealtimeEditor = ({
 						onChange={(e) => {
 							const newTitle = e.target.value
 							setTitle(newTitle)
-							socket.emit('meta-sync', {
+							socket.current?.emit('meta-sync', {
 								slug,
 								title: newTitle,
 								syntaxName: selectedSyntax.name
@@ -269,7 +328,7 @@ export const RealtimeEditor = ({
 								name: selectedName
 							})
 
-							socket.emit('meta-sync', {
+							socket.current?.emit('meta-sync', {
 								slug,
 								title,
 								syntaxName: selectedName

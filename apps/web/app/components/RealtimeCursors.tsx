@@ -24,7 +24,7 @@ export const RealtimeCursors = ({
 }: {
 	slug: string
 	name?: string
-	socket: Socket
+	socket: Socket | null
 }) => {
 	const [cursors, setCursors] = useState<
 		Record<string, { x: number; y: number; name: string }>
@@ -41,7 +41,7 @@ export const RealtimeCursors = ({
 			if (animationFrameId) return
 
 			animationFrameId = requestAnimationFrame(() => {
-				socket.emit('cursor-move', {
+				socket?.emit('cursor-move', {
 					slug,
 					x: e.clientX,
 					y: e.clientY,
@@ -79,14 +79,14 @@ export const RealtimeCursors = ({
 			delete colorsRef.current[id]
 		}
 
-		socket.on('cursor-move', handleCursor)
-		socket.on('cursor-leave', handleCursorLeave)
+		socket?.on('cursor-move', handleCursor)
+		socket?.on('cursor-leave', handleCursorLeave)
 
 		return () => {
-			socket.off('cursor-move', handleCursor)
-			socket.off('cursor-leave', handleCursorLeave)
+			socket?.off('cursor-move', handleCursor)
+			socket?.off('cursor-leave', handleCursorLeave)
 		}
-	}, [socket.on, socket.off])
+	}, [socket?.on, socket?.off])
 
 	return (
 		<>
