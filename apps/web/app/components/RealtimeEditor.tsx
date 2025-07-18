@@ -31,103 +31,109 @@ export const RealtimeEditor = ({
 	}
 }) => {
 	const { cmTheme } = useTheme()
-
-	const syntax = realtimePaste?.syntax?.name || 'Plaintext'
+	const [title, setTitle] = useState(realtimePaste.title || '')
+	const [content, setContent] = useState(realtimePaste.content || '')
 	const [selectedSyntax, setSelectedSyntax] = useState(
 		realtimePaste.syntax ?? { name: 'Plaintext' }
 	)
-	const [title, setTitle] = useState(realtimePaste.title || '')
-	const [content, setContent] = useState(realtimePaste?.content || '')
+
 	const editorRef = useRef<HTMLDivElement>(null)
 	const viewRef = useRef<EditorView | null>(null)
-	const socketIdRef = useRef<string | null>(null)
-	const isRemoteChange = useRef(false)
 	const socket = useRef<Socket | null>(null)
+	const socketId = useRef<string | null>(null)
+	const isRemoteChange = useRef(false)
 
-	useEffect(() => {
-		const s = io(getBaseApiUrl(), {
-			path: '/ws',
-			withCredentials: true
+	const scrollTheme = EditorView.theme({
+		'&': {
+			maxHeight: '600px',
+			overflow: 'auto'
+		}
+	})
+	const createEditorExtensions = () => [
+		basicSetup,
+		indentUnit.of('    '),
+		keymap.of([indentWithTab]),
+		extensions[selectedSyntax.name as keyof typeof extensions],
+		cmTheme,
+		scrollTheme,
+		EditorView.updateListener.of((update) => {
+			if (update.docChanged) {
+				setContent(update.state.doc.toString())
+			}
+			if (isRemoteChange.current) {
+				isRemoteChange.current = false
+				return
+			}
+			if (update.docChanged && socketId.current) {
+				update.changes.iterChanges(
+					(fromA, toA, _fromB, _toB, inserted) => {
+						socket.current?.emit('code-change', {
+							from: fromA,
+							to: toA,
+							insert: inserted.toString(),
+							sender: socketId.current,
+							slug
+						})
+					}
+				)
+			}
 		})
+	]
+
+	// Init socket
+	useEffect(() => {
+		const s = io(getBaseApiUrl(), { path: '/ws', withCredentials: true })
 		socket.current = s
 
-		return () => {
-			s.disconnect()
-		}
-	}, [])
-
-	// biome-ignore lint: Can't add another dependency
-	useEffect(() => {
-		if (!editorRef.current || viewRef.current) return
-
-		socket.current?.on('connect', () => {
-			socketIdRef.current = socket.current?.id as string
-			socket.current?.emit('join-room', slug)
+		s.on('connect', () => {
+			socketId.current = s.id as string
+			s.emit('join-room', slug)
 		})
 
-		const state = EditorState.create({
-			doc: realtimePaste?.content || '',
-			extensions: []
-		})
-
-		const view = new EditorView({ state, parent: editorRef.current })
-		viewRef.current = view
-
-		view.dispatch({
-			effects: StateEffect.reconfigure.of([
-				basicSetup,
-				indentUnit.of('    '),
-				keymap.of([indentWithTab]),
-				extensions[syntax as keyof typeof extensions],
-				cmTheme,
-				EditorView.updateListener.of((update) => {
-					if (update.docChanged) {
-						const newDoc = update.state.doc.toString()
-						setContent(newDoc)
-					}
-
-					if (isRemoteChange.current) {
-						isRemoteChange.current = false
-						return
-					}
-
-					if (update.docChanged && socketIdRef.current) {
-						update.changes.iterChanges(
-							(fromA, toA, _fromB, _toB, inserted) => {
-								socket.current?.emit('code-change', {
-									from: fromA,
-									to: toA,
-									insert: inserted.toString(),
-									sender: socketIdRef.current,
-									slug
-								})
-							}
-						)
-					}
-				})
-			])
-		})
-
-		socket.current?.on('code-change', ({ from, to, insert, sender }) => {
-			if (sender === socketIdRef.current) return
+		s.on('code-change', ({ from, to, insert, sender }) => {
+			if (sender === socketId.current) return
 			isRemoteChange.current = true
-			view.dispatch({ changes: { from, to, insert } })
+			viewRef.current?.dispatch({ changes: { from, to, insert } })
+		})
+
+		s.on('meta-change', ({ title, syntax }) => {
+			setTitle(title)
+			setSelectedSyntax(syntax)
 		})
 
 		return () => {
-			socket.current?.emit('content-sync', {
+			s.emit('content-sync', {
 				slug,
-				content: view.state.doc.toString()
+				content: viewRef.current?.state.doc.toString()
 			})
-			socket.current?.off('code-change')
-			view.destroy()
+			s.disconnect()
 		}
 	}, [slug])
 
+	// Init editor
+	// biome-ignore lint: No more deps
+	useEffect(() => {
+		if (!editorRef.current || viewRef.current) return
+		const state = EditorState.create({
+			doc: realtimePaste.content || '',
+			extensions: createEditorExtensions()
+		})
+		viewRef.current = new EditorView({ state, parent: editorRef.current })
+	}, [])
+
+	// Reconfigure on syntax/theme change
+	// biome-ignore lint: No more deps
+	useEffect(() => {
+		if (!viewRef.current) return
+		viewRef.current.dispatch({
+			effects: StateEffect.reconfigure.of(createEditorExtensions())
+		})
+	}, [selectedSyntax, cmTheme])
+
+	// Auto-save every 5s
 	useEffect(() => {
 		const interval = setInterval(() => {
-			if (!viewRef.current) return
-			const content = viewRef.current.state.doc.toString()
+			const content = viewRef.current?.state.doc.toString() || ''
 			socket.current?.emit('content-sync', { slug, content })
 			socket.current?.emit('meta-sync', {
 				slug,
@@ -135,124 +141,8 @@ export const RealtimeEditor = ({
 				syntax: selectedSyntax
 			})
 		}, 5000)
-
 		return () => clearInterval(interval)
 	}, [slug, title, selectedSyntax])
-
-	// biome-ignore lint: Can't add another dependency
-	useEffect(() => {
-		if (!viewRef.current) return
-
-		const newExtensions = [
-			basicSetup,
-			indentUnit.of('    '),
-			keymap.of([indentWithTab]),
-			extensions[selectedSyntax.name as keyof typeof extensions],
-			cmTheme,
-			EditorView.updateListener.of((update) => {
-				if (update.docChanged) {
-					const newDoc = update.state.doc.toString()
-					setContent(newDoc)
-				}
-
-				if (isRemoteChange.current) {
-					isRemoteChange.current = false
-					return
-				}
-				if (update.docChanged && socketIdRef.current) {
-					update.changes.iterChanges(
-						(fromA, toA, _fromB, _toB, inserted) => {
-							socket.current?.emit('code-change', {
-								from: fromA,
-								to: toA,
-								insert: inserted.toString(),
-								sender: socketIdRef.current,
-								slug
-							})
-						}
-					)
-				}
-			})
-		]
-
-		viewRef.current.dispatch({
-			effects: StateEffect.reconfigure.of(newExtensions)
-		})
-	}, [selectedSyntax, cmTheme])
-
-	// Every 5 seconds, send the current content to the server
-	useEffect(() => {
-		const interval = setInterval(() => {
-			if (!viewRef.current) return
-
-			const content = viewRef.current.state.doc.toString()
-			socket.current?.emit('content-sync', {
-				slug,
-				content
-			})
-
-			socket.current?.emit('meta-sync', {
-				slug,
-				title,
-				syntax: selectedSyntax
-			})
-		}, 5000)
-
-		return () => clearInterval(interval)
-	}, [slug, title, selectedSyntax])
-
-	useEffect(() => {
-		socket.current?.on('meta-change', ({ title, syntax }) => {
-			setTitle(title)
-			setSelectedSyntax(syntax)
-		})
-
-		return () => {
-			socket.current?.off('meta-change')
-		}
-	}, [])
-
-	// biome-ignore lint: Can't add another dependency
-	useEffect(() => {
-		if (!viewRef.current) return
-
-		const newExtensions = [
-			basicSetup,
-			indentUnit.of('    '),
-			keymap.of([indentWithTab]),
-			extensions[selectedSyntax.name as keyof typeof extensions],
-			cmTheme,
-			EditorView.updateListener.of((update) => {
-				if (update.docChanged) {
-					const newDoc = update.state.doc.toString()
-					setContent(newDoc)
-				}
-
-				if (isRemoteChange.current) {
-					isRemoteChange.current = false
-					return
-				}
-
-				if (update.docChanged && socketIdRef.current) {
-					update.changes.iterChanges(
-						(fromA, toA, _fromB, _toB, inserted) => {
-							socket.current?.emit('code-change', {
-								from: fromA,
-								to: toA,
-								insert: inserted.toString(),
-								sender: socketIdRef.current,
-								slug
-							})
-						}
-					)
-				}
-			})
-		]
-
-		viewRef.current.dispatch({
-			effects: StateEffect.reconfigure.of(newExtensions)
-		})
-	}, [selectedSyntax, cmTheme])
 
 	return (
 		<div className='flex flex-col gap-10'>
@@ -345,7 +235,7 @@ export const RealtimeEditor = ({
 			</div>
 			<div
 				ref={editorRef}
-				className='border rounded-md min-h-[400px] z-0 relative'
+				className='max-h-[400px] md:max-h-[600px] lg:max-h-[800px] overflow-auto'
 			/>
 		</div>
 	)
