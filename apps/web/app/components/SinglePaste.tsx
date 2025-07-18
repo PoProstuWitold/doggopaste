@@ -120,7 +120,7 @@ export default function SinglePaste({
 					<PasteDetail
 						label='Expiration'
 						value={
-							<span className='flex md:flex-row flex-col gap-2 items-center'>
+							<span className='flex md:flex-row flex-col gap-2'>
 								{paste.expiresAt
 									? getExpirationLabel(paste.expiration)
 									: 'Never'}
@@ -174,7 +174,7 @@ export default function SinglePaste({
 					<PasteDetail
 						label='Created (Updated)'
 						value={
-							<span className='flex md:flex-row flex-col gap-2 items-center'>
+							<span className='flex md:flex-row flex-col gap-2'>
 								{new Date(paste.createdAt).toLocaleString(
 									'pl-PL'
 								)}
