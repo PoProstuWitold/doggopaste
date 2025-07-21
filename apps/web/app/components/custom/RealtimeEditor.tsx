@@ -6,7 +6,7 @@ import { EditorState, StateEffect } from '@codemirror/state'
 import { keymap } from '@codemirror/view'
 import { basicSetup, EditorView } from 'codemirror'
 import { useEffect, useRef, useState } from 'react'
-import { FaFileCode } from 'react-icons/fa'
+import { FaBolt } from 'react-icons/fa'
 import io, { type Socket } from 'socket.io-client'
 import { useTheme } from '../../context/ThemeContext'
 import type { RealtimePaste, Session, User } from '../../types'
@@ -166,8 +166,8 @@ export const RealtimeEditor = ({
 			</div>
 			<div className='flex lg:flex-row flex-col items-center font-bold text-center gap-4 justify-center'>
 				<div className='flex flex-row items-center text-3xl font-bold text-center gap-4 justify-center'>
-					<FaFileCode className='w-10 h-10' />
-					Paste "{slug}"
+					<FaBolt className='w-10 h-10' />
+					Realtime Editor "{slug}"
 				</div>
 				<div className='divider lg:divider-horizontal' />
 				<RealtimePasteButtons

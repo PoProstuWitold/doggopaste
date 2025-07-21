@@ -1,7 +1,6 @@
 import { setThemeScript } from '@/app/utils/functions'
 import Link from 'next/link'
-import { FaQuestionCircle } from 'react-icons/fa'
-import { FaBookOpen, FaFileCode, FaUsers } from 'react-icons/fa6'
+import { FaBolt, FaInfoCircle, FaQuestionCircle, FaFileCode } from 'react-icons/fa'
 import Image from 'next/image'
 import { MobileMenu } from './MobileMenu'
 import { ThemeSelector } from './ThemeSelector'
@@ -31,7 +30,7 @@ export const Navbar: React.FC = () => {
 								className='flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-primary hover:text-neutral-content transition-colors'
 							>
 								<FaFileCode className='w-5 h-5' />
-								Pastes
+								Static Pastes
 							</Link>
 						</li>
 						<li>
@@ -39,8 +38,8 @@ export const Navbar: React.FC = () => {
 								href='/r'
 								className='flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-primary hover:text-neutral-content transition-colors'
 							>
-								<FaUsers className='w-5 h-5' />
-								Collab Editor
+								<FaBolt className='w-5 h-5' />
+								Realtime Editors
 							</Link>
 						</li>
 						<li>
@@ -48,7 +47,7 @@ export const Navbar: React.FC = () => {
 								href='/guide'
 								className='flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-primary hover:text-neutral-content transition-colors'
 							>
-								<FaBookOpen className='w-5 h-5' />
+								<FaInfoCircle className='w-5 h-5' />
 								Guide
 							</Link>
 						</li>

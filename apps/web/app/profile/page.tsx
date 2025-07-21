@@ -19,9 +19,7 @@ export async function generateMetadata(): Promise<Metadata> {
 	return {
 		title: `${currentSession.data?.user.name || ''}`,
 		description: `Profile of ${currentSession.data?.user.name || ''}`,
-		metadataBase: new URL(
-			process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-		)
+		metadataBase: new URL(process.env.APP_URL || 'https://doggopaste.org')
 	}
 }
 

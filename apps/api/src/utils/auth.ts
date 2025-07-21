@@ -6,6 +6,38 @@ import { db } from '../db/index.js'
 import { schema } from '../db/schema.js'
 import { origins } from './contants.js'
 
+const fixedAdmin = () => {
+	const plugin = admin()
+	return {
+		...plugin,
+		init: () => {
+			const original = plugin.init()
+			const userCreateBefore =
+				original.options?.databaseHooks?.user?.create?.before
+
+			return {
+				...original,
+				options: {
+					...original.options,
+					databaseHooks: {
+						...original.options?.databaseHooks,
+						user: {
+							...original.options?.databaseHooks?.user,
+							create: {
+								before: (user) =>
+									userCreateBefore?.({
+										...user,
+										email: user.email || ''
+									})
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
 export const auth = betterAuth({
 	appName: process.env.APP_NAME,
 	baseURL: process.env.APP_URL,
@@ -23,7 +55,7 @@ export const auth = betterAuth({
 		oneTimeToken({
 			expiresIn: 60 // in minutes
 		}),
-		admin(),
+		fixedAdmin(),
 		organization()
 	],
 	database: drizzleAdapter(db, {

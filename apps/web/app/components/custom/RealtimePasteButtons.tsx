@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { useEffect, useState } from 'react'
 import { BsFiletypeRaw } from 'react-icons/bs'
 import { MdDownload } from 'react-icons/md'
 import type { RealtimePaste } from '../../types'
@@ -14,6 +15,12 @@ export const RealtimePasteButtons = ({
 	realtimePaste: RealtimePaste
 	content: string
 }) => {
+	const [clientBaseUrl, setClientBaseUrl] = useState<string | null>(null)
+
+	useEffect(() => {
+		setClientBaseUrl(getBaseApiUrl())
+	}, [])
+
 	return (
 		<div className='flex flex-wrap gap-2 justify-center'>
 			<CopyButton text={content} />
@@ -25,14 +32,16 @@ export const RealtimePasteButtons = ({
 					Raw <BsFiletypeRaw />
 				</div>
 			</Link>
-			<a
-				href={`${getBaseApiUrl()}/api/pastes-realtime/${realtimePaste?.slug}/download`}
-				className='btn btn-sm btn-success'
-			>
-				<div className='flex items-center gap-1 font-extrabold'>
-					Download <MdDownload />
-				</div>
-			</a>
+			{clientBaseUrl && (
+				<a
+					href={`${clientBaseUrl}/api/pastes-realtime/${realtimePaste.slug}/download`}
+					className='btn btn-sm btn-success'
+				>
+					<div className='flex items-center gap-1 font-extrabold'>
+						Download <MdDownload />
+					</div>
+				</a>
+			)}
 		</div>
 	)
 }

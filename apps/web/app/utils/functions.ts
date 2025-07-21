@@ -50,9 +50,10 @@ export const getBaseApiUrl = (): string => {
 	let basicUrl = ''
 
 	if (typeof window === 'undefined') {
-		basicUrl =
-			process.env.NEXT_PUBLIC_CONTAINER_URL ?? 'http://doggopaste:3002'
-		console.log('[server] using NEXT_PUBLIC_CONTAINER_URL:', basicUrl)
+		basicUrl = process.env.DOCKER
+			? 'http://doggopaste:3002'
+			: 'http://localhost:3002'
+		console.log('[server] using app internal/container url: ', basicUrl)
 		return basicUrl
 	}
 

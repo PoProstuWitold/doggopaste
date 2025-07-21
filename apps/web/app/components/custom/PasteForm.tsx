@@ -187,8 +187,8 @@ export function PasteForm({
 				<div className='flex flex-row items-center text-3xl font-bold text-center gap-4 justify-center'>
 					<FaFileCode className='w-10 h-10' />
 					{mode === 'create'
-						? 'Create New Paste'
-						: `Edit Paste "${slug}"`}
+						? 'Create New Static Paste'
+						: `Edit Static Paste "${slug}"`}
 				</div>
 
 				<div className='flex flex-col lg:flex-row gap-4'>

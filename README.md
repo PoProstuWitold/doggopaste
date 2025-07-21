@@ -86,10 +86,6 @@ BETTER_AUTH_SECRET="super_secret_doggo"
 
 GITHUB_CLIENT_ID="your_github_client_id"
 GITHUB_CLIENT_SECRET="your_github_client_secret"
-
-# WEB
-NEXT_PUBLIC_APP_URL="http://localhost:3002" # different in production
-NEXT_PUBLIC_CONTAINER_URL="http://localhost:3002" # different in Docker
 ```
 
 3. Install dependencies with ``pnpm install`` and run ``turbo run dev --filter=proxy`` to run app on ``http://localhost:3002``

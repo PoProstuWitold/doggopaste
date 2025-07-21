@@ -10,14 +10,13 @@ import {
 import Image from 'next/image'
 import Link from 'next/link'
 import { Fragment } from 'react'
+import { AiOutlineClose, AiOutlineMenu } from 'react-icons/ai'
 import {
-	AiFillBook,
-	AiOutlineClose,
-	AiOutlineInfoCircle,
-	AiOutlineMail,
-	AiOutlineMenu
-} from 'react-icons/ai'
-import { MdComputer } from 'react-icons/md'
+	FaBolt,
+	FaFileCode,
+	FaInfoCircle,
+	FaQuestionCircle
+} from 'react-icons/fa'
 
 export const MobileMenu = () => {
 	return (
@@ -90,25 +89,25 @@ export const MobileMenu = () => {
 							{[
 								{
 									href: '/p',
-									label: 'Pastes',
-									icon: (
-										<AiOutlineInfoCircle className='w-5 h-5' />
-									)
+									label: 'Static Pastes',
+									icon: <FaFileCode className='w-5 h-5' />
 								},
 								{
 									href: '/r',
-									label: 'Collab Editor',
-									icon: <MdComputer className='w-5 h-5' />
+									label: 'Realtime Editors',
+									icon: <FaBolt className='w-5 h-5' />
 								},
 								{
 									href: '/guide',
 									label: 'Guide',
-									icon: <AiOutlineMail className='w-5 h-5' />
+									icon: <FaInfoCircle className='w-5 h-5' />
 								},
 								{
 									href: '/faq',
 									label: 'FAQ',
-									icon: <AiFillBook className='w-5 h-5' />
+									icon: (
+										<FaQuestionCircle className='w-5 h-5' />
+									)
 								}
 							].map(({ href, label, icon }) => (
 								<MenuItem key={href}>
