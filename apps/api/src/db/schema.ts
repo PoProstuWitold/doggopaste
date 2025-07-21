@@ -44,7 +44,8 @@ export const sessionsTable = pgTable('sessions', {
 	// admin plugin
 	impersonatedBy: uuid(),
 	// organization plugin
-	activeOrganizationId: uuid()
+	activeOrganizationId: uuid(),
+	activeTeamId: uuid()
 })
 
 export const accountsTable = pgTable('accounts', {

@@ -5,7 +5,7 @@
 	"type": "module",
 	"description": "Web client for DoggoPaste. Built with Next.js and Tailwind CSS",
 	"scripts": {
-		"dev": "next dev --turbopack --port 3000",
+		"dev": "next dev --port 3000",
 		"build": "next build",
 		"start": "next start",
 		"check-types": "tsc --noEmit",
@@ -43,10 +43,10 @@
 		"@tailwindcss/postcss": "^4.1.11",
 		"@uiw/codemirror-themes-all": "^4.24.1",
 		"@uiw/react-codemirror": "^4.24.1",
-		"better-auth": "^1.2.12",
+		"better-auth": "^1.3.2",
 		"cm6-graphql": "^0.2.1",
 		"codemirror": "^6.0.2",
-		"next": "^15.4.1",
+		"next": "^15.4.2",
 		"react": "^19.1.0",
 		"react-dom": "^19.1.0",
 		"react-hook-form": "^7.60.0",
@@ -57,7 +57,7 @@
 		"zod": "^4.0.5"
 	},
 	"devDependencies": {
-		"@types/node": "^24.0.14",
+		"@types/node": "^24.0.15",
 		"@types/react": "19.1.8",
 		"@types/react-dom": "19.1.6",
 		"autoprefixer": "^10.4.21",
