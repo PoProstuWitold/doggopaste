@@ -8,7 +8,7 @@ ENV NODE_ENV=production \
     HOSTNAME="0.0.0.0" \
     TZ=Europe/Warsaw
 
-RUN apk add --no-cache libc6-compat postgresql-client tzdata \
+RUN apk add --no-cache libc6-compat tzdata curl \
   && corepack enable pnpm \
   && npm install -g turbo pm2
 
@@ -66,4 +66,10 @@ COPY --chmod=755 apps/proxy/entrypoint.sh ./entrypoint.sh
 
 USER doggo
 EXPOSE 3002
+
+# healthcheck
+ENV HEALTHCHECK_URL=http://localhost:3002/api/health
+HEALTHCHECK --interval=120s --timeout=10s --start-period=30s --retries=3 \
+CMD curl --fail --silent --show-error "$HEALTHCHECK_URL" >/dev/null || exit 1
+
 CMD ["./entrypoint.sh"]

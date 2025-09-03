@@ -24,6 +24,7 @@ import pasteRoutes from './routes/pastes.js'
 import pasteRealtimeRoutes from './routes/pastes-realtime.js'
 import type { Env } from './types'
 import { origins } from './utils/contants.js'
+import { health } from './utils/health.js'
 import { auth, openApiSpec } from './utils/index.js'
 
 if (!process.env.APP_URL) {
@@ -83,6 +84,7 @@ app.get(
 		url: '/api/openapi'
 	})
 )
+app.get('/health', health)
 app.onError(errorHandler)
 app.notFound((c) => {
 	throw new GenericException({

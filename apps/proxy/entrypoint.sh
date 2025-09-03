@@ -1,14 +1,6 @@
 #!/bin/sh
 
-echo "Waiting for services to be ready..."
-
-# Wait for the database to be ready
-until pg_isready -h doggopaste_db_prod -p 5432 -U doggo; do
-  echo "Waiting for database..."
-  sleep 2
-done
-
-echo "Database is ready!"
+echo "Welcome to DoggoPaste!"
 
 echo "Generating migrations..."
 pnpm --filter api run db:generate

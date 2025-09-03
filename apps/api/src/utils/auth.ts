@@ -39,6 +39,9 @@ const fixedAdmin = () => {
 }
 
 export const auth = betterAuth({
+	telemetry: {
+		enabled: false
+	},
 	appName: process.env.APP_NAME,
 	baseURL: process.env.APP_URL,
 	basePath: '/api/auth',
