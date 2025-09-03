@@ -214,7 +214,7 @@ export const RealtimeEditor = ({
 
 							setSelectedSyntax({
 								...selectedSyntax,
-								// @ts-ignore
+								// @ts-expect-error
 								name: selectedName
 							})
 

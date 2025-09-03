@@ -134,8 +134,8 @@ const app = new Hono<Env>()
 		})
 	})
 	.get('/', async (c) => {
-		const limit = Number.parseInt(c.req.query('limit') || '10')
-		const offset = Number.parseInt(c.req.query('offset') || '0')
+		const limit = Number.parseInt(c.req.query('limit') || '10', 10)
+		const offset = Number.parseInt(c.req.query('offset') || '0', 10)
 
 		const [total] = await db
 			.select({ count: sql<number>`COUNT(*)` })
