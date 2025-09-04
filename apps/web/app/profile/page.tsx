@@ -59,7 +59,7 @@ export default async function ProfilePage() {
 		}
 	})
 	const hasCredentialAccount =
-		accounts.data?.some((account) => account.provider === 'credential') ??
+		accounts.data?.some((account) => account.providerId === 'credential') ??
 		false
 
 	return (

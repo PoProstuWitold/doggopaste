@@ -69,7 +69,7 @@ export const Accounts: React.FC<AccountsProps> = ({
 	}
 
 	// Determine which providers are not yet linked
-	const linkedProviders = accounts?.map((account) => account.provider) || []
+	const linkedProviders = accounts?.map((account) => account.providerId) || []
 	const unlinkedProviders = providers.filter(
 		(provider) => !linkedProviders.includes(provider)
 	)

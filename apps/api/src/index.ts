@@ -8,7 +8,7 @@ import { logger } from 'hono/logger'
 import { prettyJSON } from 'hono/pretty-json'
 import { requestId } from 'hono/request-id'
 import { secureHeaders } from 'hono/secure-headers'
-import { openAPISpecs } from 'hono-openapi'
+import { openAPIRouteHandler } from 'hono-openapi'
 
 // custom
 import { seedSyntaxes } from './db/seed.js'
@@ -76,7 +76,7 @@ app.use('*', requestId())
 app.use('*', secureHeaders())
 app.use(wsMiddleware)
 app.use(ipAddress)
-app.get('/openapi', openAPISpecs(app, openApiSpec))
+app.get('/openapi', openAPIRouteHandler(app, openApiSpec))
 app.get(
 	'/docs',
 	Scalar({

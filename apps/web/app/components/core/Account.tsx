@@ -18,25 +18,25 @@ export const Account: React.FC<AccountProps> = ({ account, unlinkSocial }) => {
 		>
 			<div>
 				<div className='flex items-center gap-2'>
-					{account.provider === 'github' ? (
+					{account.providerId === 'github' ? (
 						<div className='flex items-center gap-2 text-xl font-bold'>
 							<FaGithub />
 							<span>GitHub</span>
 						</div>
 					) : null}
-					{account.provider === 'google' ? (
+					{account.providerId === 'google' ? (
 						<div className='flex items-center gap-2 text-xl font-bold'>
 							<FaGoogle />
 							<span>Google</span>
 						</div>
 					) : null}
-					{account.provider === 'facebook' ? (
+					{account.providerId === 'facebook' ? (
 						<div className='flex items-center gap-2 text-xl font-bold'>
 							<FaFacebook />
 							<span>Facebook</span>
 						</div>
 					) : null}
-					{account.provider === 'credential' ? (
+					{account.providerId === 'credential' ? (
 						<div className='flex items-center gap-2 text-xl font-bold'>
 							<RiLockPasswordFill />
 							<span>Credential</span>
@@ -71,11 +71,14 @@ export const Account: React.FC<AccountProps> = ({ account, unlinkSocial }) => {
 				</div>
 			</div>
 			{/* Unlink Button */}
-			{account.provider !== 'credential' ? (
+			{account.providerId !== 'credential' ? (
 				<button
 					onClick={() =>
 						unlinkSocial(
-							account.provider as 'google' | 'github' | 'facebook'
+							account.providerId as
+								| 'google'
+								| 'github'
+								| 'facebook'
 						)
 					}
 					type='button'

@@ -1,4 +1,4 @@
-import type { OpenApiSpecsOptions } from 'hono-openapi'
+import type { GenerateSpecOptions } from 'hono-openapi'
 import { auth } from './index.js'
 
 const { components, openapi, paths, security, tags } =
@@ -82,4 +82,4 @@ export const openApiSpec = {
 		security,
 		openapi
 	}
-} as OpenApiSpecsOptions
+} as Partial<GenerateSpecOptions>

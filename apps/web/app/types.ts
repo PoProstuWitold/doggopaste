@@ -31,7 +31,7 @@ export interface SessionsProps {
 
 export interface Account {
 	id: string
-	provider: string
+	providerId: string
 	createdAt: Date
 	updatedAt: Date
 	accountId: string
