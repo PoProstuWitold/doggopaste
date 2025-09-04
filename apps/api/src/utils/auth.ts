@@ -1,42 +1,10 @@
-import { betterAuth } from 'better-auth'
+import { type BetterAuthPlugin, betterAuth } from 'better-auth'
 import { drizzleAdapter } from 'better-auth/adapters/drizzle'
 import { admin, oneTimeToken, openAPI, organization } from 'better-auth/plugins'
 
 import { db } from '../db/index.js'
 import { schema } from '../db/schema.js'
 import { origins } from './contants.js'
-
-const fixedAdmin = () => {
-	const plugin = admin()
-	return {
-		...plugin,
-		init: () => {
-			const original = plugin.init()
-			const userCreateBefore =
-				original.options?.databaseHooks?.user?.create?.before
-
-			return {
-				...original,
-				options: {
-					...original.options,
-					databaseHooks: {
-						...original.options?.databaseHooks,
-						user: {
-							...original.options?.databaseHooks?.user,
-							create: {
-								before: (user) =>
-									userCreateBefore?.({
-										...user,
-										email: user.email || ''
-									})
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-}
 
 export const auth = betterAuth({
 	telemetry: {
@@ -58,7 +26,7 @@ export const auth = betterAuth({
 		oneTimeToken({
 			expiresIn: 60 // in minutes
 		}),
-		fixedAdmin(),
+		admin() as BetterAuthPlugin,
 		organization()
 	],
 	database: drizzleAdapter(db, {
@@ -68,6 +36,19 @@ export const auth = betterAuth({
 		},
 		usePlural: true
 	}),
+	databaseHooks: {
+		user: {
+			create: {
+				before: async (user) => {
+					const userCount = await db.$count(schema.users)
+					if (userCount === 0) {
+						return { data: { ...user, role: 'admin' } }
+					}
+					return { data: user }
+				}
+			}
+		}
+	},
 	advanced: {
 		database: {
 			generateId: false
