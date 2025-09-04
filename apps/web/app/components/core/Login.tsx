@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form'
 import toast from 'react-hot-toast'
 import { FaFacebook, FaGithub, FaGoogle } from 'react-icons/fa'
 import { createDynamicAuthClient } from '@/app/utils/auth-client'
-import { wait } from '@/app/utils/functions'
+import { mapUniqueError, wait } from '@/app/utils/functions'
 import type { SignInData, SignUpData } from '../../types'
 
 export const Login: React.FC = () => {
@@ -46,8 +46,16 @@ export const Login: React.FC = () => {
 						router.refresh()
 					},
 					onError: (ctx) => {
-						console.info('error', ctx)
-						toast.error(ctx.error.message)
+						console.info('ctx.error', ctx.error)
+						const msg =
+							ctx.error.details?.cause.constraint.includes(
+								'unique'
+							)
+								? mapUniqueError(
+										ctx.error.details.cause.constraint
+									)
+								: ctx.error.message
+						toast.error(msg)
 					}
 				}
 			)

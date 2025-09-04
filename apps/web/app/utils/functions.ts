@@ -46,6 +46,24 @@ import { csharp } from '@replit/codemirror-lang-csharp'
 import { svelte } from '@replit/codemirror-lang-svelte'
 import { graphql } from 'cm6-graphql'
 
+export const mapUniqueError = (constraint: string): string => {
+	const parts = constraint.split('_')
+	if (parts.length < 3) return constraint
+
+	const table = parts[0]
+	const field = parts[1]
+
+	if (!table || !field) return constraint
+
+	const entity = table.endsWith('s') ? table.slice(0, -1) : table
+
+	return `${capitalize(entity)} already exists. Use another ${field}.`
+}
+
+export const capitalize = (s: string): string => {
+	return s.charAt(0).toUpperCase() + s.slice(1)
+}
+
 export const getBaseApiUrl = (): string => {
 	let basicUrl = ''
 

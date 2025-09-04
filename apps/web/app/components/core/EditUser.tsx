@@ -33,7 +33,10 @@ export const EditUser: React.FC = () => {
 				},
 				onError: (ctx) => {
 					console.info('error', ctx)
-					toast.error(ctx.error.message)
+					toast.error(
+						ctx.error.message ||
+							'User with this name already exists'
+					)
 				}
 			}
 		)
