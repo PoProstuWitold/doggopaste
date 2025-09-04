@@ -25,13 +25,6 @@ export const ChangePassword: React.FC = () => {
 				revokeOtherSessions
 			},
 			{
-				onRequest: (ctx) => {
-					//show loading
-					console.info('loading', ctx)
-					toast.loading('Loading...', {
-						duration: 1000
-					})
-				},
 				onSuccess: async (ctx) => {
 					//redirect to the dashboard
 					console.info('success', ctx)

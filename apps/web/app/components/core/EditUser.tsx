@@ -23,13 +23,6 @@ export const EditUser: React.FC = () => {
 				name
 			},
 			{
-				onRequest: (ctx) => {
-					//show loading
-					console.info('loading', ctx)
-					toast.loading('Loading...', {
-						duration: 1000
-					})
-				},
 				onSuccess: async (ctx) => {
 					//redirect to the dashboard
 					console.info('success', ctx)
