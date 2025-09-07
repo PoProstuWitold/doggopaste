@@ -1,10 +1,11 @@
 'use client'
 
 import CodeMirror from '@uiw/react-codemirror'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Controller, useForm } from 'react-hook-form'
 import toast from 'react-hot-toast'
-import { FaFileCode } from 'react-icons/fa'
+import { FaCodeBranch, FaFileCode } from 'react-icons/fa'
 import { IoIosClose } from 'react-icons/io'
 import { useTheme } from '../../context/ThemeContext'
 import type { Paste, PasteForm as PasteFormType } from '../../types'
@@ -22,7 +23,7 @@ export function PasteForm({
 	slug,
 	paste
 }: {
-	mode: 'create' | 'edit'
+	mode: 'create' | 'edit' | 'fork'
 	slug?: string
 	paste?: Paste
 }) {
@@ -39,8 +40,69 @@ export function PasteForm({
 	const handleRiskAccept = () => {
 		acceptAndSubmit(onSubmit)
 	}
+
 	const { cmTheme } = useTheme()
 	const router = useRouter()
+
+	const defaultsForCreate: PasteFormType = {
+		title: '',
+		slug: '',
+		content: '',
+		syntax: 'Plaintext',
+		category: 'none',
+		expiration: 'never',
+		visibility: 'public',
+		folder: 'none',
+		passwordEnabled: false,
+		password: '',
+		pasteAsGuest: false,
+		tags: []
+	}
+
+	const defaultsForEdit: PasteFormType | undefined =
+		mode === 'edit' && paste
+			? {
+					title: paste.title,
+					slug: paste.slug,
+					content: paste.content,
+					syntax: paste.syntax.name,
+					category: paste.category,
+					expiration: paste.expiration,
+					visibility: paste.visibility,
+					folder: paste.folderId || 'none',
+					passwordEnabled: false,
+					password: '',
+					pasteAsGuest: false,
+					tags: paste.tags
+				}
+			: undefined
+
+	// Fork = we copy content/syntax/kategorię/tags, but:
+	// - empty slug
+	// - title with prefix
+	// - visibility: unlisted (safer)
+	// - expiration: never
+	const defaultsForFork: PasteFormType | undefined =
+		mode === 'fork' && paste
+			? {
+					title: `Fork of ${paste.title || paste.slug}`,
+					slug: '',
+					content: paste.content,
+					syntax: paste.syntax.name,
+					category: paste.category,
+					expiration: 'never',
+					visibility: 'unlisted',
+					folder: 'none',
+					passwordEnabled: false,
+					password: '',
+					pasteAsGuest: false,
+					tags: paste.tags || []
+				}
+			: undefined
+
+	const resolvedDefaults =
+		defaultsForEdit ?? defaultsForFork ?? defaultsForCreate
+
 	const {
 		register,
 		handleSubmit,
@@ -49,38 +111,7 @@ export function PasteForm({
 		setValue,
 		setError,
 		control
-	} = useForm<PasteFormType>({
-		defaultValues:
-			mode === 'edit' && paste
-				? {
-						title: paste.title,
-						slug: paste.slug,
-						content: paste.content,
-						syntax: paste.syntax.name,
-						category: paste.category,
-						expiration: paste.expiration,
-						visibility: paste.visibility,
-						folder: paste.folderId || 'none',
-						passwordEnabled: false,
-						password: '',
-						pasteAsGuest: false,
-						tags: paste.tags
-					}
-				: {
-						title: '',
-						slug: '',
-						content: '',
-						syntax: 'Plaintext',
-						category: 'none',
-						expiration: 'never',
-						visibility: 'public',
-						folder: 'none',
-						passwordEnabled: false,
-						password: '',
-						pasteAsGuest: false,
-						tags: []
-					}
-	})
+	} = useForm<PasteFormType>({ defaultValues: resolvedDefaults })
 
 	const syntax = watch('syntax')
 	const passwordEnabled = watch('passwordEnabled')
@@ -130,12 +161,12 @@ export function PasteForm({
 	}
 
 	const onSubmit = async (data: PasteFormType) => {
-		const endpoint =
-			mode === 'create'
-				? `${getBaseApiUrl()}/api/pastes`
-				: `${getBaseApiUrl()}/api/pastes/${slug}`
-
-		const method = mode === 'create' ? 'POST' : 'PUT'
+		// we treat fork like create
+		const isCreateLike = mode === 'create' || mode === 'fork'
+		const endpoint = isCreateLike
+			? `${getBaseApiUrl()}/api/pastes`
+			: `${getBaseApiUrl()}/api/pastes/${slug}`
+		const method = isCreateLike ? 'POST' : 'PUT'
 
 		const res = await fetch(endpoint, {
 			method,
@@ -146,11 +177,14 @@ export function PasteForm({
 
 		const json = await res.json()
 		if (res.ok) {
-			toast.success(
-				mode === 'create'
-					? 'Paste created successfully!'
-					: 'Paste edited successfully!'
-			)
+			const successMsg =
+				mode === 'edit'
+					? 'Paste edited successfully!'
+					: mode === 'fork'
+						? 'Fork created successfully!'
+						: 'Paste created successfully!'
+
+			toast.success(successMsg)
 			await wait(1000)
 			if (json.data.expiration !== 'burn_after_read') {
 				router.push(`/p/${json.data.slug}`)
@@ -185,11 +219,37 @@ export function PasteForm({
 				className='flex flex-col gap-4 p-5 rounded-lg shadow-xl bg-base-200 mx-auto max-w-7xl'
 			>
 				<div className='flex flex-row items-center text-3xl font-bold text-center gap-4 justify-center'>
-					<FaFileCode className='w-10 h-10' />
-					{mode === 'create'
-						? 'Create New Static Paste'
-						: `Edit Static Paste "${slug}"`}
+					{mode === 'fork' ? (
+						<>
+							<FaCodeBranch className='w-10 h-10' />
+							{`Fork Paste "${paste?.slug || slug || ''}"`}
+						</>
+					) : (
+						<>
+							<FaFileCode className='w-10 h-10' />
+							{mode === 'create'
+								? 'Create New Static Paste'
+								: `Edit Static Paste "${slug}"`}
+						</>
+					)}
 				</div>
+
+				{mode === 'fork' && paste && (
+					<div className='alert alert-info'>
+						<FaCodeBranch className='w-5 h-5' />
+						<span>
+							Forked from{' '}
+							<Link
+								target='_blank'
+								className='link'
+								href={`/p/${paste.slug}`}
+							>
+								{paste.title || paste.slug}
+							</Link>
+							. You can edit anything before creating your fork.
+						</span>
+					</div>
+				)}
 
 				<div className='flex flex-col lg:flex-row gap-4'>
 					<div className='w-full lg:w-1/5 flex flex-col gap-4'>
@@ -228,6 +288,12 @@ export function PasteForm({
 									{errors.slug.message}
 								</p>
 							)}
+							{mode === 'fork' && (
+								<p className='text-xs text-base-content/60'>
+									Leaving slug empty will auto-generate a new
+									one for the fork.
+								</p>
+							)}
 						</label>
 
 						<label className='form-control w-full'>
@@ -249,7 +315,7 @@ export function PasteForm({
 						<label className='form-control w-full'>
 							<div className='label'>
 								<span className='label-text'>
-									Tags (Coma or Enter separated)
+									Tags (Comma or Enter separated)
 								</span>
 							</div>
 							<div className='flex flex-wrap gap-2'>
@@ -340,6 +406,12 @@ export function PasteForm({
 								<option value='private'>Private</option>
 								<option value='unlisted'>Unlisted</option>
 							</select>
+							{mode === 'fork' && (
+								<p className='text-xs text-base-content/60'>
+									Fork defaults to <b>Unlisted</b> to avoid
+									leaking private data.
+								</p>
+							)}
 						</label>
 
 						<label className='form-control w-full'>
@@ -432,7 +504,7 @@ export function PasteForm({
 							type='submit'
 							className='btn btn-primary w-full'
 						>
-							Submit
+							{mode === 'fork' ? 'Create Fork' : 'Submit'}
 						</button>
 					</div>
 				</div>
