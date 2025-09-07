@@ -215,6 +215,17 @@ const app = new Hono<Env>()
 			})
 		}
 
+		if (row.paste.visibility === 'private') {
+			const user = c.get('user')
+			if (!user || row.paste.userId !== user.id) {
+				throw new GenericException({
+					statusCode: 403,
+					name: 'Forbidden',
+					message: 'You do not have access to this paste'
+				})
+			}
+		}
+
 		const paste = row.paste
 		const syntax = row.syntax
 
@@ -445,6 +456,17 @@ const app = new Hono<Env>()
 				name: 'Not Found',
 				message: 'Paste not found'
 			})
+		}
+
+		if (row.paste.visibility === 'private') {
+			const user = c.get('user')
+			if (!user || row.paste.userId !== user.id) {
+				throw new GenericException({
+					statusCode: 403,
+					name: 'Forbidden',
+					message: 'You do not have access to this paste'
+				})
+			}
 		}
 
 		const paste = row.paste

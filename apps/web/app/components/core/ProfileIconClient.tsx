@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from 'react'
 import toast from 'react-hot-toast'
 import { BiLogIn, BiLogOut } from 'react-icons/bi'
 import { CgProfile } from 'react-icons/cg'
-import { FaUserAlt } from 'react-icons/fa'
+import { FaFileCode, FaUserAlt } from 'react-icons/fa'
 import { MdHealthAndSafety } from 'react-icons/md'
 import type { User } from '@/app/types'
 import { createDynamicAuthClient } from '@/app/utils/auth-client'
@@ -76,17 +76,26 @@ export const ProfileIconClient: React.FC<ProfileIconClientProps> = ({
 					<div className='flex flex-col gap-2'>
 						<Link
 							href='/profile'
-							className='btn btn-primary btn-sm justify-start flex items-center gap-2'
+							className='btn btn-outline btn-sm justify-start'
 							aria-label='Go to profile'
 							onClick={() => setIsOpen(false)}
 						>
 							<CgProfile className='w-5 h-5' />
 							<span>Profile</span>
 						</Link>
+						<Link
+							href={`/u/${user.name}`}
+							className='btn btn-outline btn-sm justify-start'
+							aria-label='Go to profile'
+							onClick={() => setIsOpen(false)}
+						>
+							<FaFileCode className='w-5 h-5' />
+							<span>My DoggoPaste</span>
+						</Link>
 						{user.role === 'admin' && (
 							<Link
 								href='/status'
-								className='btn btn-primary btn-sm justify-start flex items-center gap-2'
+								className='btn btn-outline btn-sm justify-start'
 								aria-label='Go to system status'
 								onClick={() => setIsOpen(false)}
 							>
@@ -100,7 +109,7 @@ export const ProfileIconClient: React.FC<ProfileIconClientProps> = ({
 								setIsOpen(false)
 							}}
 							type='button'
-							className='w-full btn btn-error btn-sm justify-start flex items-center gap-2'
+							className='btn btn-sm btn-error justify-start'
 							aria-label='Sign out'
 						>
 							<BiLogOut className='w-5 h-5' />

@@ -7,15 +7,11 @@ import { FiPlus } from 'react-icons/fi'
 export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
-	title: 'Public Collab Editors',
-	description: 'Check out the latest public collab editors on DoggoPaste!'
+	title: 'Public Realtime Editors',
+	description: 'Check out the latest public realtime editors on DoggoPaste!'
 }
 
-export default async function PublicPastes({
-	searchParams
-}: {
-	searchParams?: Promise<{ page?: string }>
-}) {
+export default async function PublicRealtimePastes() {
 	const generateRandomSlug = () => {
 		const characters =
 			'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
@@ -27,11 +23,6 @@ export default async function PublicPastes({
 		}
 		return slug
 	}
-
-	const params = await searchParams
-	const page = Number.parseInt(params?.page || '1', 10)
-	const limit = 10
-	const _offset = (page - 1) * limit
 
 	return (
 		<div className='max-w-5xl mx-auto px-6 py-12 flex flex-col gap-10'>
@@ -58,11 +49,11 @@ export default async function PublicPastes({
 					<a
 						href={`/r/${generateRandomSlug()}`}
 						rel='noopener noreferrer'
-						aria-label='New Collab Editor'
+						aria-label='New Realtime Editor'
 						className='btn btn-accent btn-wide gap-2'
 					>
 						<FiPlus className='w-5 h-5' />
-						New Collab Editor
+						New Realtime Editor
 					</a>
 					<Link
 						href='https://github.com/PoProstuWitold/doggopaste'
@@ -75,11 +66,6 @@ export default async function PublicPastes({
 						Source Code
 					</Link>
 				</div>
-			</div>
-			<div className='divider'>Public Collab Editors</div>
-			<div className='text-center text-lg font-semibold mt-8 text-base-content/60'>
-				No public collab editors available yet. Create one to get
-				started!
 			</div>
 		</div>
 	)

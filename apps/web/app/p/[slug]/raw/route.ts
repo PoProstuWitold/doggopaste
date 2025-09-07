@@ -1,3 +1,4 @@
+import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import { getBaseApiUrl } from '@/app/utils/functions'
 
@@ -6,13 +7,18 @@ export async function GET(
 	{ params }: { params: Promise<{ slug: string }> }
 ) {
 	const { slug } = await params
-
+	const cookieHeader = await cookies()
 	const res = await fetch(`${getBaseApiUrl()}/api/pastes/${slug}`, {
-		credentials: 'include'
+		credentials: 'include',
+		headers: {
+			cookie: cookieHeader.toString()
+		}
 	})
 
 	if (!res.ok) {
-		return new NextResponse('Not found', { status: 404 })
+		return new NextResponse(`Paste doesn't exist or it's private`, {
+			status: 404
+		})
 	}
 
 	const json = await res.json()

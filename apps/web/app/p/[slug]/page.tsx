@@ -1,12 +1,17 @@
 import type { Metadata } from 'next'
-import { headers } from 'next/headers'
+import { cookies, headers } from 'next/headers'
 import SinglePaste from '@/app/components/custom/SinglePaste'
 import type { PasteResponse } from '@/app/types'
 import { createDynamicAuthClient } from '@/app/utils/auth-client'
 import { getBaseApiUrl } from '@/app/utils/functions'
 
 async function fetchResponse(slug: string): Promise<PasteResponse> {
-	const res = await fetch(`${getBaseApiUrl()}/api/pastes/${slug}`)
+	const cookieHeader = await cookies()
+	const res = await fetch(`${getBaseApiUrl()}/api/pastes/${slug}`, {
+		headers: {
+			cookie: cookieHeader.toString()
+		}
+	})
 	const json = await res.json()
 	return json
 }
@@ -42,7 +47,7 @@ export default async function SinglePastePage({
 	const { data, success } = await fetchResponse(slug)
 
 	if (!success) {
-		return <div>Paste not found</div>
+		return <div>Paste doesn't exist or it's private</div>
 	}
 
 	return <SinglePaste slug={slug} paste={data} user={user} />

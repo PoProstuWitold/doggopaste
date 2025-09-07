@@ -22,6 +22,7 @@ import {
 } from './middlewares/index.js'
 import pasteRoutes from './routes/pastes.js'
 import pasteRealtimeRoutes from './routes/pastes-realtime.js'
+import userRoutes from './routes/user.js'
 import type { Env } from './types'
 import { origins } from './utils/contants.js'
 import { health } from './utils/health.js'
@@ -124,3 +125,4 @@ app.on('GET', '/redirect', (c) => c.redirect(`${process.env.APP_URL}/profile`))
 // Routes
 app.route('/pastes', pasteRoutes)
 app.route('/pastes-realtime', pasteRealtimeRoutes)
+app.route('/user', userRoutes)
