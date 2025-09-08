@@ -49,7 +49,11 @@ export const PasteCard: React.FC<PasteCardProps> = ({ paste }) => {
 						{paste.syntax.name}
 					</span>
 				</div>
-
+				<p className='text-md flex items-center gap-2 w-full'>
+					<span className='truncate block min-w-0'>
+						{paste.description || '(No description)'}
+					</span>
+				</p>
 				<p className='text-sm text-base-content/60 flex items-center gap-2'>
 					<FaClock /> Created:{' '}
 					{new Date(paste.createdAt).toLocaleString('pl-PL')}

@@ -70,6 +70,12 @@ const createPasteSchema = z.object({
 			'Slug can only contain lowercase letters, numbers, and hyphens'
 		)
 		.transform((val) => val.toLowerCase()),
+	description: z
+		.string()
+		.max(255, 'Description is too long')
+		.optional()
+		.or(z.literal(''))
+		.default(''),
 	content: z.string().min(1, 'Content cannot be empty'),
 	category: z
 		.enum(

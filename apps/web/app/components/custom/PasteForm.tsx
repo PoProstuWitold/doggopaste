@@ -47,6 +47,7 @@ export function PasteForm({
 	const defaultsForCreate: PasteFormType = {
 		title: '',
 		slug: '',
+		description: '',
 		content: '',
 		syntax: 'Plaintext',
 		category: 'none',
@@ -64,6 +65,7 @@ export function PasteForm({
 			? {
 					title: paste.title,
 					slug: paste.slug,
+					description: paste.description,
 					content: paste.content,
 					syntax: paste.syntax.name,
 					category: paste.category,
@@ -85,8 +87,9 @@ export function PasteForm({
 	const defaultsForFork: PasteFormType | undefined =
 		mode === 'fork' && paste
 			? {
-					title: `Fork of ${paste.title || paste.slug}`,
+					title: `${paste.title || paste.slug}`,
 					slug: '',
+					description: `Fork of ${paste.slug}. ${paste.description ? `Original description: ${paste.description}` : ''}`,
 					content: paste.content,
 					syntax: paste.syntax.name,
 					category: paste.category,
@@ -116,6 +119,8 @@ export function PasteForm({
 	const syntax = watch('syntax')
 	const passwordEnabled = watch('passwordEnabled')
 	const tags = watch('tags', paste?.tags ?? [])
+	const description = watch('description', '') || ''
+	const descLen = description.length
 
 	const addTag = (event: React.KeyboardEvent<HTMLInputElement>) => {
 		const isAllowed =
@@ -250,7 +255,36 @@ export function PasteForm({
 						</span>
 					</div>
 				)}
+				<label className='form-control w-full'>
+					<div className='label justify-between items-center'>
+						<span className='label-text'>Description</span>
+						<span
+							className={`label-text-alt ${descLen > 255 ? 'text-error' : 'opacity-70'}`}
+							aria-live='polite'
+						>
+							{descLen}/255
+						</span>
+					</div>
 
+					<textarea
+						{...register('description', {
+							maxLength: {
+								value: 255,
+								message: 'Max 255 characters'
+							}
+						})}
+						className='textarea textarea-bordered w-full'
+						placeholder='Paste Description'
+						name='description'
+					/>
+
+					{errors.description && (
+						<p className='text-error'>
+							{errors.description.message ||
+								'Description is required'}
+						</p>
+					)}
+				</label>
 				<div className='flex flex-col lg:flex-row gap-4'>
 					<div className='w-full lg:w-1/5 flex flex-col gap-4'>
 						<label className='form-control w-full'>

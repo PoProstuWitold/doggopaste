@@ -65,6 +65,7 @@ export interface EditUserData {
 export interface PasteForm {
 	slug: string
 	title: string
+	description: string
 	content: string
 	category: string
 	tags: string[]
@@ -91,6 +92,7 @@ export interface Paste {
 	folderId: string | null
 	title: string
 	slug: string
+	description: string
 	category: string
 	content: string
 	syntax: Syntax

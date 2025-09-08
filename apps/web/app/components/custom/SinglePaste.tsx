@@ -61,6 +61,20 @@ export default function SinglePaste({
 					<PasteButtons paste={paste} user={user} />
 				</div>
 
+				{/* Description */}
+				{paste.description && (
+					<div className='w-full'>
+						<div className='form-control w-full'>
+							<div className='label'>
+								<span className='label-text'>Description</span>
+							</div>
+							<p className='rounded-lg shadow gap-2 whitespace-pre-wrap break-words bg-base-300 p-2'>
+								{paste.description}
+							</p>
+						</div>
+					</div>
+				)}
+
 				<div className='flex flex-col lg:flex-row gap-4'>
 					<div className='w-full flex flex-col gap-4 min-w-0'>
 						<div className='form-control w-full flex-1 min-w-0'>

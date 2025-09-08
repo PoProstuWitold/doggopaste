@@ -24,6 +24,7 @@ const app = new Hono<Env>()
 		const {
 			title,
 			slug,
+			description,
 			content,
 			category,
 			tags,
@@ -100,6 +101,7 @@ const app = new Hono<Env>()
 		// 6. Create paste
 		const newPasteValues = {
 			title,
+			description,
 			content,
 			category,
 			syntaxId: dbSyntax.id,
@@ -264,6 +266,7 @@ const app = new Hono<Env>()
 			const {
 				title,
 				slug: newSlug,
+				description,
 				content,
 				category,
 				tags,
@@ -333,6 +336,7 @@ const app = new Hono<Env>()
 				slug: newSlug.length
 					? newSlug
 					: await DoggoUtils.generateSlug(),
+				description,
 				content,
 				category,
 				syntaxId: dbSyntax.id,

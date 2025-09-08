@@ -159,6 +159,7 @@ export const pastesTable = pgTable('pastes', {
 		onDelete: 'set null'
 	}), // folder pasty
 	title: varchar({ length: 128 }).notNull(),
+	description: varchar({ length: 512 }), // opcjonalny opis
 	slug: varchar({ length: 64 }).unique(), // niestandardowy URL
 	category: categoryEnum('category').notNull().default('none'),
 	content: text('content').notNull(),
