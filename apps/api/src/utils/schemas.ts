@@ -149,3 +149,116 @@ export const validatorCreatePasteJson = zValidator(
 		}
 	}
 )
+
+/* ---------- helpers ---------- */
+
+function toDetails(issues: z.core.$ZodIssue[]) {
+	return issues.map((issue) => ({
+		[issue.path.join('.')]: issue.message
+	}))
+}
+
+/* ---------- schemas ---------- */
+
+// POST /folders  (create)
+export const createFolderSchema = z.object({
+	name: z.string().min(1, 'name is required').max(512, 'name too long'),
+	parentId: z.uuid('invalid parentId').nullable().optional()
+})
+
+// GET /folders?parentId=...  (list by parent)
+export const listFoldersQuerySchema = z.object({
+	parentId: z.uuid('invalid parentId').or(z.literal('null')).optional()
+})
+
+// GET /folders/all  (no schema needed)
+
+// PATCH /folders/:id  (update)
+export const updateFolderSchema = z
+	.object({
+		name: z
+			.string()
+			.min(1, 'name cannot be empty')
+			.max(512, 'name too long')
+			.optional(),
+		parentId: z.uuid('invalid parentId').nullable().optional()
+	})
+	.refine((v) => 'name' in v || 'parentId' in v, {
+		message: 'provide at least one field to update',
+		path: []
+	})
+
+// :id param validator (used by PATCH/DELETE)
+export const folderIdParamSchema = z.object({
+	id: z.uuid('invalid folder id')
+})
+
+/* ---------- validators ---------- */
+
+// POST /folders
+export const validatorCreateFolderJson = zValidator(
+	'json',
+	createFolderSchema,
+	async (result, _c) => {
+		if (!result.success) {
+			throw new GenericException({
+				statusCode: 400,
+				name: 'Bad Request',
+				message: 'Invalid folder data',
+				//@ts-expect-error
+				details: toDetails(result.error.issues)
+			})
+		}
+	}
+)
+
+// GET /folders?parentId=...
+export const validatorListFoldersQuery = zValidator(
+	'query',
+	listFoldersQuerySchema,
+	async (result, _c) => {
+		if (!result.success) {
+			throw new GenericException({
+				statusCode: 400,
+				name: 'Bad Request',
+				message: 'Invalid query parameters',
+				//@ts-expect-error
+				details: toDetails(result.error.issues)
+			})
+		}
+	}
+)
+
+// PATCH /folders/:id
+export const validatorUpdateFolderJson = zValidator(
+	'json',
+	updateFolderSchema,
+	async (result, _c) => {
+		if (!result.success) {
+			throw new GenericException({
+				statusCode: 400,
+				name: 'Bad Request',
+				message: 'Invalid folder update data',
+				//@ts-expect-error
+				details: toDetails(result.error.issues)
+			})
+		}
+	}
+)
+
+// :id param (PATCH/DELETE)
+export const validatorFolderIdParam = zValidator(
+	'param',
+	folderIdParamSchema,
+	async (result, _c) => {
+		if (!result.success) {
+			throw new GenericException({
+				statusCode: 400,
+				name: 'Bad Request',
+				message: 'Invalid folder id',
+				//@ts-expect-error
+				details: toDetails(result.error.issues)
+			})
+		}
+	}
+)

@@ -1,5 +1,5 @@
 import * as argon2 from 'argon2'
-import { desc, eq, inArray, sql } from 'drizzle-orm'
+import { and, desc, eq, inArray, sql } from 'drizzle-orm'
 import { Hono } from 'hono'
 import { db } from '../db/index.js'
 import {
@@ -49,17 +49,35 @@ const app = new Hono<Env>()
 		const user = c.get('user')
 		const userId = pasteAsGuest ? null : (user?.id ?? null)
 
-		// 3. Create folder if it does not exist
-		let folderId = null
-		if (folder !== 'none' && userId !== null) {
-			const [dbFolder] = await db
-				.insert(foldersTable)
-				.values({
-					name: folder,
-					userId
+		// 3. Resolve folder (must already exist and belong to the user)
+		let folderId: string | null = null
+
+		if (folder !== 'none') {
+			if (userId === null) {
+				throw new GenericException({
+					statusCode: 400,
+					name: 'Bad Request',
+					message: 'Guests cannot assign a folder'
 				})
-				.onConflictDoNothing()
-				.returning({ id: foldersTable.id })
+			}
+
+			const [dbFolder] = await db
+				.select({ id: foldersTable.id })
+				.from(foldersTable)
+				.where(
+					and(
+						eq(foldersTable.id, folder),
+						eq(foldersTable.userId, userId)
+					)
+				)
+
+			if (!dbFolder) {
+				throw new GenericException({
+					statusCode: 404,
+					name: 'Not Found',
+					message: 'Folder not found or does not belong to the user'
+				})
+			}
 
 			folderId = dbFolder.id
 		}
@@ -301,19 +319,34 @@ const app = new Hono<Env>()
 				})
 			}
 
-			// 3. Create folder if it does not exist
-			let folderId = paste.folderId
-			if (folder !== 'none') {
-				const [dbFolder] = await db
-					.insert(foldersTable)
-					.values({
-						name: folder,
-						userId: user.id
-					})
-					.onConflictDoNothing()
-					.returning({ id: foldersTable.id })
+			// 3. Resolve folder by ID (do not create folders here)
+			let folderId: string | null = paste.folderId
 
-				folderId = dbFolder?.id || paste.folderId
+			if (folder === 'none') {
+				// clear folder on edit
+				folderId = null
+			} else {
+				// verify the folder exists and belongs to the same user
+				const [dbFolder] = await db
+					.select({ id: foldersTable.id })
+					.from(foldersTable)
+					.where(
+						and(
+							eq(foldersTable.id, folder),
+							eq(foldersTable.userId, user.id)
+						)
+					)
+
+				if (!dbFolder) {
+					throw new GenericException({
+						statusCode: 404,
+						name: 'Not Found',
+						message:
+							'Folder not found or does not belong to the user'
+					})
+				}
+
+				folderId = dbFolder.id
 			}
 
 			// 4. Get syntaxId by name

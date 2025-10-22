@@ -128,3 +128,14 @@ export interface RealtimePasteResponse {
 	success: boolean
 	data: RealtimePaste
 }
+
+export interface Folder {
+	id: string
+	name: string
+	parentFolderId: string | null
+	createdAt: string
+	updatedAt: string
+	userId: string
+	subfoldersCount: number
+	pastesCount: number
+}

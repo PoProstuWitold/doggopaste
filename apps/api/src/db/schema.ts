@@ -1,11 +1,17 @@
+import { sql } from 'drizzle-orm'
 import {
 	boolean,
+	check,
+	foreignKey,
+	index,
 	integer,
 	numeric,
 	pgEnum,
 	pgTable,
 	text,
 	timestamp,
+	unique,
+	uniqueIndex,
 	uuid,
 	varchar
 } from 'drizzle-orm/pg-core'
@@ -150,45 +156,92 @@ export const syntaxesTable = pgTable('syntaxes', {
 })
 
 // pastes (wklejki kodu)
-export const pastesTable = pgTable('pastes', {
-	...essentialColumns,
-	userId: uuid('user_id').references(() => usersTable.id, {
-		onDelete: 'set null'
-	}), // null dla gości
-	folderId: uuid('folder_id').references(() => foldersTable.id, {
-		onDelete: 'set null'
-	}), // folder pasty
-	title: varchar({ length: 128 }).notNull(),
-	description: varchar({ length: 512 }), // opcjonalny opis
-	slug: varchar({ length: 64 }).unique(), // niestandardowy URL
-	category: categoryEnum('category').notNull().default('none'),
-	content: text('content').notNull(),
-	syntaxId: uuid('syntax_id').references(() => syntaxesTable.id, {
-		onDelete: 'set null'
-	}),
-	expiresAt: timestamp('expires_at'), // Data, kiedy pasta wygaśnie
-	expiration: expirationEnum('expiration').notNull().default('never'), // Typ wygaśnięcia
-	passwordHash: varchar('password_hash', { length: 512 }), // hasło do pasty
-	hits: integer().notNull().default(0).$type<number>(), // liczba odsłon
-	visibility: visibilityEnum('visibility').notNull().default('public'),
-	// Jeśli widoczność = "organization"
-	organizationId: uuid('organization_id').references(
-		() => organizationsTable.id,
-		{ onDelete: 'set null' }
-	)
-})
+export const pastesTable = pgTable(
+	'pastes',
+	{
+		...essentialColumns,
+		userId: uuid('user_id').references(() => usersTable.id, {
+			onDelete: 'set null'
+		}), // null dla gości
+		folderId: uuid('folder_id').references(() => foldersTable.id, {
+			onDelete: 'set null'
+		}), // folder pasty
+		title: varchar({ length: 128 }).notNull(),
+		description: varchar({ length: 512 }), // opcjonalny opis
+		slug: varchar({ length: 64 }).unique(), // niestandardowy URL
+		category: categoryEnum('category').notNull().default('none'),
+		content: text('content').notNull(),
+		syntaxId: uuid('syntax_id').references(() => syntaxesTable.id, {
+			onDelete: 'set null'
+		}),
+		expiresAt: timestamp('expires_at'), // Data, kiedy pasta wygaśnie
+		expiration: expirationEnum('expiration').notNull().default('never'), // Typ wygaśnięcia
+		passwordHash: varchar('password_hash', { length: 512 }), // hasło do pasty
+		hits: integer().notNull().default(0).$type<number>(), // liczba odsłon
+		visibility: visibilityEnum('visibility').notNull().default('public'),
+		// Jeśli widoczność = "organization"
+		organizationId: uuid('organization_id').references(
+			() => organizationsTable.id,
+			{ onDelete: 'set null' }
+		)
+	},
+	(t) => [
+		// index for listing by user and folder
+		index('pastes_user_folder_idx').on(t.userId, t.folderId),
+
+		// If folder_id is set, user_id must not be NULL
+		check(
+			'pastes_folder_requires_user_chk',
+			sql`${t.folderId} IS NULL OR ${t.userId} IS NOT NULL`
+		),
+
+		// Composite FK: (folder_id, user_id) -> folders (id, user_id)
+		foreignKey({
+			name: 'pastes_folder_user_fk',
+			columns: [t.folderId, t.userId],
+			foreignColumns: [foldersTable.id, foldersTable.userId]
+		}).onDelete('set null')
+	]
+)
 
 // folders (foldery na pasty)
-export const foldersTable = pgTable('folders', {
-	...essentialColumns,
-	userId: uuid('user_id')
-		.notNull()
-		.references(() => usersTable.id, { onDelete: 'cascade' }),
-	name: varchar({ length: 512 }).notNull(),
-	parentFolderId: uuid('parent_folder_id').references(() => foldersTable.id, {
-		onDelete: 'set null'
-	})
-})
+export const foldersTable = pgTable(
+	'folders',
+	{
+		...essentialColumns,
+		userId: uuid('user_id')
+			.notNull()
+			.references(() => usersTable.id, { onDelete: 'cascade' }),
+		name: varchar({ length: 512 }).notNull(),
+		parentFolderId: uuid('parent_folder_id').references(
+			() => foldersTable.id,
+			{
+				onDelete: 'set null'
+			}
+		)
+	},
+	(t) => [
+		// 1) Required for composite foreign keys from pastes and child folders
+		unique('folders_id_user_uc').on(t.id, t.userId),
+
+		// 2) Ensures unique folder names within the same parent (NULL parent => root folder)
+		uniqueIndex('folders_sibling_name_uq').on(
+			t.userId,
+			t.parentFolderId,
+			t.name
+		),
+
+		// 3) Index to speed up folder tree queries
+		index('folders_tree_idx').on(t.userId, t.parentFolderId),
+
+		// Composite FK: (parent_folder_id, user_id) -> (id, user_id)
+		foreignKey({
+			name: 'folders_parent_user_fk',
+			columns: [t.parentFolderId, t.userId],
+			foreignColumns: [t.id, t.userId]
+		}).onDelete('set null')
+	]
+)
 
 // tags (tagi do past)
 export const tagsTable = pgTable('tags', {

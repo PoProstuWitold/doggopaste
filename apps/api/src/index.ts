@@ -20,6 +20,7 @@ import {
 	responseTime,
 	wsMiddleware
 } from './middlewares/index.js'
+import folderRoutes from './routes/folders.js'
 import pasteRoutes from './routes/pastes.js'
 import pasteRealtimeRoutes from './routes/pastes-realtime.js'
 import userRoutes from './routes/user.js'
@@ -126,3 +127,4 @@ app.on('GET', '/redirect', (c) => c.redirect(`${process.env.APP_URL}/profile`))
 app.route('/pastes', pasteRoutes)
 app.route('/pastes-realtime', pasteRealtimeRoutes)
 app.route('/user', userRoutes)
+app.route('/folders', folderRoutes)

@@ -1,10 +1,19 @@
 import type { Metadata } from 'next'
-import { cookies } from 'next/headers'
+import { cookies, headers } from 'next/headers'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { FaCalendarAlt, FaUser, FaUserShield } from 'react-icons/fa'
+import { BiInfoCircle } from 'react-icons/bi'
+import {
+	FaCalendarAlt,
+	FaFolderOpen,
+	FaUser,
+	FaUserShield
+} from 'react-icons/fa'
+import { FiEdit } from 'react-icons/fi'
 import { PasteCard } from '@/app/components/custom/PasteCard'
-import type { Paste, User } from '@/app/types'
+import type { Folder, Paste, User } from '@/app/types'
+import { createDynamicAuthClient } from '@/app/utils/auth-client'
+import { buildFolderTree, renderFolderBranch } from '@/app/utils/folderHelpers'
 import { getBaseApiUrl } from '@/app/utils/functions'
 
 export const dynamic = 'force-dynamic'
@@ -53,6 +62,14 @@ export default async function UserPage({
 	params: Promise<Params>
 	searchParams?: Promise<Search>
 }) {
+	const authClient = createDynamicAuthClient()
+	const session = await authClient.getSession({
+		fetchOptions: {
+			headers: await headers()
+		}
+	})
+	const loggedUser = session.data?.user
+
 	const { name } = await params
 	const sp = await searchParams
 	const page = Number.parseInt(sp?.page || '1', 10)
@@ -87,8 +104,37 @@ export default async function UserPage({
 	const joined = new Date(user.createdAt).toLocaleDateString('pl-PL')
 	const RoleIcon = user.role === 'admin' ? FaUserShield : FaUser
 
+	let folders: Folder[] = []
+	if (loggedUser && loggedUser.id === user.id) {
+		const cookieHeader = await cookies()
+		const foldersRes = await fetch(`${getBaseApiUrl()}/api/folders/all`, {
+			headers: { Cookie: cookieHeader.toString() },
+			next: { revalidate: 0 },
+			cache: 'no-store'
+		})
+		if (foldersRes.ok) {
+			const j = (await foldersRes.json()) as {
+				success: boolean
+				data: Folder[]
+			}
+			folders = j.data ?? []
+		}
+	}
+
 	return (
-		<div className='max-w-5xl mx-auto px-6 py-12 flex flex-col gap-10'>
+		<div className='max-w-5xl mx-auto px-6 py-6 flex flex-col gap-10'>
+			{/* Check if logged matches fetched user */}
+			{loggedUser && loggedUser.id === user.id && (
+				<div className='alert alert-info'>
+					<BiInfoCircle className='w-10 h-10' />
+					<span>
+						You are viewing your own public profile. Feel free to
+						share this page with anyone. Your private and unlisted
+						pastes as well as folders and settings are not visible
+						here.
+					</span>
+				</div>
+			)}
 			<div className='card bg-base-100 border border-base-300 shadow-sm'>
 				<div className='card-body p-4 md:p-6'>
 					<div className='flex items-center gap-3'>
@@ -120,6 +166,40 @@ export default async function UserPage({
 					</div>
 				</div>
 			</div>
+
+			{loggedUser && loggedUser.id === user.id && (
+				<div className='card bg-base-100 border border-base-300 shadow-sm'>
+					<div className='card-body p-4 md:p-6'>
+						<h2 className='text-lg md:text-xl font-semibold flex items-center gap-2'>
+							<FaFolderOpen className='w-6 h-6 text-primary' />
+							Your Folders
+						</h2>
+
+						{folders.length > 0 ? (
+							<div className='mt-3'>
+								{renderFolderBranch(
+									buildFolderTree(folders),
+									null,
+									0,
+									loggedUser.name
+								)}
+							</div>
+						) : (
+							<div className='mt-2 text-sm text-base-content/70'>
+								You don&apos;t have any folders yet.
+							</div>
+						)}
+						{/* Managing folders */}
+						<Link
+							href={`/u/${loggedUser.name}/folders`}
+							className='btn btn-primary btn-ghost'
+						>
+							<FiEdit className='w-5 h-5' />
+							Manage Folders
+						</Link>
+					</div>
+				</div>
+			)}
 
 			<div className='divider'>{`${label}'s DoggoPaste`}</div>
 
@@ -154,7 +234,7 @@ export default async function UserPage({
 				</div>
 			) : (
 				<div className='text-center text-lg font-semibold text-base-content/60'>
-					This user has no public pastes.
+					This user has no pastes.
 				</div>
 			)}
 		</div>
