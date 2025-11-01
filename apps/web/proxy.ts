@@ -2,7 +2,7 @@ import { headers } from 'next/headers'
 import { type NextRequest, NextResponse } from 'next/server'
 import { getBaseApiUrl } from './app/utils/functions'
 
-export async function middleware(req: NextRequest) {
+export async function proxy(req: NextRequest) {
 	const path = req.nextUrl.pathname
 
 	if (

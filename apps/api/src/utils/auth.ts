@@ -10,6 +10,11 @@ export const auth = betterAuth({
 	telemetry: {
 		enabled: false
 	},
+	rateLimit: {
+		customRules: {
+			'/get-session': false
+		}
+	},
 	appName: process.env.APP_NAME,
 	baseURL: process.env.APP_URL,
 	basePath: '/api/auth',
