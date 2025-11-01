@@ -7,7 +7,7 @@ DoggoPaste project monorepo. For complete documentation visit route **`/api/docs
 ---
 
 ## Features
-### User:
+### Users
 - Credential (email & password) auth
 - OAuth2 authentication with the following providers: Google, GitHub, Facebook
 - Account linking and unlinking with social providers
@@ -15,9 +15,10 @@ DoggoPaste project monorepo. For complete documentation visit route **`/api/docs
 - Session management
 - Profile management
 - UI theme selection
-- Role-based access control (user, admin)
-### Pastes:
+- Role-based access control (user, admin) with admin dashboard
+### Static Pastes
 - Full CRUD for authenticated users, and CR access for guests
+- Folders for static pastes
 - Tags and categories
 - Burn after read
 - Expiration after a specified period (e.g., 2 weeks)
@@ -25,15 +26,17 @@ DoggoPaste project monorepo. For complete documentation visit route **`/api/docs
 - Download with correct file extensions and name sanitization
 - Raw view mode
 - One-click copy to clipboard
-- Auto-generated human-readable slugs (e.g., "everybody-cold"),
+- Auto-generated human-readable slugs (e.g., "everybody-cold")
 - Syntax highlighting for over 50 languages, with 10 editor themes
 - Public paste feed with pagination
-- Anonymous pastes
-### Realtime Collaboration:
+- Anonymous static pastes
+### Realtime Editors
 - Realtime collaborative code editing
 - Live cursors showing participants' positions
-### Other:
-- Easy deployment with Docker and Caddy
+### Other
+- Easy deployment with Docker & reverse proxy (e.g., Caddy)
+- System status & version monitoring
+- Guide & FAQ pages for easy entry to DoggoPaste
 
 ---
 
