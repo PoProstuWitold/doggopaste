@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import toast from 'react-hot-toast'
 import { BsFiletypeRaw } from 'react-icons/bs'
+import { FaCheck, FaShare } from 'react-icons/fa'
 import { FaCodeFork } from 'react-icons/fa6'
 import { ImEmbed2 } from 'react-icons/im'
 import { MdDelete, MdDownload, MdEdit } from 'react-icons/md'
@@ -23,10 +24,22 @@ export const PasteButtons = ({
 	const router = useRouter()
 
 	const [clientBaseUrl, setClientBaseUrl] = useState<string | null>(null)
+	const [shareLinkCopied, setShareLinkCopied] = useState(false)
 
 	useEffect(() => {
 		setClientBaseUrl(getBaseApiUrl())
 	}, [])
+
+	const copy = async () => {
+		if (!clientBaseUrl) return
+		try {
+			await navigator.clipboard.writeText(
+				`${clientBaseUrl}/p/${paste.slug}`
+			)
+		} catch {}
+		setShareLinkCopied(true)
+		setTimeout(() => setShareLinkCopied(false), 2000)
+	}
 
 	const handleDeletePaste = async () => {
 		try {
@@ -54,6 +67,25 @@ export const PasteButtons = ({
 	return (
 		<div className='flex flex-wrap gap-2 justify-center'>
 			<CopyButton text={paste.content} />
+			{clientBaseUrl ? (
+				<button
+					type='button'
+					onClick={copy}
+					className='btn btn-sm btn-ghost btn-outline'
+					title='Share Link'
+				>
+					Share
+					{shareLinkCopied ? <FaCheck /> : <FaShare />}
+				</button>
+			) : (
+				<button
+					type='button'
+					className='btn btn-sm btn-ghost btn-outline'
+					title='Share Link'
+				>
+					Share <FaShare />
+				</button>
+			)}
 			<Link
 				href={`/p/${paste.slug}/raw`}
 				className='btn btn-sm btn-warning'
@@ -62,7 +94,7 @@ export const PasteButtons = ({
 					Raw <BsFiletypeRaw />
 				</div>
 			</Link>
-			{clientBaseUrl && (
+			{clientBaseUrl ? (
 				<a
 					href={`${clientBaseUrl}/api/pastes/${paste.slug}/download`}
 					className='btn btn-sm btn-success'
@@ -71,6 +103,12 @@ export const PasteButtons = ({
 						Download <MdDownload />
 					</div>
 				</a>
+			) : (
+				<span className='btn btn-sm btn-success'>
+					<div className='flex items-center gap-1 font-extrabold'>
+						Download <MdDownload />
+					</div>
+				</span>
 			)}
 			<button type='button' className='btn btn-sm btn-info'>
 				<div className='flex items-center gap-1 font-extrabold'>

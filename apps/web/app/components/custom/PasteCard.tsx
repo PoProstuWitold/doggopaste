@@ -90,7 +90,7 @@ export const PasteCard: React.FC<PasteCardProps> = ({ paste }) => {
 
 					{paste.folderId && (
 						<span className='badge badge-outline'>
-							<FaFolderOpen className='mr-1' /> In folder
+							<FaFolderOpen className='mr-1' /> In a folder
 						</span>
 					)}
 
@@ -106,7 +106,7 @@ export const PasteCard: React.FC<PasteCardProps> = ({ paste }) => {
 
 					{paste.passwordHash && (
 						<span className='badge badge-error'>
-							<BsShieldLock className='mr-1' /> password protected
+							<BsShieldLock className='mr-1' /> Password Protected
 						</span>
 					)}
 				</div>

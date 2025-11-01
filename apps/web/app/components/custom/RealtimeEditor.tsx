@@ -165,8 +165,8 @@ export const RealtimeEditor = ({
 				</div>
 			</div>
 			<div className='flex lg:flex-row flex-col items-center font-bold text-center gap-4 justify-center'>
-				<div className='flex flex-row items-center text-3xl font-bold text-center gap-4 justify-center'>
-					<FaBolt className='w-10 h-10' />
+				<div className='flex flex-row items-center text-2xl font-bold text-center gap-4 justify-center'>
+					<FaBolt className='w-7 h-7' />
 					Realtime Editor "{slug}"
 				</div>
 				<div className='divider lg:divider-horizontal' />

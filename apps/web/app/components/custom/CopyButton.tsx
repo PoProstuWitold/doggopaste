@@ -21,11 +21,10 @@ export const CopyButton = ({ text }: { text: string }) => {
 			type='button'
 			onClick={handleCopy}
 			className='btn btn-sm btn-primary'
-			title='Copy to clipboard'
+			title='Copy content to clipboard'
 		>
 			<div className='flex items-center gap-1 font-extrabold'>
-				Copy{' '}
-				{copied ? <FaCheck className='text-success' /> : <FaCopy />}
+				Copy {copied ? <FaCheck /> : <FaCopy />}
 			</div>
 		</button>
 	)
