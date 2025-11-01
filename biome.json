@@ -19,7 +19,8 @@
 			"!**/apps/**/.turbo",
 			"!**/.vscode",
 			"!**/NavBar.tsx",
-			"!**/globals.css"
+			"!**/globals.css",
+			"!**/next-env.d.ts"
 		]
 	},
 	"formatter": {
