@@ -22,8 +22,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 	const { slug } = await params
 
 	return {
-		title: `Edit Paste "${slug}"`,
-		description: `Edit paste "${slug}"`,
+		title: `Edit Static Paste "${slug}"`,
+		description: `Edit static paste "${slug}"`,
 		metadataBase: new URL(process.env.APP_URL || 'https://doggopaste.org')
 	}
 }

@@ -10,8 +10,8 @@ import { getBaseApiUrl } from '../utils/functions'
 export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
-	title: 'Public Pastes',
-	description: 'Check out the latest public pastes on DoggoPaste!'
+	title: 'Static Pastes',
+	description: 'Check out the latest public static pastes on DoggoPaste!'
 }
 
 export default async function PublicPastes({

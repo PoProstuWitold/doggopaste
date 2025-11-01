@@ -7,8 +7,8 @@ import { FiPlus } from 'react-icons/fi'
 export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
-	title: 'Public Realtime Editors',
-	description: 'Check out the latest public realtime editors on DoggoPaste!'
+	title: 'Realtime Editors',
+	description: 'Create new realtime editors on DoggoPaste!'
 }
 
 export default async function PublicRealtimePastes() {
