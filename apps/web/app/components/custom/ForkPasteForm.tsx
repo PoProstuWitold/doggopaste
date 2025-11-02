@@ -1,6 +1,12 @@
 import type { Paste } from '../../types'
-import { PasteForm } from './PasteForm'
+import { PasteForm } from './PasteForm/PasteForm'
 
-export default function ForkPasteForm({ paste }: { paste: Paste }) {
-	return <PasteForm mode='fork' paste={paste} />
+export default function ForkPasteForm({
+	paste,
+	type
+}: {
+	paste: Paste
+	type?: 'realtime' | 'static'
+}) {
+	return <PasteForm mode='fork' paste={paste} type={type} />
 }

@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { BsFiletypeRaw } from 'react-icons/bs'
 import { FaCheck, FaShare } from 'react-icons/fa'
+import { FaCodeFork } from 'react-icons/fa6'
 import { MdDownload } from 'react-icons/md'
 import type { RealtimePaste } from '../../types'
 import { getBaseApiUrl } from '../../utils/functions'
@@ -80,6 +81,14 @@ export const RealtimePasteButtons = ({
 					</div>
 				</span>
 			)}
+			<Link
+				href={`/p/${realtimePaste.slug}/fork?type=realtime`}
+				className='btn btn-sm btn-secondary'
+			>
+				<div className='flex items-center gap-1 font-extrabold'>
+					Fork <FaCodeFork />
+				</div>
+			</Link>
 		</div>
 	)
 }

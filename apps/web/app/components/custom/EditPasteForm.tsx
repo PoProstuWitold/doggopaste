@@ -1,5 +1,5 @@
 import type { Paste } from '../../types'
-import { PasteForm } from './PasteForm'
+import { PasteForm } from './PasteForm/PasteForm'
 
 export default function EditPasteForm({
 	slug,
