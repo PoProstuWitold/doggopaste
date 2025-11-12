@@ -129,7 +129,7 @@ export function LeftColumn({ mode }: { mode: 'create' | 'edit' | 'fork' }) {
 
 			{/* Guest toggle */}
 			{/* Show only when user is logged and not in edit mode */}
-			{(user && mode !== 'edit') && (
+			{user && mode !== 'edit' && (
 				<>
 					<div className='divider m-0 p-0'>Anonymous</div>
 					<label className='flex items-center gap-2 text-sm'>
