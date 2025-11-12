@@ -178,7 +178,7 @@ export const RealtimeEditor = ({
 			<div className='w-full flex flex-col md:flex-row gap-4'>
 				<label className='form-control w-full'>
 					<div className='label'>
-						<span className='label-text'>Name / Title</span>
+						<span className='label-text'>Title</span>
 					</div>
 					<input
 						type='text'
@@ -200,7 +200,7 @@ export const RealtimeEditor = ({
 
 				<label className='form-control w-full'>
 					<div className='label'>
-						<span className='label-text'>Syntax Highlighting</span>
+						<span className='label-text'>Syntax</span>
 					</div>
 					<select
 						className='select select-bordered w-full'
