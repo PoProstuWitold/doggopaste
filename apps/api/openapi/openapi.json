@@ -1,1390 +1,1252 @@
 {
-  "openapi": "3.2.0",
-  "info": {
-    "title": "DoggoPaste",
-    "version": "0.2.0",
-    "description": "Drop your code, let Doggo fetch it!",
-    "license": {
-      "name": "MIT",
-      "url": "https://opensource.org/licenses/MIT"
-    }
-  },
-  "tags": [
-    {
-      "name": "Static Pastes"
-    },
-    {
-      "name": "Realtime Pastes"
-    },
-    {
-      "name": "Folders"
-    },
-    {
-      "name": "User"
-    }
-  ],
-  "paths": {
-    "/pastes": {
-      "post": {
-        "summary": "/",
-        "responses": {
-          "default": {
-            "description": "Default fallback response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "oneOf": [
-                        {},
-                        {}
-                      ]
-                    },
-                    "data": {
-                      "type": "object",
-                      "properties": {
-                        "title": {
-                          "type": "string"
-                        },
-                        "slug": {
-                          "type": "string"
-                        },
-                        "description": {
-                          "type": "string"
-                        },
-                        "content": {
-                          "type": "string"
-                        },
-                        "category": {
-                          "type": "string",
-                          "enum": [
-                            "none",
-                            "cryptocurrency",
-                            "cybersecurity",
-                            "fixit",
-                            "gaming",
-                            "help",
-                            "software",
-                            "note",
-                            "config",
-                            "question",
-                            "log",
-                            "project",
-                            "snippet",
-                            "education"
-                          ]
-                        },
-                        "expiration": {
-                          "type": "string",
-                          "enum": [
-                            "never",
-                            "burn_after_read",
-                            "10m",
-                            "1h",
-                            "1d",
-                            "1w",
-                            "2w"
-                          ]
-                        },
-                        "visibility": {
-                          "type": "string",
-                          "enum": [
-                            "public",
-                            "private",
-                            "unlisted",
-                            "organization"
-                          ]
-                        },
-                        "id": {
-                          "type": "string"
-                        },
-                        "createdAt": {
-                          "type": "string"
-                        },
-                        "updatedAt": {
-                          "type": "string"
-                        },
-                        "userId": {
-                          "type": "string"
-                        },
-                        "folderId": {
-                          "type": "string"
-                        },
-                        "syntaxId": {
-                          "type": "string"
-                        },
-                        "expiresAt": {
-                          "type": "string"
-                        },
-                        "passwordHash": {
-                          "type": "string"
-                        },
-                        "hits": {
-                          "type": "number"
-                        },
-                        "organizationId": {
-                          "type": "string"
-                        }
-                      },
-                      "required": [
-                        "title",
-                        "slug",
-                        "description",
-                        "content",
-                        "category",
-                        "expiration",
-                        "visibility",
-                        "id",
-                        "createdAt",
-                        "updatedAt",
-                        "userId",
-                        "folderId",
-                        "syntaxId",
-                        "expiresAt",
-                        "passwordHash",
-                        "hits",
-                        "organizationId"
-                      ]
-                    }
-                  },
-                  "required": [
-                    "success",
-                    "data"
-                  ]
-                }
-              }
-            }
-          }
-        },
-        "description": "Creates a new static paste with the provided content and metadata.",
-        "tags": [
-          "Static Pastes"
-        ]
-      },
-      "get": {
-        "summary": "/",
-        "responses": {
-          "default": {
-            "description": "Default fallback response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "oneOf": [
-                        {},
-                        {}
-                      ]
-                    },
-                    "data": {
-                      "type": "array",
-                      "items": {}
-                    },
-                    "total": {
-                      "type": "number"
-                    }
-                  },
-                  "required": [
-                    "success",
-                    "data",
-                    "total"
-                  ]
-                }
-              }
-            }
-          }
-        },
-        "description": "Retrieves a list of static pastes with pagination support.",
-        "tags": [
-          "Static Pastes"
-        ]
-      }
-    },
-    "/pastes/{slug}": {
-      "get": {
-        "summary": "/{slug}",
-        "parameters": [
-          {
-            "name": "slug",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "default": {
-            "description": "Default fallback response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "oneOf": [
-                        {},
-                        {}
-                      ]
-                    },
-                    "data": {
-                      "type": "object",
-                      "properties": {
-                        "tags": {
-                          "type": "array",
-                          "items": {
-                            "type": "string"
-                          }
-                        },
-                        "syntax": {
-                          "type": "object",
-                          "properties": {
-                            "name": {
-                              "type": "string"
-                            },
-                            "extension": {
-                              "type": "string"
-                            },
-                            "color": {
-                              "type": "string"
-                            }
-                          },
-                          "required": [
-                            "name",
-                            "extension",
-                            "color"
-                          ]
-                        },
-                        "userId": {
-                          "type": "string"
-                        },
-                        "folderId": {
-                          "type": "string"
-                        },
-                        "title": {
-                          "type": "string"
-                        },
-                        "description": {
-                          "type": "string"
-                        },
-                        "slug": {
-                          "type": "string"
-                        },
-                        "category": {
-                          "type": "string",
-                          "enum": [
-                            "none",
-                            "cryptocurrency",
-                            "cybersecurity",
-                            "fixit",
-                            "gaming",
-                            "help",
-                            "software",
-                            "note",
-                            "config",
-                            "question",
-                            "log",
-                            "project",
-                            "snippet",
-                            "education"
-                          ]
-                        },
-                        "content": {
-                          "type": "string"
-                        },
-                        "syntaxId": {
-                          "type": "string"
-                        },
-                        "expiresAt": {
-                          "type": "string"
-                        },
-                        "expiration": {
-                          "type": "string",
-                          "enum": [
-                            "never",
-                            "burn_after_read",
-                            "10m",
-                            "1h",
-                            "1d",
-                            "1w",
-                            "2w"
-                          ]
-                        },
-                        "passwordHash": {
-                          "type": "string"
-                        },
-                        "hits": {
-                          "type": "number"
-                        },
-                        "visibility": {
-                          "type": "string",
-                          "enum": [
-                            "public",
-                            "private",
-                            "unlisted",
-                            "organization"
-                          ]
-                        },
-                        "organizationId": {
-                          "type": "string"
-                        },
-                        "id": {
-                          "type": "string"
-                        },
-                        "createdAt": {
-                          "type": "string"
-                        },
-                        "updatedAt": {
-                          "type": "string"
-                        }
-                      },
-                      "required": [
-                        "tags",
-                        "syntax",
-                        "userId",
-                        "folderId",
-                        "title",
-                        "description",
-                        "slug",
-                        "category",
-                        "content",
-                        "syntaxId",
-                        "expiresAt",
-                        "expiration",
-                        "passwordHash",
-                        "hits",
-                        "visibility",
-                        "organizationId",
-                        "id",
-                        "createdAt",
-                        "updatedAt"
-                      ]
-                    }
-                  },
-                  "required": [
-                    "success",
-                    "data"
-                  ]
-                }
-              }
-            }
-          }
-        },
-        "description": "Fetches the details of a specific static paste identified by its slug.",
-        "tags": [
-          "Static Pastes"
-        ]
-      },
-      "put": {
-        "summary": "/{slug}",
-        "parameters": [
-          {
-            "name": "slug",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "default": {
-            "description": "Default fallback response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "oneOf": [
-                        {},
-                        {}
-                      ]
-                    },
-                    "data": {
-                      "type": "object",
-                      "properties": {
-                        "userId": {
-                          "type": "string"
-                        },
-                        "folderId": {
-                          "type": "string"
-                        },
-                        "title": {
-                          "type": "string"
-                        },
-                        "description": {
-                          "type": "string"
-                        },
-                        "slug": {
-                          "type": "string"
-                        },
-                        "category": {
-                          "type": "string",
-                          "enum": [
-                            "none",
-                            "cryptocurrency",
-                            "cybersecurity",
-                            "fixit",
-                            "gaming",
-                            "help",
-                            "software",
-                            "note",
-                            "config",
-                            "question",
-                            "log",
-                            "project",
-                            "snippet",
-                            "education"
-                          ]
-                        },
-                        "content": {
-                          "type": "string"
-                        },
-                        "syntaxId": {
-                          "type": "string"
-                        },
-                        "expiresAt": {
-                          "type": "string"
-                        },
-                        "expiration": {
-                          "type": "string",
-                          "enum": [
-                            "never",
-                            "burn_after_read",
-                            "10m",
-                            "1h",
-                            "1d",
-                            "1w",
-                            "2w"
-                          ]
-                        },
-                        "passwordHash": {
-                          "type": "string"
-                        },
-                        "hits": {
-                          "type": "number"
-                        },
-                        "visibility": {
-                          "type": "string",
-                          "enum": [
-                            "public",
-                            "private",
-                            "unlisted",
-                            "organization"
-                          ]
-                        },
-                        "organizationId": {
-                          "type": "string"
-                        },
-                        "id": {
-                          "type": "string"
-                        },
-                        "createdAt": {
-                          "type": "string"
-                        },
-                        "updatedAt": {
-                          "type": "string"
-                        }
-                      },
-                      "required": [
-                        "userId",
-                        "folderId",
-                        "title",
-                        "description",
-                        "slug",
-                        "category",
-                        "content",
-                        "syntaxId",
-                        "expiresAt",
-                        "expiration",
-                        "passwordHash",
-                        "hits",
-                        "visibility",
-                        "organizationId",
-                        "id",
-                        "createdAt",
-                        "updatedAt"
-                      ]
-                    }
-                  },
-                  "required": [
-                    "success",
-                    "data"
-                  ]
-                }
-              }
-            }
-          }
-        },
-        "description": "Updates the content or metadata of a specific static paste identified by its slug.",
-        "tags": [
-          "Static Pastes"
-        ]
-      },
-      "delete": {
-        "summary": "/{slug}",
-        "parameters": [
-          {
-            "name": "slug",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "default": {
-            "description": "Default fallback response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "oneOf": [
-                        {},
-                        {}
-                      ]
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "success",
-                    "message"
-                  ]
-                }
-              }
-            }
-          }
-        },
-        "description": "Deletes a specific static paste identified by its slug.",
-        "tags": [
-          "Static Pastes"
-        ]
-      }
-    },
-    "/pastes/{slug}/download": {
-      "get": {
-        "summary": "/{slug}/download",
-        "parameters": [
-          {
-            "name": "slug",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "default": {
-            "description": "Default fallback response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        },
-        "description": "Allows users to download the content of a specific static paste as a file.",
-        "tags": [
-          "Static Pastes"
-        ]
-      }
-    },
-    "/pastes-realtime/{slug}": {
-      "post": {
-        "summary": "/{slug}",
-        "parameters": [
-          {
-            "name": "slug",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "default": {
-            "description": "Default fallback response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "oneOf": [
-                        {},
-                        {}
-                      ]
-                    },
-                    "realtimePaste": {
-                      "type": "object",
-                      "properties": {
-                        "syntax": {},
-                        "title": {
-                          "type": "string"
-                        },
-                        "slug": {
-                          "type": "string"
-                        },
-                        "content": {
-                          "type": "string"
-                        },
-                        "syntaxId": {
-                          "type": "string"
-                        },
-                        "visibility": {
-                          "type": "string",
-                          "enum": [
-                            "public",
-                            "organization"
-                          ]
-                        },
-                        "organizationId": {
-                          "type": "string"
-                        },
-                        "id": {
-                          "type": "string"
-                        },
-                        "createdAt": {
-                          "type": "string"
-                        },
-                        "updatedAt": {
-                          "type": "string"
-                        }
-                      },
-                      "required": [
-                        "syntax",
-                        "title",
-                        "slug",
-                        "content",
-                        "syntaxId",
-                        "visibility",
-                        "organizationId",
-                        "id",
-                        "createdAt",
-                        "updatedAt"
-                      ]
-                    },
-                    "session": {}
-                  },
-                  "required": [
-                    "success",
-                    "realtimePaste",
-                    "session"
-                  ]
-                }
-              }
-            }
-          }
-        },
-        "description": "Creates a new realtime paste or retrieves an existing one based on the provided slug.",
-        "tags": [
-          "Realtime Pastes"
-        ]
-      },
-      "get": {
-        "summary": "/{slug}",
-        "parameters": [
-          {
-            "name": "slug",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "default": {
-            "description": "Default fallback response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "oneOf": [
-                        {},
-                        {}
-                      ]
-                    },
-                    "data": {
-                      "type": "object",
-                      "properties": {
-                        "syntax": {
-                          "type": "object",
-                          "properties": {
-                            "name": {
-                              "type": "string"
-                            },
-                            "extension": {
-                              "type": "string"
-                            },
-                            "color": {
-                              "type": "string"
-                            }
-                          },
-                          "required": [
-                            "name",
-                            "extension",
-                            "color"
-                          ]
-                        },
-                        "title": {
-                          "type": "string"
-                        },
-                        "slug": {
-                          "type": "string"
-                        },
-                        "content": {
-                          "type": "string"
-                        },
-                        "syntaxId": {
-                          "type": "string"
-                        },
-                        "visibility": {
-                          "type": "string",
-                          "enum": [
-                            "public",
-                            "organization"
-                          ]
-                        },
-                        "organizationId": {
-                          "type": "string"
-                        },
-                        "id": {
-                          "type": "string"
-                        },
-                        "createdAt": {
-                          "type": "string"
-                        },
-                        "updatedAt": {
-                          "type": "string"
-                        }
-                      },
-                      "required": [
-                        "syntax",
-                        "title",
-                        "slug",
-                        "content",
-                        "syntaxId",
-                        "visibility",
-                        "organizationId",
-                        "id",
-                        "createdAt",
-                        "updatedAt"
-                      ]
-                    }
-                  },
-                  "required": [
-                    "success",
-                    "data"
-                  ]
-                }
-              }
-            }
-          }
-        },
-        "description": "Fetches the details of a specific realtime paste identified by its slug.",
-        "tags": [
-          "Realtime Pastes"
-        ]
-      }
-    },
-    "/pastes-realtime/{slug}/download": {
-      "get": {
-        "summary": "/{slug}/download",
-        "parameters": [
-          {
-            "name": "slug",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "default": {
-            "description": "Default fallback response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        },
-        "description": "Allows users to download the content of a specific realtime paste as a file.",
-        "tags": [
-          "Realtime Pastes"
-        ]
-      }
-    },
-    "/folders": {
-      "post": {
-        "summary": "/",
-        "responses": {
-          "default": {
-            "description": "Default fallback response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "oneOf": [
-                    {
-                      "type": "object",
-                      "properties": {
-                        "success": {
-                          "oneOf": [
-                            {},
-                            {}
-                          ]
-                        },
-                        "data": {
-                          "type": "object",
-                          "properties": {
-                            "userId": {
-                              "type": "string"
-                            },
-                            "name": {
-                              "type": "string"
-                            },
-                            "parentFolderId": {
-                              "type": "string"
-                            },
-                            "id": {
-                              "type": "string"
-                            },
-                            "createdAt": {
-                              "type": "string"
-                            },
-                            "updatedAt": {
-                              "type": "string"
-                            }
-                          },
-                          "required": [
-                            "userId",
-                            "name",
-                            "parentFolderId",
-                            "id",
-                            "createdAt",
-                            "updatedAt"
-                          ]
-                        }
-                      },
-                      "required": [
-                        "success",
-                        "data"
-                      ]
-                    },
-                    {
-                      "type": "object",
-                      "properties": {
-                        "success": {
-                          "oneOf": [
-                            {},
-                            {}
-                          ]
-                        },
-                        "data": {
-                          "type": "array",
-                          "items": {
-                            "type": "object",
-                            "properties": {
-                              "name": {
-                                "type": "string"
-                              },
-                              "id": {
-                                "type": "string"
-                              },
-                              "createdAt": {
-                                "type": "string"
-                              },
-                              "updatedAt": {
-                                "type": "string"
-                              },
-                              "userId": {
-                                "type": "string"
-                              },
-                              "parentFolderId": {
-                                "type": "string"
-                              }
-                            },
-                            "required": [
-                              "name",
-                              "id",
-                              "createdAt",
-                              "updatedAt",
-                              "userId",
-                              "parentFolderId"
-                            ]
-                          }
-                        }
-                      },
-                      "required": [
-                        "success",
-                        "data"
-                      ]
-                    }
-                  ]
-                }
-              }
-            }
-          }
-        },
-        "description": "Creates (or reuses) a folder (root or nested)",
-        "tags": [
-          "Folders"
-        ]
-      },
-      "get": {
-        "summary": "/",
-        "responses": {
-          "default": {
-            "description": "Default fallback response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "oneOf": [
-                        {},
-                        {}
-                      ]
-                    },
-                    "data": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "userId": {
-                            "type": "string"
-                          },
-                          "name": {
-                            "type": "string"
-                          },
-                          "parentFolderId": {
-                            "type": "string"
-                          },
-                          "id": {
-                            "type": "string"
-                          },
-                          "createdAt": {
-                            "type": "string"
-                          },
-                          "updatedAt": {
-                            "type": "string"
-                          }
-                        },
-                        "required": [
-                          "userId",
-                          "name",
-                          "parentFolderId",
-                          "id",
-                          "createdAt",
-                          "updatedAt"
-                        ]
-                      }
-                    }
-                  },
-                  "required": [
-                    "success",
-                    "data"
-                  ]
-                }
-              }
-            }
-          }
-        },
-        "description": "Lists user's folders; supports ?parentId=... to list children of a given parent",
-        "tags": [
-          "Folders"
-        ]
-      }
-    },
-    "/folders/all": {
-      "get": {
-        "summary": "/all",
-        "responses": {
-          "default": {
-            "description": "Default fallback response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "oneOf": [
-                        {},
-                        {}
-                      ]
-                    },
-                    "data": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "id": {
-                            "type": "string"
-                          },
-                          "name": {
-                            "type": "string"
-                          },
-                          "parentFolderId": {
-                            "type": "string"
-                          },
-                          "createdAt": {
-                            "type": "string"
-                          },
-                          "updatedAt": {
-                            "type": "string"
-                          },
-                          "userId": {
-                            "type": "string"
-                          },
-                          "subfoldersCount": {
-                            "type": "number"
-                          },
-                          "pastesCount": {
-                            "type": "number"
-                          }
-                        },
-                        "required": [
-                          "id",
-                          "name",
-                          "parentFolderId",
-                          "createdAt",
-                          "updatedAt",
-                          "userId",
-                          "subfoldersCount",
-                          "pastesCount"
-                        ]
-                      }
-                    }
-                  },
-                  "required": [
-                    "success",
-                    "data"
-                  ]
-                }
-              }
-            }
-          }
-        },
-        "description": "Lists all user's folders (flat)",
-        "tags": [
-          "Folders"
-        ]
-      }
-    },
-    "/folders/{id}": {
-      "patch": {
-        "summary": "/{id}",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "default": {
-            "description": "Default fallback response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "oneOf": [
-                        {},
-                        {}
-                      ]
-                    },
-                    "data": {
-                      "type": "object",
-                      "properties": {
-                        "userId": {
-                          "type": "string"
-                        },
-                        "name": {
-                          "type": "string"
-                        },
-                        "parentFolderId": {
-                          "type": "string"
-                        },
-                        "id": {
-                          "type": "string"
-                        },
-                        "createdAt": {
-                          "type": "string"
-                        },
-                        "updatedAt": {
-                          "type": "string"
-                        }
-                      },
-                      "required": [
-                        "userId",
-                        "name",
-                        "parentFolderId",
-                        "id",
-                        "createdAt",
-                        "updatedAt"
-                      ]
-                    }
-                  },
-                  "required": [
-                    "success",
-                    "data"
-                  ]
-                }
-              }
-            }
-          }
-        },
-        "description": "Renames a folder",
-        "tags": [
-          "Folders"
-        ]
-      },
-      "delete": {
-        "summary": "/{id}",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "default": {
-            "description": "Default fallback response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "oneOf": [
-                        {},
-                        {}
-                      ]
-                    }
-                  },
-                  "required": [
-                    "success"
-                  ]
-                }
-              }
-            }
-          }
-        },
-        "description": "Deletes a folder",
-        "tags": [
-          "Folders"
-        ]
-      }
-    },
-    "/user/pastes": {
-      "get": {
-        "summary": "/pastes",
-        "responses": {
-          "400": {
-            "description": "Status 400",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "oneOf": [
-                        {},
-                        {}
-                      ]
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "success",
-                    "message"
-                  ]
-                }
-              }
-            }
-          },
-          "default": {
-            "description": "Default fallback response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "oneOf": [
-                        {},
-                        {}
-                      ]
-                    },
-                    "data": {
-                      "type": "array",
-                      "items": {}
-                    },
-                    "total": {
-                      "type": "number"
-                    }
-                  },
-                  "required": [
-                    "success",
-                    "data",
-                    "total"
-                  ]
-                }
-              }
-            }
-          }
-        },
-        "description": "Retrieves a list of public pastes created by specific user. If user that makes the request is authenticated and requests their own pastes, all their pastes are returned.",
-        "tags": [
-          "User"
-        ]
-      }
-    },
-    "/user/name/{name}": {
-      "get": {
-        "summary": "/name/{name}",
-        "parameters": [
-          {
-            "name": "name",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "400": {
-            "description": "Status 400",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "oneOf": [
-                        {},
-                        {}
-                      ]
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "success",
-                    "message"
-                  ]
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Status 404",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "oneOf": [
-                        {},
-                        {}
-                      ]
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "success",
-                    "message"
-                  ]
-                }
-              }
-            }
-          },
-          "default": {
-            "description": "Default fallback response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "oneOf": [
-                        {},
-                        {}
-                      ]
-                    },
-                    "data": {
-                      "type": "object",
-                      "properties": {
-                        "id": {
-                          "type": "string"
-                        },
-                        "name": {
-                          "type": "string"
-                        },
-                        "createdAt": {
-                          "type": "string"
-                        },
-                        "role": {
-                          "type": "string"
-                        }
-                      },
-                      "required": [
-                        "id",
-                        "name",
-                        "createdAt",
-                        "role"
-                      ]
-                    }
-                  },
-                  "required": [
-                    "success",
-                    "data"
-                  ]
-                }
-              }
-            }
-          }
-        },
-        "description": "Checks if user with given name exists and returns basic info about them.",
-        "tags": [
-          "User"
-        ]
-      }
-    }
-  }
+	"openapi": "3.2.0",
+	"info": {
+		"title": "DoggoPaste",
+		"version": "0.2.0",
+		"description": "Drop your code, let Doggo fetch it!",
+		"license": {
+			"name": "MIT",
+			"url": "https://opensource.org/licenses/MIT"
+		}
+	},
+	"tags": [
+		{
+			"name": "Static Pastes"
+		},
+		{
+			"name": "Realtime Pastes"
+		},
+		{
+			"name": "Folders"
+		},
+		{
+			"name": "User"
+		}
+	],
+	"paths": {
+		"/pastes": {
+			"post": {
+				"summary": "/",
+				"responses": {
+					"default": {
+						"description": "Default fallback response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"success": {
+											"oneOf": [{}, {}]
+										},
+										"data": {
+											"type": "object",
+											"properties": {
+												"title": {
+													"type": "string"
+												},
+												"slug": {
+													"type": "string"
+												},
+												"description": {
+													"type": "string"
+												},
+												"content": {
+													"type": "string"
+												},
+												"category": {
+													"type": "string",
+													"enum": [
+														"none",
+														"cryptocurrency",
+														"cybersecurity",
+														"fixit",
+														"gaming",
+														"help",
+														"software",
+														"note",
+														"config",
+														"question",
+														"log",
+														"project",
+														"snippet",
+														"education"
+													]
+												},
+												"expiration": {
+													"type": "string",
+													"enum": [
+														"never",
+														"burn_after_read",
+														"10m",
+														"1h",
+														"1d",
+														"1w",
+														"2w"
+													]
+												},
+												"visibility": {
+													"type": "string",
+													"enum": [
+														"public",
+														"private",
+														"unlisted",
+														"organization"
+													]
+												},
+												"id": {
+													"type": "string"
+												},
+												"createdAt": {
+													"type": "string"
+												},
+												"updatedAt": {
+													"type": "string"
+												},
+												"userId": {
+													"type": "string"
+												},
+												"folderId": {
+													"type": "string"
+												},
+												"syntaxId": {
+													"type": "string"
+												},
+												"expiresAt": {
+													"type": "string"
+												},
+												"passwordHash": {
+													"type": "string"
+												},
+												"hits": {
+													"type": "number"
+												},
+												"organizationId": {
+													"type": "string"
+												}
+											},
+											"required": [
+												"title",
+												"slug",
+												"description",
+												"content",
+												"category",
+												"expiration",
+												"visibility",
+												"id",
+												"createdAt",
+												"updatedAt",
+												"userId",
+												"folderId",
+												"syntaxId",
+												"expiresAt",
+												"passwordHash",
+												"hits",
+												"organizationId"
+											]
+										}
+									},
+									"required": ["success", "data"]
+								}
+							}
+						}
+					}
+				},
+				"description": "Creates a new static paste with the provided content and metadata.",
+				"tags": ["Static Pastes"]
+			},
+			"get": {
+				"summary": "/",
+				"responses": {
+					"default": {
+						"description": "Default fallback response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"success": {
+											"oneOf": [{}, {}]
+										},
+										"data": {
+											"type": "array",
+											"items": {}
+										},
+										"total": {
+											"type": "number"
+										}
+									},
+									"required": ["success", "data", "total"]
+								}
+							}
+						}
+					}
+				},
+				"description": "Retrieves a list of static pastes with pagination support.",
+				"tags": ["Static Pastes"]
+			}
+		},
+		"/pastes/{slug}": {
+			"get": {
+				"summary": "/{slug}",
+				"parameters": [
+					{
+						"name": "slug",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"default": {
+						"description": "Default fallback response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"success": {
+											"oneOf": [{}, {}]
+										},
+										"data": {
+											"type": "object",
+											"properties": {
+												"tags": {
+													"type": "array",
+													"items": {
+														"type": "string"
+													}
+												},
+												"syntax": {
+													"type": "object",
+													"properties": {
+														"name": {
+															"type": "string"
+														},
+														"extension": {
+															"type": "string"
+														},
+														"color": {
+															"type": "string"
+														}
+													},
+													"required": [
+														"name",
+														"extension",
+														"color"
+													]
+												},
+												"userId": {
+													"type": "string"
+												},
+												"folderId": {
+													"type": "string"
+												},
+												"title": {
+													"type": "string"
+												},
+												"description": {
+													"type": "string"
+												},
+												"slug": {
+													"type": "string"
+												},
+												"category": {
+													"type": "string",
+													"enum": [
+														"none",
+														"cryptocurrency",
+														"cybersecurity",
+														"fixit",
+														"gaming",
+														"help",
+														"software",
+														"note",
+														"config",
+														"question",
+														"log",
+														"project",
+														"snippet",
+														"education"
+													]
+												},
+												"content": {
+													"type": "string"
+												},
+												"syntaxId": {
+													"type": "string"
+												},
+												"expiresAt": {
+													"type": "string"
+												},
+												"expiration": {
+													"type": "string",
+													"enum": [
+														"never",
+														"burn_after_read",
+														"10m",
+														"1h",
+														"1d",
+														"1w",
+														"2w"
+													]
+												},
+												"passwordHash": {
+													"type": "string"
+												},
+												"hits": {
+													"type": "number"
+												},
+												"visibility": {
+													"type": "string",
+													"enum": [
+														"public",
+														"private",
+														"unlisted",
+														"organization"
+													]
+												},
+												"organizationId": {
+													"type": "string"
+												},
+												"id": {
+													"type": "string"
+												},
+												"createdAt": {
+													"type": "string"
+												},
+												"updatedAt": {
+													"type": "string"
+												}
+											},
+											"required": [
+												"tags",
+												"syntax",
+												"userId",
+												"folderId",
+												"title",
+												"description",
+												"slug",
+												"category",
+												"content",
+												"syntaxId",
+												"expiresAt",
+												"expiration",
+												"passwordHash",
+												"hits",
+												"visibility",
+												"organizationId",
+												"id",
+												"createdAt",
+												"updatedAt"
+											]
+										}
+									},
+									"required": ["success", "data"]
+								}
+							}
+						}
+					}
+				},
+				"description": "Fetches the details of a specific static paste identified by its slug.",
+				"tags": ["Static Pastes"]
+			},
+			"put": {
+				"summary": "/{slug}",
+				"parameters": [
+					{
+						"name": "slug",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"default": {
+						"description": "Default fallback response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"success": {
+											"oneOf": [{}, {}]
+										},
+										"data": {
+											"type": "object",
+											"properties": {
+												"userId": {
+													"type": "string"
+												},
+												"folderId": {
+													"type": "string"
+												},
+												"title": {
+													"type": "string"
+												},
+												"description": {
+													"type": "string"
+												},
+												"slug": {
+													"type": "string"
+												},
+												"category": {
+													"type": "string",
+													"enum": [
+														"none",
+														"cryptocurrency",
+														"cybersecurity",
+														"fixit",
+														"gaming",
+														"help",
+														"software",
+														"note",
+														"config",
+														"question",
+														"log",
+														"project",
+														"snippet",
+														"education"
+													]
+												},
+												"content": {
+													"type": "string"
+												},
+												"syntaxId": {
+													"type": "string"
+												},
+												"expiresAt": {
+													"type": "string"
+												},
+												"expiration": {
+													"type": "string",
+													"enum": [
+														"never",
+														"burn_after_read",
+														"10m",
+														"1h",
+														"1d",
+														"1w",
+														"2w"
+													]
+												},
+												"passwordHash": {
+													"type": "string"
+												},
+												"hits": {
+													"type": "number"
+												},
+												"visibility": {
+													"type": "string",
+													"enum": [
+														"public",
+														"private",
+														"unlisted",
+														"organization"
+													]
+												},
+												"organizationId": {
+													"type": "string"
+												},
+												"id": {
+													"type": "string"
+												},
+												"createdAt": {
+													"type": "string"
+												},
+												"updatedAt": {
+													"type": "string"
+												}
+											},
+											"required": [
+												"userId",
+												"folderId",
+												"title",
+												"description",
+												"slug",
+												"category",
+												"content",
+												"syntaxId",
+												"expiresAt",
+												"expiration",
+												"passwordHash",
+												"hits",
+												"visibility",
+												"organizationId",
+												"id",
+												"createdAt",
+												"updatedAt"
+											]
+										}
+									},
+									"required": ["success", "data"]
+								}
+							}
+						}
+					}
+				},
+				"description": "Updates the content or metadata of a specific static paste identified by its slug.",
+				"tags": ["Static Pastes"]
+			},
+			"delete": {
+				"summary": "/{slug}",
+				"parameters": [
+					{
+						"name": "slug",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"default": {
+						"description": "Default fallback response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"success": {
+											"oneOf": [{}, {}]
+										},
+										"message": {
+											"type": "string"
+										}
+									},
+									"required": ["success", "message"]
+								}
+							}
+						}
+					}
+				},
+				"description": "Deletes a specific static paste identified by its slug.",
+				"tags": ["Static Pastes"]
+			}
+		},
+		"/pastes/{slug}/download": {
+			"get": {
+				"summary": "/{slug}/download",
+				"parameters": [
+					{
+						"name": "slug",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"default": {
+						"description": "Default fallback response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				},
+				"description": "Allows users to download the content of a specific static paste as a file.",
+				"tags": ["Static Pastes"]
+			}
+		},
+		"/pastes-realtime/{slug}": {
+			"post": {
+				"summary": "/{slug}",
+				"parameters": [
+					{
+						"name": "slug",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"default": {
+						"description": "Default fallback response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"success": {
+											"oneOf": [{}, {}]
+										},
+										"realtimePaste": {
+											"type": "object",
+											"properties": {
+												"syntax": {},
+												"title": {
+													"type": "string"
+												},
+												"slug": {
+													"type": "string"
+												},
+												"content": {
+													"type": "string"
+												},
+												"syntaxId": {
+													"type": "string"
+												},
+												"visibility": {
+													"type": "string",
+													"enum": [
+														"public",
+														"organization"
+													]
+												},
+												"organizationId": {
+													"type": "string"
+												},
+												"id": {
+													"type": "string"
+												},
+												"createdAt": {
+													"type": "string"
+												},
+												"updatedAt": {
+													"type": "string"
+												}
+											},
+											"required": [
+												"syntax",
+												"title",
+												"slug",
+												"content",
+												"syntaxId",
+												"visibility",
+												"organizationId",
+												"id",
+												"createdAt",
+												"updatedAt"
+											]
+										},
+										"session": {}
+									},
+									"required": [
+										"success",
+										"realtimePaste",
+										"session"
+									]
+								}
+							}
+						}
+					}
+				},
+				"description": "Creates a new realtime paste or retrieves an existing one based on the provided slug.",
+				"tags": ["Realtime Pastes"]
+			},
+			"get": {
+				"summary": "/{slug}",
+				"parameters": [
+					{
+						"name": "slug",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"default": {
+						"description": "Default fallback response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"success": {
+											"oneOf": [{}, {}]
+										},
+										"data": {
+											"type": "object",
+											"properties": {
+												"syntax": {
+													"type": "object",
+													"properties": {
+														"name": {
+															"type": "string"
+														},
+														"extension": {
+															"type": "string"
+														},
+														"color": {
+															"type": "string"
+														}
+													},
+													"required": [
+														"name",
+														"extension",
+														"color"
+													]
+												},
+												"title": {
+													"type": "string"
+												},
+												"slug": {
+													"type": "string"
+												},
+												"content": {
+													"type": "string"
+												},
+												"syntaxId": {
+													"type": "string"
+												},
+												"visibility": {
+													"type": "string",
+													"enum": [
+														"public",
+														"organization"
+													]
+												},
+												"organizationId": {
+													"type": "string"
+												},
+												"id": {
+													"type": "string"
+												},
+												"createdAt": {
+													"type": "string"
+												},
+												"updatedAt": {
+													"type": "string"
+												}
+											},
+											"required": [
+												"syntax",
+												"title",
+												"slug",
+												"content",
+												"syntaxId",
+												"visibility",
+												"organizationId",
+												"id",
+												"createdAt",
+												"updatedAt"
+											]
+										}
+									},
+									"required": ["success", "data"]
+								}
+							}
+						}
+					}
+				},
+				"description": "Fetches the details of a specific realtime paste identified by its slug.",
+				"tags": ["Realtime Pastes"]
+			}
+		},
+		"/pastes-realtime/{slug}/download": {
+			"get": {
+				"summary": "/{slug}/download",
+				"parameters": [
+					{
+						"name": "slug",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"default": {
+						"description": "Default fallback response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				},
+				"description": "Allows users to download the content of a specific realtime paste as a file.",
+				"tags": ["Realtime Pastes"]
+			}
+		},
+		"/folders": {
+			"post": {
+				"summary": "/",
+				"responses": {
+					"default": {
+						"description": "Default fallback response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"oneOf": [
+										{
+											"type": "object",
+											"properties": {
+												"success": {
+													"oneOf": [{}, {}]
+												},
+												"data": {
+													"type": "object",
+													"properties": {
+														"userId": {
+															"type": "string"
+														},
+														"name": {
+															"type": "string"
+														},
+														"parentFolderId": {
+															"type": "string"
+														},
+														"id": {
+															"type": "string"
+														},
+														"createdAt": {
+															"type": "string"
+														},
+														"updatedAt": {
+															"type": "string"
+														}
+													},
+													"required": [
+														"userId",
+														"name",
+														"parentFolderId",
+														"id",
+														"createdAt",
+														"updatedAt"
+													]
+												}
+											},
+											"required": ["success", "data"]
+										},
+										{
+											"type": "object",
+											"properties": {
+												"success": {
+													"oneOf": [{}, {}]
+												},
+												"data": {
+													"type": "array",
+													"items": {
+														"type": "object",
+														"properties": {
+															"name": {
+																"type": "string"
+															},
+															"id": {
+																"type": "string"
+															},
+															"createdAt": {
+																"type": "string"
+															},
+															"updatedAt": {
+																"type": "string"
+															},
+															"userId": {
+																"type": "string"
+															},
+															"parentFolderId": {
+																"type": "string"
+															}
+														},
+														"required": [
+															"name",
+															"id",
+															"createdAt",
+															"updatedAt",
+															"userId",
+															"parentFolderId"
+														]
+													}
+												}
+											},
+											"required": ["success", "data"]
+										}
+									]
+								}
+							}
+						}
+					}
+				},
+				"description": "Creates (or reuses) a folder (root or nested)",
+				"tags": ["Folders"]
+			},
+			"get": {
+				"summary": "/",
+				"responses": {
+					"default": {
+						"description": "Default fallback response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"success": {
+											"oneOf": [{}, {}]
+										},
+										"data": {
+											"type": "array",
+											"items": {
+												"type": "object",
+												"properties": {
+													"userId": {
+														"type": "string"
+													},
+													"name": {
+														"type": "string"
+													},
+													"parentFolderId": {
+														"type": "string"
+													},
+													"id": {
+														"type": "string"
+													},
+													"createdAt": {
+														"type": "string"
+													},
+													"updatedAt": {
+														"type": "string"
+													}
+												},
+												"required": [
+													"userId",
+													"name",
+													"parentFolderId",
+													"id",
+													"createdAt",
+													"updatedAt"
+												]
+											}
+										}
+									},
+									"required": ["success", "data"]
+								}
+							}
+						}
+					}
+				},
+				"description": "Lists user's folders; supports ?parentId=... to list children of a given parent",
+				"tags": ["Folders"]
+			}
+		},
+		"/folders/all": {
+			"get": {
+				"summary": "/all",
+				"responses": {
+					"default": {
+						"description": "Default fallback response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"success": {
+											"oneOf": [{}, {}]
+										},
+										"data": {
+											"type": "array",
+											"items": {
+												"type": "object",
+												"properties": {
+													"id": {
+														"type": "string"
+													},
+													"name": {
+														"type": "string"
+													},
+													"parentFolderId": {
+														"type": "string"
+													},
+													"createdAt": {
+														"type": "string"
+													},
+													"updatedAt": {
+														"type": "string"
+													},
+													"userId": {
+														"type": "string"
+													},
+													"subfoldersCount": {
+														"type": "number"
+													},
+													"pastesCount": {
+														"type": "number"
+													}
+												},
+												"required": [
+													"id",
+													"name",
+													"parentFolderId",
+													"createdAt",
+													"updatedAt",
+													"userId",
+													"subfoldersCount",
+													"pastesCount"
+												]
+											}
+										}
+									},
+									"required": ["success", "data"]
+								}
+							}
+						}
+					}
+				},
+				"description": "Lists all user's folders (flat)",
+				"tags": ["Folders"]
+			}
+		},
+		"/folders/{id}": {
+			"patch": {
+				"summary": "/{id}",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"default": {
+						"description": "Default fallback response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"success": {
+											"oneOf": [{}, {}]
+										},
+										"data": {
+											"type": "object",
+											"properties": {
+												"userId": {
+													"type": "string"
+												},
+												"name": {
+													"type": "string"
+												},
+												"parentFolderId": {
+													"type": "string"
+												},
+												"id": {
+													"type": "string"
+												},
+												"createdAt": {
+													"type": "string"
+												},
+												"updatedAt": {
+													"type": "string"
+												}
+											},
+											"required": [
+												"userId",
+												"name",
+												"parentFolderId",
+												"id",
+												"createdAt",
+												"updatedAt"
+											]
+										}
+									},
+									"required": ["success", "data"]
+								}
+							}
+						}
+					}
+				},
+				"description": "Renames a folder",
+				"tags": ["Folders"]
+			},
+			"delete": {
+				"summary": "/{id}",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"default": {
+						"description": "Default fallback response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"success": {
+											"oneOf": [{}, {}]
+										}
+									},
+									"required": ["success"]
+								}
+							}
+						}
+					}
+				},
+				"description": "Deletes a folder",
+				"tags": ["Folders"]
+			}
+		},
+		"/user/pastes": {
+			"get": {
+				"summary": "/pastes",
+				"responses": {
+					"400": {
+						"description": "Status 400",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"success": {
+											"oneOf": [{}, {}]
+										},
+										"message": {
+											"type": "string"
+										}
+									},
+									"required": ["success", "message"]
+								}
+							}
+						}
+					},
+					"default": {
+						"description": "Default fallback response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"success": {
+											"oneOf": [{}, {}]
+										},
+										"data": {
+											"type": "array",
+											"items": {}
+										},
+										"total": {
+											"type": "number"
+										}
+									},
+									"required": ["success", "data", "total"]
+								}
+							}
+						}
+					}
+				},
+				"description": "Retrieves a list of public pastes created by specific user. If user that makes the request is authenticated and requests their own pastes, all their pastes are returned.",
+				"tags": ["User"]
+			}
+		},
+		"/user/name/{name}": {
+			"get": {
+				"summary": "/name/{name}",
+				"parameters": [
+					{
+						"name": "name",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"400": {
+						"description": "Status 400",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"success": {
+											"oneOf": [{}, {}]
+										},
+										"message": {
+											"type": "string"
+										}
+									},
+									"required": ["success", "message"]
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Status 404",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"success": {
+											"oneOf": [{}, {}]
+										},
+										"message": {
+											"type": "string"
+										}
+									},
+									"required": ["success", "message"]
+								}
+							}
+						}
+					},
+					"default": {
+						"description": "Default fallback response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"success": {
+											"oneOf": [{}, {}]
+										},
+										"data": {
+											"type": "object",
+											"properties": {
+												"id": {
+													"type": "string"
+												},
+												"name": {
+													"type": "string"
+												},
+												"createdAt": {
+													"type": "string"
+												},
+												"role": {
+													"type": "string"
+												}
+											},
+											"required": [
+												"id",
+												"name",
+												"createdAt",
+												"role"
+											]
+										}
+									},
+									"required": ["success", "data"]
+								}
+							}
+						}
+					}
+				},
+				"description": "Checks if user with given name exists and returns basic info about them.",
+				"tags": ["User"]
+			}
+		}
+	}
 }
