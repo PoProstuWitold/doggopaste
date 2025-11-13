@@ -82,8 +82,13 @@ app.get('/openapi', openAPIRouteHandler(app, openApiSpec))
 app.get(
 	'/docs',
 	Scalar({
-		theme: 'saturn',
-		url: '/api/openapi'
+		theme: 'kepler',
+		url: '/api/openapi',
+		layout: 'modern',
+		defaultHttpClient: {
+			targetKey: 'js',
+			clientKey: 'fetch'
+		}
 	})
 )
 app.get('/health', health)

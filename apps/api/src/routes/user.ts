@@ -125,4 +125,5 @@ const app = new Hono<Env>()
 		return c.json({ success: true, data: userRow })
 	})
 
+export type AppType = typeof app
 export default app

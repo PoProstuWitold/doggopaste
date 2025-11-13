@@ -534,4 +534,5 @@ const app = new Hono<Env>()
 		return c.body(paste.content)
 	})
 
+export type AppType = typeof app
 export default app

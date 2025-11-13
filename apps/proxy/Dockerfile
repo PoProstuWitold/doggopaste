@@ -46,6 +46,7 @@ COPY --from=installer --chown=doggo:doggo /app/apps/api/node_modules ./apps/api/
 COPY --from=installer --chown=doggo:doggo /app/apps/api/package.json ./apps/api/package.json
 COPY --from=installer --chown=doggo:doggo /app/apps/api/drizzle.config.ts ./apps/api/drizzle.config.ts
 COPY --from=installer --chown=doggo:doggo /app/apps/api/src/db/schema.ts ./apps/api/src/db/schema.ts
+COPY --from=installer --chown=doggo:doggo /app/apps/api/openapi/openapi.json ./apps/api/openapi/openapi.json
 
 # web: Next.js (standalone)
 COPY --from=installer --chown=doggo:doggo /app/apps/web/.next/standalone ./

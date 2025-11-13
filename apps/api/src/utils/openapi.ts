@@ -1,8 +1,31 @@
+import { join } from 'node:path'
+import { pathToFileURL } from 'node:url'
+
 import type { GenerateSpecOptions } from 'hono-openapi'
 import { auth } from './index.js'
 
-const { components, openapi, paths, security, tags } =
-	await auth.api.generateOpenAPISchema()
+const cwd = process.cwd()
+const path = join(cwd, 'openapi', 'openapi.json')
+const doggoSpecUrl = pathToFileURL(path).href
+const { default: doggoSpec } = await import(doggoSpecUrl, {
+	with: { type: 'json' }
+})
+
+// biome-ignore lint: any is tolerated here
+const addPrefixToPaths = (paths: any, prefix: string) => {
+	// biome-ignore lint: any is tolerated here
+	const result: any = {}
+
+	for (const [routePath, methods] of Object.entries(paths)) {
+		const newPath = routePath.startsWith(prefix)
+			? routePath
+			: `${prefix}${routePath}`
+
+		result[newPath] = methods
+	}
+
+	return result
+}
 
 // biome-ignore lint: Getting paths type is unnecessary
 export const updateTagsInPaths = (paths: any) => {
@@ -19,67 +42,73 @@ export const updateTagsInPaths = (paths: any) => {
 	}
 }
 
-updateTagsInPaths(paths)
+const {
+	components: authComponents,
+	openapi: authOpenapi,
+	paths: authPaths,
+	security,
+	tags: authTags
+} = await auth.api.generateOpenAPISchema()
+
+updateTagsInPaths(authPaths)
+
+const authPathsWithPrefix = addPrefixToPaths(authPaths, '/auth')
+
+const mergedPaths = {
+	'/docs': {
+		get: {
+			tags: ['Misc'],
+			description: 'Get the OpenAPI documentation with Scalar UI',
+			responses: { 200: { description: 'Success' } }
+		}
+	},
+	'/openapi': {
+		get: {
+			tags: ['Misc'],
+			description: 'Get the OpenAPI documentation as plain JSON',
+			responses: { 200: { description: 'Success' } }
+		}
+	},
+	'/health': {
+		get: {
+			tags: ['Misc'],
+			description:
+				'Health check to verify API and its services are running',
+			responses: { 200: { description: 'Success' } }
+		}
+	},
+	...doggoSpec.paths,
+	...authPathsWithPrefix
+}
+
+// biome-ignore lint: any is tolerated here
+const mergedTagsMap = new Map<string, any>()
+
+for (const tag of [
+	{ name: 'Default', description: 'Default endpoints for API documentation' },
+	{ name: 'Auth Base', description: 'Base endpoints for authentication' },
+	...(doggoSpec.tags ?? []),
+	// biome-ignore lint: any is tolerated here
+	...authTags.filter((t: any) => t.name !== 'Default')
+]) {
+	if (!mergedTagsMap.has(tag.name)) {
+		mergedTagsMap.set(tag.name, tag)
+	}
+}
 
 export const openApiSpec = {
 	documentation: {
-		paths: {
-			'/docs': {
-				get: {
-					tags: ['Default'],
-					description: 'Get the OpenAPI documentation with Scalar UI',
-					responses: {
-						200: {
-							description: 'Success'
-						}
-					}
-				}
-			},
-			'/openapi': {
-				get: {
-					tags: ['Default'],
-					description: 'Get the OpenAPI documentation as plain JSON',
-					responses: {
-						200: {
-							description: 'Success'
-						}
-					}
-				}
-			},
-			...paths
-		},
+		openapi: doggoSpec.openapi ?? authOpenapi,
 		info: {
-			title: 'DoggoPaste',
-			version: '0.1.0',
-			description: 'Drop your code, let Doggo fetch it!',
-			license: {
-				name: 'MIT',
-				url: 'https://opensource.org/licenses/MIT'
-			}
+			...doggoSpec.info,
+			title: 'DoggoPaste API',
+			version: '0.2.0',
+			description: 'Drop your code, let Doggo fetch it!'
 		},
-		servers: [
-			{
-				url: `${process.env.APP_URL}/api`,
-				description: 'Local Server Base'
-			},
-			{
-				url: `${process.env.APP_URL}/api/auth`,
-				description: 'Auth routes'
-			}
-		],
-		tags: [
-			{
-				name: 'Default',
-				description: 'Default endpoints for API documentation'
-			},
-			{
-				name: 'Auth Base',
-				description: 'Base endpoints for authentication'
-			},
-			...tags.filter((tag) => tag.name !== 'Default')
-		],
-		components,
-		security,
-		openapi
+		servers: [...(doggoSpec.servers ?? [])],
+		paths: mergedPaths,
+		tags: Array.from(mergedTagsMap.values()),
+		components: authComponents,
+		security
 	}
 } as Partial<GenerateSpecOptions>
