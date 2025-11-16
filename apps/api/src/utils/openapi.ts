@@ -105,7 +105,12 @@ export const openApiSpec = {
 			version: '0.2.0',
 			description: 'Drop your code, let Doggo fetch it!'
 		},
-		servers: [...(doggoSpec.servers ?? [])],
+		servers: [
+			{
+				url: `${process.env.APP_URL}/api`,
+				description: 'REST API Server Base'
+			}
+		],
 		paths: mergedPaths,
 		tags: Array.from(mergedTagsMap.values()),
 		components: authComponents,
