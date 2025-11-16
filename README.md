@@ -254,12 +254,10 @@ OR
 
 5b. Launch app in ``production`` mode
 
-In main *DoggoPaste* directory:
-```
+```bash
 turbo run build
 ```
 
-In ``apps/proxy``:
 ```bash
 turbo run start --filter=proxy
 ```
