@@ -15,7 +15,9 @@
 		"db:generate": "drizzle-kit generate --config=drizzle.config.ts",
 		"db:migrate": "drizzle-kit migrate --config=drizzle.config.ts",
 		"db:seed": "node --env-file .env --import tsx src/db/seed.ts",
-		"docs": "pnpx @rcmade/hono-docs generate --config ./hono-docs.ts"
+		"docs": "pnpx @rcmade/hono-docs generate --config ./hono-docs.ts",
+		"test": "node --env-file .env.test --import tsx --test __tests__/**/*.test.ts",
+		"test:watch": "node --env-file .env.test --watch --import tsx --test __tests__/**/*.test.ts"
 	},
 	"dependencies": {
 		"@hono/node-server": "^1.19.6",

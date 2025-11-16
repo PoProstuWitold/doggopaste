@@ -1,0 +1,16 @@
+services:
+  doggopaste_db_test:
+    image: postgres:17
+    container_name: doggopaste_db_test
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: doggo
+      POSTGRES_PASSWORD: changeme
+      POSTGRES_DB: doggopaste
+    ports:
+      - 5432:5432
+    volumes:
+      - doggopaste_db_test_data:/var/lib/postgresql/data
+
+volumes:
+  doggopaste_db_test_data:
