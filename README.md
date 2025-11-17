@@ -294,6 +294,28 @@ Documentation for all REST API routes is available at ``/api/docs``.
 
 Tests are in ``apps/api/__tests__``.
 
+1. Launch development database with docker
+```bash
+docker compose -f docker-compose.test.yaml up
+```
+
+2. Create ``.env.test`` file in ``apps/api`` and run migrations
+```ini
+NODE_ENV="test"
+DATABASE_URL="postgresql://doggo:changeme@localhost:5432/doggopaste"
+GITHUB_CLIENT_ID="xxx"
+GITHUB_CLIENT_SECRET="xxx"
+```
+
+```bash
+cd apps/api && pnpm run db:push
+```
+
+3. Run tests
+```bash
+pnpm run test
+```
+
 <p align="right">(<a href="#top">back to top</a>)</p>
 
 ---
