@@ -2,7 +2,7 @@ import { and, eq, sql } from 'drizzle-orm'
 import { alias } from 'drizzle-orm/pg-core'
 import { Hono } from 'hono'
 import { db } from '../db/index.js'
-import { foldersTable, pastesTable } from '../db/schema.js'
+import { foldersTable, pastesTable, syntaxesTable } from '../db/schema.js'
 import { GenericException } from '../exceptions/generic-exception.js'
 import { userGuard } from '../middlewares/user-guard.js'
 import type { Env } from '../types.js'
@@ -20,6 +20,7 @@ import {
  *  POST   /         -> create (or reuse) a folder (root or nested)
  *  GET    /         -> list user's folders; supports ?parentId=... to list children of a given parent
  *  GET    /all      -> list all user's folders (flat)
+ *  GET    /:id	     -> get folder by id and corresponding pastes
  *  PATCH  /:id      -> rename and/or move (change parent)
  *  DELETE /:id      -> delete folder (children get parent=null; pastes get folder_id=null via FK)
  */
@@ -182,7 +183,8 @@ const app = new Hono<Env>()
 				pastesCount: sql<number>`COALESCE(CAST(COUNT(DISTINCT ${p.id})  AS int), 0)`
 			})
 			.from(f)
-			// @ts-expect-error
+			// biome-ignore lint: false positive
+			// @ts-ignore
 			.leftJoin(sf, eq(sf.parentFolderId, f.id))
 			.leftJoin(p, eq(p.folderId, f.id))
 			.where(eq(f.userId, user.id))
@@ -323,6 +325,105 @@ const app = new Hono<Env>()
 			)
 
 		return c.json({ success: true })
+	})
+	// *  GET /:id get folder by id and corresponding pastes
+	.get('/f/:id', userGuard, validatorFolderIdParam, async (c) => {
+		const user = c.get('user')
+		const { id } = c.req.valid('param')
+
+		// Aggregate folder with counts similar to /all endpoint
+		const f = foldersTable
+		const sf = alias(foldersTable, 'sf')
+		const p = pastesTable
+
+		const row = await db
+			.select({
+				id: f.id,
+				name: f.name,
+				parentFolderId: f.parentFolderId,
+				createdAt: f.createdAt,
+				updatedAt: f.updatedAt,
+				userId: f.userId,
+				subfoldersCount: sql<number>`COALESCE(CAST(COUNT(DISTINCT ${sf.id}) AS int), 0)`,
+				pastesCount: sql<number>`COALESCE(CAST(COUNT(DISTINCT ${p.id}) AS int), 0)`
+			})
+			.from(f)
+			// biome-ignore lint: false positive
+			// @ts-ignore
+			.leftJoin(sf, eq(sf.parentFolderId, f.id))
+			.leftJoin(p, eq(p.folderId, f.id))
+			.where(and(eq(f.id, id), eq(f.userId, user.id)))
+			.groupBy(f.id)
+			.then((res) => res[0])
+
+		if (!row) {
+			throw new GenericException({
+				statusCode: 404,
+				name: 'Not Found',
+				message: 'Folder not found'
+			})
+		}
+
+		const rawPastes = await db
+			.select({
+				id: pastesTable.id,
+				createdAt: pastesTable.createdAt,
+				updatedAt: pastesTable.updatedAt,
+				userId: pastesTable.userId,
+				folderId: pastesTable.folderId,
+				title: pastesTable.title,
+				description: pastesTable.description,
+				slug: pastesTable.slug,
+				category: pastesTable.category,
+				content: pastesTable.content,
+				expiresAt: pastesTable.expiresAt,
+				expiration: pastesTable.expiration,
+				passwordHash: pastesTable.passwordHash,
+				hits: pastesTable.hits,
+				visibility: pastesTable.visibility,
+				organizationId: pastesTable.organizationId,
+				syntaxName: syntaxesTable.name,
+				syntaxExtension: syntaxesTable.extension,
+				syntaxColor: syntaxesTable.color
+			})
+			.from(pastesTable)
+			.leftJoin(syntaxesTable, eq(pastesTable.syntaxId, syntaxesTable.id))
+			.where(
+				and(
+					eq(pastesTable.folderId, id),
+					eq(pastesTable.userId, user.id)
+				)
+			)
+
+		const flattened = rawPastes.map((p) => ({
+			id: p.id,
+			createdAt: p.createdAt,
+			updatedAt: p.updatedAt,
+			userId: p.userId,
+			folderId: p.folderId,
+			title: p.title,
+			description: p.description,
+			slug: p.slug,
+			category: p.category,
+			content: p.content,
+			expiresAt: p.expiresAt,
+			expiration: p.expiration,
+			passwordHash: p.passwordHash,
+			hits: p.hits,
+			visibility: p.visibility,
+			organizationId: p.organizationId,
+			tags: [],
+			syntax: {
+				name: p.syntaxName,
+				extension: p.syntaxExtension,
+				color: p.syntaxColor
+			}
+		}))
+
+		return c.json({
+			success: true,
+			data: { folder: row, pastes: flattened }
+		})
 	})
 
 export type AppType = typeof app

@@ -1101,6 +1101,216 @@
 				"tags": ["Folders"]
 			}
 		},
+		"/folders/f/{id}": {
+			"get": {
+				"summary": "/{id}",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"default": {
+						"description": "Default fallback response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"success": {
+											"oneOf": [{}, {}]
+										},
+										"data": {
+											"type": "object",
+											"properties": {
+												"folder": {
+													"type": "object",
+													"properties": {
+														"id": {
+															"type": "string"
+														},
+														"name": {
+															"type": "string"
+														},
+														"parentFolderId": {
+															"type": "string"
+														},
+														"createdAt": {
+															"type": "string"
+														},
+														"updatedAt": {
+															"type": "string"
+														},
+														"userId": {
+															"type": "string"
+														},
+														"subfoldersCount": {
+															"type": "number"
+														},
+														"pastesCount": {
+															"type": "number"
+														}
+													},
+													"required": [
+														"id",
+														"name",
+														"parentFolderId",
+														"createdAt",
+														"updatedAt",
+														"userId",
+														"subfoldersCount",
+														"pastesCount"
+													]
+												},
+												"pastes": {
+													"type": "array",
+													"items": {
+														"type": "object",
+														"properties": {
+															"id": {
+																"type": "string"
+															},
+															"createdAt": {
+																"type": "string"
+															},
+															"updatedAt": {
+																"type": "string"
+															},
+															"userId": {
+																"type": "string"
+															},
+															"folderId": {
+																"type": "string"
+															},
+															"title": {
+																"type": "string"
+															},
+															"description": {
+																"type": "string"
+															},
+															"slug": {
+																"type": "string"
+															},
+															"category": {
+																"type": "string",
+																"enum": [
+																	"log",
+																	"none",
+																	"cryptocurrency",
+																	"cybersecurity",
+																	"fixit",
+																	"gaming",
+																	"help",
+																	"software",
+																	"note",
+																	"config",
+																	"question",
+																	"project",
+																	"snippet",
+																	"education"
+																]
+															},
+															"content": {
+																"type": "string"
+															},
+															"expiresAt": {
+																"type": "string"
+															},
+															"expiration": {
+																"type": "string",
+																"enum": [
+																	"never",
+																	"burn_after_read",
+																	"10m",
+																	"1h",
+																	"1d",
+																	"1w",
+																	"2w"
+																]
+															},
+															"passwordHash": {
+																"type": "string"
+															},
+															"hits": {
+																"type": "number"
+															},
+															"visibility": {
+																"type": "string",
+																"enum": [
+																	"public",
+																	"organization",
+																	"private",
+																	"unlisted"
+																]
+															},
+															"organizationId": {
+																"type": "string"
+															},
+															"tags": {
+																"type": "array",
+																"items": {}
+															},
+															"syntax": {
+																"type": "object",
+																"properties": {
+																	"name": {
+																		"type": "string"
+																	},
+																	"extension": {
+																		"type": "string"
+																	},
+																	"color": {
+																		"type": "string"
+																	}
+																},
+																"required": [
+																	"name",
+																	"extension",
+																	"color"
+																]
+															}
+														},
+														"required": [
+															"id",
+															"createdAt",
+															"updatedAt",
+															"userId",
+															"folderId",
+															"title",
+															"description",
+															"slug",
+															"category",
+															"content",
+															"expiresAt",
+															"expiration",
+															"passwordHash",
+															"hits",
+															"visibility",
+															"organizationId",
+															"tags",
+															"syntax"
+														]
+													}
+												}
+											},
+											"required": ["folder", "pastes"]
+										}
+									},
+									"required": ["success", "data"]
+								}
+							}
+						}
+					}
+				},
+				"description": "Retrieves a specific folder by id",
+				"tags": ["Folders"]
+			}
+		},
 		"/user/pastes": {
 			"get": {
 				"summary": "/pastes",

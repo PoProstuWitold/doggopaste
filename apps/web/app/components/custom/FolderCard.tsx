@@ -14,7 +14,7 @@ export const FolderCard = ({ folder, username }: FolderCardProps) => {
 	const subfolders = folder.subfoldersCount ?? 0
 
 	return (
-		<div className='w-full select-none max-w-36 max-h-36'>
+		<div className='select-none'>
 			<Link
 				href={`/u/${encodeURIComponent(username)}/folders/${folder.id}`}
 				aria-label={`Open folder ${folder.name}`}
@@ -25,7 +25,7 @@ export const FolderCard = ({ folder, username }: FolderCardProps) => {
                      grid place-items-center transition
                      group-hover:shadow-md group-hover:border-base-300/80'
 				>
-					<FaFolder className='h-20 w-20 text-warning/90 transition group-hover:scale-105' />
+					<FaFolder className='h-30 w-30 lg:h-24 lg:w-24 text-warning/90 transition group-hover:scale-105' />
 					<div className='flex items-center gap-1.5 sm:gap-2 ml-2'>
 						<span
 							className='badge badge-sm badge-ghost gap-1'

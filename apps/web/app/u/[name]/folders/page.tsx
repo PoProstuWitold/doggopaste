@@ -128,7 +128,7 @@ export default async function FoldersPage({
 				</span>
 			</header>
 
-			<section className='grid gap-3 justify-start [grid-template-columns:repeat(auto-fit,minmax(8rem,max-content))]'>
+			<section className='grid gap-4 place-items-stretch grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 2xl:grid-cols-10'>
 				{isOwn && <NewFolderCard />}
 
 				{isOwn &&

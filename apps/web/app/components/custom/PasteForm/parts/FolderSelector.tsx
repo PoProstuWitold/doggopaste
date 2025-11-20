@@ -1,15 +1,21 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useFormContext, useWatch } from 'react-hook-form'
+import { useController, useFormContext } from 'react-hook-form'
 import toast from 'react-hot-toast'
 import type { Folder, PasteForm as PasteFormType } from '@/app/types'
 import { buildFolderTree, flattenWithIndent } from '@/app/utils/folderHelpers'
 import { getBaseApiUrl } from '@/app/utils/functions'
 
 export function FolderSelector() {
-	const { register, setValue } = useFormContext<PasteFormType>()
-	const selectedFolderId = useWatch<PasteFormType>({ name: 'folder' })
+	const { control, setValue } = useFormContext<PasteFormType>()
+	// Fully controlled field with explicit default.
+	const { field: folderField } = useController<PasteFormType>({
+		name: 'folder',
+		control,
+		defaultValue: 'none'
+	})
+	const selectedFolderId = (folderField.value as string) || 'none'
 
 	const [folders, setFolders] = useState<Folder[]>([])
 	const [foldersLoading, setFoldersLoading] = useState(false)
@@ -76,34 +82,81 @@ export function FolderSelector() {
 			})
 
 			const json = await res.json()
+			console.debug('[FolderSelector] create folder response:', json)
 			if (!res.ok) {
 				toast.error(json?.message || 'Failed to create folder')
 				return
 			}
-
-			const created = json.data as Folder
+			// API returns data as an array (one element) per provided sample.
+			const arr = Array.isArray(json.data) ? json.data : [json.data]
+			const createdRaw = arr[0]
+			// Normalize to Folder shape.
+			const created: Folder = {
+				id: createdRaw.id,
+				name: createdRaw.name,
+				parentFolderId: createdRaw.parentFolderId ?? null,
+				createdAt: createdRaw.createdAt,
+				updatedAt: createdRaw.updatedAt,
+				userId: createdRaw.userId,
+				// Provide fallback counts if backend doesn't include them.
+				subfoldersCount: createdRaw.subfoldersCount ?? 0,
+				pastesCount: createdRaw.pastesCount ?? 0
+			}
+			if (!created.id) {
+				toast.error('API did not return folder id')
+				return
+			}
 			setFolders((prev) => {
 				const withoutDup = prev.filter((f) => f.id !== created.id)
 				return [...withoutDup, created]
 			})
-
-			try {
-				const resAll = await fetch(
-					`${getBaseApiUrl()}/api/folders/all`,
-					{
-						credentials: 'include'
-					}
-				)
-				if (resAll.ok) {
-					const j = (await resAll.json()) as {
-						success: boolean
-						data: Folder[]
-					}
-					setFolders(j.data ?? [])
-				}
-			} catch {}
-
+			// Select new folder via RHF + controller.
 			setValue('folder', created.id, { shouldValidate: true })
+			folderField.onChange(created.id)
+
+			// Refresh full list (not blocking selection).
+			;(async () => {
+				try {
+					const resAll = await fetch(
+						`${getBaseApiUrl()}/api/folders/all`,
+						{
+							credentials: 'include'
+						}
+					)
+					if (resAll.ok) {
+						const j = await resAll.json()
+						const listRaw = Array.isArray(j.data) ? j.data : []
+						// biome-ignore lint: no need to narrow
+						const normalized: Folder[] = listRaw.map((r: any) => ({
+							id: r.id,
+							name: r.name,
+							parentFolderId: r.parentFolderId ?? null,
+							createdAt: r.createdAt,
+							updatedAt: r.updatedAt,
+							userId: r.userId,
+							subfoldersCount: r.subfoldersCount ?? 0,
+							pastesCount: r.pastesCount ?? 0
+						}))
+						console.debug(
+							'[FolderSelector] refreshed folders:',
+							normalized.length
+						)
+						setFolders((prev) => {
+							const haveCreated = normalized.some(
+								(f) => f.id === created.id
+							)
+							return haveCreated ? normalized : prev
+						})
+						// Reassert selection if race occurred.
+						if (folderField.value !== created.id) {
+							setValue('folder', created.id)
+							folderField.onChange(created.id)
+						}
+					}
+				} catch (e) {
+					console.warn('[FolderSelector] refresh failed:', e)
+				}
+			})()
 			setNewFolderName('')
 			toast.success('Folder created')
 			// biome-ignore lint: no need to narrow
@@ -121,7 +174,10 @@ export function FolderSelector() {
 			</div>
 
 			<select
-				{...register('folder')}
+				ref={folderField.ref}
+				name={folderField.name}
+				value={selectedFolderId}
+				onChange={(e) => folderField.onChange(e.target.value)}
 				className='select select-bordered w-full'
 				disabled={foldersLoading}
 			>
@@ -131,6 +187,13 @@ export function FolderSelector() {
 						Failed to load folders
 					</option>
 				)}
+				{!foldersError &&
+					selectedFolderId !== 'none' &&
+					!folders.some((f) => f.id === selectedFolderId) && (
+						<option value={selectedFolderId}>
+							Loading folder…
+						</option>
+					)}
 				{!foldersError &&
 					(() => {
 						const byParent = buildFolderTree(folders)

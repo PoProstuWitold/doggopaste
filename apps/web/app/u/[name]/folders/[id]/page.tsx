@@ -11,7 +11,8 @@ import {
 } from 'react-icons/fa'
 import { FolderCard } from '@/app/components/custom/FolderCard'
 import { NewFolderCard } from '@/app/components/custom/NewFolderCard'
-import type { Folder, User } from '@/app/types'
+import { PasteCard } from '@/app/components/custom/PasteCard'
+import type { Folder, Paste, User } from '@/app/types'
 import { createDynamicAuthClient } from '@/app/utils/auth-client'
 import { getBaseApiUrl } from '@/app/utils/functions'
 
@@ -69,36 +70,48 @@ export default async function FolderPage({
 
 	const isOwn = loggedUser && loggedUser.id === foldersUser.id
 
-	// --- pobierz wszystkie foldery tylko dla właściciela ---
 	let folders: Folder[] = []
 	let currentFolder: Folder | undefined
 	let childFolders: Folder[] = []
+	let pastes: Paste[] = []
 
 	if (isOwn) {
 		const cookieHeader = await cookies()
-		const foldersRes = await fetch(`${getBaseApiUrl()}/api/folders/all`, {
+		// Pobierz pojedynczy folder + pasty
+		const folderRes = await fetch(
+			`${getBaseApiUrl()}/api/folders/f/${encodeURIComponent(id)}`,
+			{
+				headers: { Cookie: cookieHeader.toString() },
+				next: { revalidate: 0 },
+				cache: 'no-store'
+			}
+		)
+		console.log('folderRes', folderRes)
+		if (!folderRes.ok) {
+			if (folderRes.status === 404) notFound()
+			throw new Error('Failed to load folder')
+		}
+		const folderJson = (await folderRes.json()) as {
+			success: boolean
+			data: { folder: Folder; pastes: Paste[] }
+		}
+		currentFolder = folderJson.data.folder
+		pastes = folderJson.data.pastes || []
+
+		// Dla listy potomnych nadal potrzebujemy pełnej listy, aby wyświetlić subfoldery.
+		const allRes = await fetch(`${getBaseApiUrl()}/api/folders/all`, {
 			headers: { Cookie: cookieHeader.toString() },
 			next: { revalidate: 0 },
 			cache: 'no-store'
 		})
-
-		if (foldersRes.ok) {
-			const j = (await foldersRes.json()) as {
+		if (allRes.ok) {
+			const allJson = (await allRes.json()) as {
 				success: boolean
 				data: Folder[]
 			}
-			folders = j.data ?? []
+			folders = allJson.data || []
+			childFolders = folders.filter((f) => f.parentFolderId === id)
 		}
-
-		// znajdź aktualny folder
-		currentFolder = folders.find((f) => f.id === id)
-		if (!currentFolder) {
-			// folder nie należy do usera / nie istnieje
-			notFound()
-		}
-
-		// bezpośrednie dzieci tego folderu
-		childFolders = folders.filter((f) => f.parentFolderId === id)
 	}
 
 	return (
@@ -106,11 +119,13 @@ export default async function FolderPage({
 			{/* back to profile */}
 			<div>
 				<Link
-					href={`/u/${encodeURIComponent(foldersUser.name)}/folders`}
+					href={`/u/${encodeURIComponent(foldersUser.name)}/folders/${encodeURIComponent(
+						currentFolder?.parentFolderId || ''
+					)}`}
 					className='inline-flex items-center gap-2 btn btn-link'
 				>
 					<FaLongArrowAltLeft className='w-5 h-5' />
-					<span>Back to all folders</span>
+					<span>Back to parent folder</span>
 				</Link>
 			</div>
 
@@ -146,7 +161,7 @@ export default async function FolderPage({
 				</span>
 			</header>
 
-			<section className='grid gap-3 justify-start [grid-template-columns:repeat(auto-fit,minmax(8rem,max-content))]'>
+			<section className='grid gap-4 place-items-stretch grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 2xl:grid-cols-10'>
 				{isOwn && <NewFolderCard />}
 
 				{isOwn &&
@@ -158,18 +173,29 @@ export default async function FolderPage({
 						/>
 					))}
 
-				{isOwn && childFolders.length === 0 && (
-					<p className='text-muted-foreground col-span-full my-2'>
-						This folder has no subfolders yet.
-					</p>
-				)}
-
 				{!isOwn && (
 					<p className='text-muted-foreground col-span-full my-2'>
 						This user&apos;s folders are private.
 					</p>
 				)}
 			</section>
+
+			{isOwn && (
+				<div className='space-y-4 mt-10'>
+					<div className='divider'>Pastes in this folder</div>
+					{pastes.length === 0 ? (
+						<p className='text-sm text-base-content/60'>
+							No pastes in this folder yet.
+						</p>
+					) : (
+						<ul className='flex flex-col gap-6'>
+							{pastes.map((paste) => (
+								<PasteCard key={paste.id} paste={paste} />
+							))}
+						</ul>
+					)}
+				</div>
+			)}
 		</div>
 	)
 }

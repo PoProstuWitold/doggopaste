@@ -19,7 +19,7 @@ export const NewFolderCard = ({
                      grid place-items-center transition
                      group-hover:shadow-md group-hover:border-base-300/80'
 			>
-				<FaFolderPlus className='h-20 w-20 text-warning/90 transition group-hover:scale-105' />
+				<FaFolderPlus className='h-30 w-30 lg:h-24 lg:w-24 text-warning/90 transition group-hover:scale-105' />
 			</div>
 			<div className='mt-2 w-full text-center text-sm truncate'>
 				{label}
@@ -28,7 +28,7 @@ export const NewFolderCard = ({
 	)
 
 	return (
-		<div className='w-full select-none max-w-36 max-h-36'>
+		<div className='select-none'>
 			<button
 				type='button'
 				aria-label='Create new folder'

@@ -107,6 +107,12 @@ export default defineConfig({
 					description: 'Creates (or reuses) a folder (root or nested)'
 				},
 				{
+					api: '/f/{id}',
+					method: 'get',
+					summary: '/{id}',
+					description: 'Retrieves a specific folder by id'
+				},
+				{
 					api: '/',
 					method: 'get',
 					summary: '/',
