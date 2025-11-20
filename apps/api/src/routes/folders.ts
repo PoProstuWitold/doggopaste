@@ -238,43 +238,37 @@ const app = new Hono<Env>()
 				updates.name = body.name.trim()
 			}
 
-			if ('parentId' in body) {
-				const nextParent = body.parentId ?? null
-
-				if (nextParent === id) {
-					throw new GenericException({
-						statusCode: 400,
-						name: 'Bad Request',
-						message: 'Folder cannot be its own parent'
-					})
-				}
-
-				if (nextParent) {
-					const [parent] = await db
-						.select({ id: foldersTable.id })
-						.from(foldersTable)
-						.where(
-							and(
-								eq(foldersTable.id, nextParent),
-								eq(foldersTable.userId, user.id)
-							)
-						)
-
-					if (!parent) {
-						throw new GenericException({
-							statusCode: 404,
-							name: 'Not Found',
-							message:
-								'Parent folder not found or does not belong to the user'
-						})
-					}
-				}
-
-				updates.parentFolderId = nextParent
-			}
-
 			if (Object.keys(updates).length === 0) {
 				return c.json({ success: true, data: folder }) // nothing to change
+			}
+
+			// Enforce sibling uniqueness for name changes
+			if (updates.name) {
+				const [conflict] = await db
+					.select({ id: foldersTable.id })
+					.from(foldersTable)
+					.where(
+						and(
+							eq(foldersTable.userId, user.id),
+							folder.parentFolderId === null
+								? sql`${foldersTable.parentFolderId} IS NULL`
+								: eq(
+										foldersTable.parentFolderId,
+										folder.parentFolderId
+									),
+							eq(foldersTable.name, updates.name),
+							sql`${foldersTable.id} <> ${id}`
+						)
+					)
+
+				if (conflict) {
+					throw new GenericException({
+						statusCode: 409,
+						name: 'Conflict',
+						message:
+							'A folder with that name already exists at this level'
+					})
+				}
 			}
 
 			const [updated] = await db
@@ -318,13 +312,28 @@ const app = new Hono<Env>()
 			})
 		}
 
-		await db
-			.delete(foldersTable)
-			.where(
-				and(eq(foldersTable.id, id), eq(foldersTable.userId, user.id))
-			)
+		// Recursive CTE collects all descendant folders and deletes them in one statement.
+		// This avoids multiple round-trips and fragile manual array assembly.
+		const recursiveDelete = sql`WITH RECURSIVE folder_tree AS (
+			SELECT id, parent_folder_id FROM folders WHERE id = ${id} AND user_id = ${user.id}
+			UNION ALL
+			SELECT f.id, f.parent_folder_id
+			FROM folders f
+			JOIN folder_tree ft ON f.parent_folder_id = ft.id
+			WHERE f.user_id = ${user.id}
+		)
+		DELETE FROM folders WHERE id IN (SELECT id FROM folder_tree) RETURNING id;`
 
-		return c.json({ success: true })
+		const deleted = (await db.execute(recursiveDelete)) as unknown as {
+			rows?: { id: string }[]
+		}
+
+		// biome-ignore lint: no need to narrow
+		const count = Array.isArray((deleted as any)?.rows)
+			? // biome-ignore lint: no need to narrow
+				(deleted as any).rows.length
+			: undefined
+		return c.json({ success: true, deleted: count })
 	})
 	// *  GET /:id get folder by id and corresponding pastes
 	.get('/f/:id', userGuard, validatorFolderIdParam, async (c) => {

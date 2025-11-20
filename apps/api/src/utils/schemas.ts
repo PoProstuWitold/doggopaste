@@ -161,10 +161,23 @@ function toDetails(issues: z.core.$ZodIssue[]) {
 /* ---------- schemas ---------- */
 
 // POST /folders  (create)
-export const createFolderSchema = z.object({
-	name: z.string().min(1, 'name is required').max(512, 'name too long'),
-	parentId: z.uuid('invalid parentId').nullable().optional()
-})
+export const createFolderSchema = z.object(
+	{
+		name: z
+			.string()
+			.min(3, 'Name too short')
+			.max(40, 'Name too long')
+			.regex(
+				/^[A-Za-z][A-Za-z0-9]*$/,
+				'Name must start with a letter and contain only letters or digits'
+			)
+			.transform((val) => val),
+		parentId: z.uuid('invalid parentId').nullable().optional()
+	},
+	{
+		error: 'Folder name must start with a letter and contain only letters or digits'
+	}
+)
 
 // GET /folders?parentId=...  (list by parent)
 export const listFoldersQuerySchema = z.object({
@@ -174,19 +187,21 @@ export const listFoldersQuerySchema = z.object({
 // GET /folders/all  (no schema needed)
 
 // PATCH /folders/:id  (update)
-export const updateFolderSchema = z
-	.object({
+export const updateFolderSchema = z.object(
+	{
 		name: z
 			.string()
-			.min(1, 'name cannot be empty')
-			.max(512, 'name too long')
-			.optional(),
-		parentId: z.uuid('invalid parentId').nullable().optional()
-	})
-	.refine((v) => 'name' in v || 'parentId' in v, {
-		message: 'provide at least one field to update',
-		path: []
-	})
+			.min(3, 'Name too short')
+			.max(40, 'Name too long')
+			.regex(
+				/^[A-Za-z][A-Za-z0-9]*$/,
+				'Name must start with a letter and contain only letters or digits'
+			)
+	},
+	{
+		error: 'Folder name must start with a letter and contain only letters or digits'
+	}
+)
 
 // :id param validator (used by PATCH/DELETE)
 export const folderIdParamSchema = z.object({
@@ -201,12 +216,13 @@ export const validatorCreateFolderJson = zValidator(
 	createFolderSchema,
 	async (result, _c) => {
 		if (!result.success) {
+			const issues = (result as typeof result & { success: false }).error
+				.issues
 			throw new GenericException({
 				statusCode: 400,
 				name: 'Bad Request',
-				message: 'Invalid folder data',
-				//@ts-expect-error
-				details: toDetails(result.error.issues)
+				message: issues[0]?.message || 'Invalid folder data',
+				details: toDetails(issues)
 			})
 		}
 	}

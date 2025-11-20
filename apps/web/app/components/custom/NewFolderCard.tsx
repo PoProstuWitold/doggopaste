@@ -1,17 +1,51 @@
 'use client'
 
-import type { MouseEventHandler } from 'react'
-import { FaFolderPlus } from 'react-icons/fa'
+import { useState } from 'react'
+import { toast } from 'react-hot-toast'
+import { FaFolderPlus, FaSpinner } from 'react-icons/fa'
+import { CustomDialog } from '@/app/components/core/CustomDialog'
+import { getBaseApiUrl } from '@/app/utils/functions'
 
 interface NewFolderCardProps {
-	onClick?: MouseEventHandler
 	label?: string
+	parentId?: string | null
 }
 
 export const NewFolderCard = ({
-	onClick,
-	label = 'New'
+	label = 'New',
+	parentId = null
 }: NewFolderCardProps) => {
+	const [name, setName] = useState('')
+	const [loading, setLoading] = useState(false)
+
+	async function handleCreate(e: React.FormEvent) {
+		e.preventDefault()
+		const trimmed = name.trim()
+		if (trimmed.length < 3) {
+			toast.error('Folder name must be at least 3 characters')
+			return
+		}
+		setLoading(true)
+		try {
+			const res = await fetch(`${getBaseApiUrl()}/api/folders`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ name: trimmed, parentId })
+			})
+			const json = await res.json()
+			if (!res.ok) {
+				const msg = json?.message || 'Failed to create folder'
+				toast.error(msg)
+			} else {
+				toast.success('Folder created')
+				window.location.reload()
+			}
+		} catch (_err) {
+			toast.error('Network error while creating folder')
+		} finally {
+			setLoading(false)
+		}
+	}
 	const Inner = (
 		<>
 			<div
@@ -29,14 +63,38 @@ export const NewFolderCard = ({
 
 	return (
 		<div className='select-none'>
-			<button
-				type='button'
-				aria-label='Create new folder'
-				onClick={onClick}
-				className='group block w-full cursor-pointer'
+			<CustomDialog
+				btnContent={Inner}
+				title='Create Folder'
+				description='Provide a unique folder name for this level.'
+				btnClasses='group block w-full cursor-pointer'
 			>
-				{Inner}
-			</button>
+				<form onSubmit={handleCreate} className='flex flex-col gap-3'>
+					<input
+						type='text'
+						className='input input-bordered w-full'
+						value={name}
+						onChange={(e) => setName(e.target.value)}
+						placeholder='Folder name'
+						minLength={3}
+						maxLength={40}
+						pattern='^[A-Za-z][A-Za-z0-9]*$'
+						title='Start with a letter; only letters or digits'
+						required
+					/>
+					<button
+						type='submit'
+						className='btn btn-primary btn-sm'
+						disabled={loading}
+					>
+						{loading ? (
+							<FaSpinner className='animate-spin' />
+						) : (
+							'Create'
+						)}
+					</button>
+				</form>
+			</CustomDialog>
 		</div>
 	)
 }

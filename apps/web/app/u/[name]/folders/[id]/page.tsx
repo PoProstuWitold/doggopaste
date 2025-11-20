@@ -1,14 +1,9 @@
-// app/u/[name]/folders/[id]/page.tsx
 import type { Metadata } from 'next'
 import { cookies, headers } from 'next/headers'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import {
-	FaFolder,
-	FaFolderOpen,
-	FaHashtag,
-	FaLongArrowAltLeft
-} from 'react-icons/fa'
+import { FaFolder, FaFolderOpen, FaLongArrowAltLeft } from 'react-icons/fa'
+import { FolderButtons } from '@/app/components/custom/FolderButtons'
 import { FolderCard } from '@/app/components/custom/FolderCard'
 import { NewFolderCard } from '@/app/components/custom/NewFolderCard'
 import { PasteCard } from '@/app/components/custom/PasteCard'
@@ -77,7 +72,6 @@ export default async function FolderPage({
 
 	if (isOwn) {
 		const cookieHeader = await cookies()
-		// Pobierz pojedynczy folder + pasty
 		const folderRes = await fetch(
 			`${getBaseApiUrl()}/api/folders/f/${encodeURIComponent(id)}`,
 			{
@@ -98,7 +92,6 @@ export default async function FolderPage({
 		currentFolder = folderJson.data.folder
 		pastes = folderJson.data.pastes || []
 
-		// Dla listy potomnych nadal potrzebujemy pełnej listy, aby wyświetlić subfoldery.
 		const allRes = await fetch(`${getBaseApiUrl()}/api/folders/all`, {
 			headers: { Cookie: cookieHeader.toString() },
 			next: { revalidate: 0 },
@@ -155,14 +148,17 @@ export default async function FolderPage({
 						</div>
 					</div>
 				</div>
-				<span className='badge badge-ghost gap-1 font-mono p-5'>
-					<FaHashtag className='w-5 h-5' />
-					id: {id}
-				</span>
+				{isOwn && currentFolder && (
+					<FolderButtons
+						name={name}
+						folderId={currentFolder.id}
+						currentName={currentFolder.name}
+					/>
+				)}
 			</header>
 
 			<section className='grid gap-4 place-items-stretch grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 2xl:grid-cols-10'>
-				{isOwn && <NewFolderCard />}
+				{isOwn && <NewFolderCard parentId={id} />}
 
 				{isOwn &&
 					childFolders.map((folder) => (
