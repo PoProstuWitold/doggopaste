@@ -21,6 +21,9 @@
 		},
 		{
 			"name": "User"
+		},
+		{
+			"name": "DoggoPaste Admin"
 		}
 	],
 	"paths": {
@@ -1089,9 +1092,10 @@
 									"properties": {
 										"success": {
 											"oneOf": [{}, {}]
-										}
+										},
+										"deleted": {}
 									},
-									"required": ["success"]
+									"required": ["success", "deleted"]
 								}
 							}
 						}
@@ -1456,6 +1460,340 @@
 				},
 				"description": "Checks if user with given name exists and returns basic info about them.",
 				"tags": ["User"]
+			}
+		},
+		"/admin/pastes": {
+			"get": {
+				"summary": "/pastes",
+				"responses": {
+					"default": {
+						"description": "Default fallback response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"success": {
+											"oneOf": [{}, {}]
+										},
+										"data": {
+											"type": "object",
+											"properties": {
+												"pastes": {
+													"type": "array",
+													"items": {
+														"type": "object",
+														"properties": {
+															"paste": {
+																"type": "object",
+																"properties": {
+																	"id": {
+																		"type": "string"
+																	},
+																	"title": {
+																		"type": "string"
+																	},
+																	"slug": {
+																		"type": "string"
+																	},
+																	"visibility": {
+																		"type": "string",
+																		"enum": [
+																			"public",
+																			"private",
+																			"unlisted",
+																			"organization"
+																		]
+																	},
+																	"createdAt": {
+																		"type": "string"
+																	},
+																	"updatedAt": {
+																		"type": "string"
+																	}
+																},
+																"required": [
+																	"id",
+																	"title",
+																	"slug",
+																	"visibility",
+																	"createdAt",
+																	"updatedAt"
+																]
+															},
+															"user": {
+																"type": "object",
+																"properties": {
+																	"id": {
+																		"type": "string"
+																	},
+																	"name": {
+																		"type": "string"
+																	}
+																},
+																"required": [
+																	"id",
+																	"name"
+																]
+															},
+															"syntax": {
+																"type": "object",
+																"properties": {
+																	"id": {
+																		"type": "string"
+																	},
+																	"name": {
+																		"type": "string"
+																	},
+																	"extension": {
+																		"type": "string"
+																	},
+																	"color": {
+																		"type": "string"
+																	}
+																},
+																"required": [
+																	"id",
+																	"name",
+																	"extension",
+																	"color"
+																]
+															}
+														},
+														"required": [
+															"paste",
+															"user",
+															"syntax"
+														]
+													}
+												}
+											},
+											"required": ["pastes"]
+										}
+									},
+									"required": ["success", "data"]
+								}
+							}
+						}
+					}
+				},
+				"description": "Retrieves a list of all pastes in the system for administrative purposes.",
+				"tags": ["DoggoPaste Admin"]
+			}
+		},
+		"/admin/pastes-realtime": {
+			"get": {
+				"summary": "/pastes-realtime",
+				"responses": {
+					"default": {
+						"description": "Default fallback response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"success": {
+											"oneOf": [{}, {}]
+										},
+										"data": {
+											"type": "object",
+											"properties": {
+												"realtimePastes": {
+													"type": "array",
+													"items": {
+														"type": "object",
+														"properties": {
+															"paste": {
+																"type": "object",
+																"properties": {
+																	"title": {
+																		"type": "string"
+																	},
+																	"slug": {
+																		"type": "string"
+																	},
+																	"content": {
+																		"type": "string"
+																	},
+																	"syntaxId": {
+																		"type": "string"
+																	},
+																	"visibility": {
+																		"type": "string",
+																		"enum": [
+																			"public",
+																			"organization"
+																		]
+																	},
+																	"organizationId": {
+																		"type": "string"
+																	},
+																	"id": {
+																		"type": "string"
+																	},
+																	"createdAt": {
+																		"type": "string"
+																	},
+																	"updatedAt": {
+																		"type": "string"
+																	}
+																},
+																"required": [
+																	"title",
+																	"slug",
+																	"content",
+																	"syntaxId",
+																	"visibility",
+																	"organizationId",
+																	"id",
+																	"createdAt",
+																	"updatedAt"
+																]
+															},
+															"syntax": {
+																"type": "object",
+																"properties": {
+																	"name": {
+																		"type": "string"
+																	},
+																	"extension": {
+																		"type": "string"
+																	},
+																	"color": {
+																		"type": "string"
+																	}
+																},
+																"required": [
+																	"name",
+																	"extension",
+																	"color"
+																]
+															}
+														},
+														"required": [
+															"paste",
+															"syntax"
+														]
+													}
+												}
+											},
+											"required": ["realtimePastes"]
+										}
+									},
+									"required": ["success", "data"]
+								}
+							}
+						}
+					}
+				},
+				"description": "Retrieves a list of all realtime pastes in the system for administrative purposes.",
+				"tags": ["DoggoPaste Admin"]
+			}
+		},
+		"/admin/tags": {
+			"get": {
+				"summary": "/tags",
+				"responses": {
+					"default": {
+						"description": "Default fallback response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"success": {
+											"oneOf": [{}, {}]
+										},
+										"data": {
+											"type": "object",
+											"properties": {
+												"tags": {
+													"type": "array",
+													"items": {
+														"type": "object",
+														"properties": {
+															"id": {
+																"type": "string"
+															},
+															"name": {
+																"type": "string"
+															}
+														},
+														"required": [
+															"id",
+															"name"
+														]
+													}
+												}
+											},
+											"required": ["tags"]
+										}
+									},
+									"required": ["success", "data"]
+								}
+							}
+						}
+					}
+				},
+				"description": "Retrieves a list of all tags in the system for administrative purposes.",
+				"tags": ["DoggoPaste Admin"]
+			}
+		},
+		"/admin/syntaxes": {
+			"get": {
+				"summary": "/syntaxes",
+				"responses": {
+					"default": {
+						"description": "Default fallback response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"success": {
+											"oneOf": [{}, {}]
+										},
+										"data": {
+											"type": "object",
+											"properties": {
+												"syntaxes": {
+													"type": "array",
+													"items": {
+														"type": "object",
+														"properties": {
+															"id": {
+																"type": "string"
+															},
+															"name": {
+																"type": "string"
+															},
+															"extension": {
+																"type": "string"
+															},
+															"color": {
+																"type": "string"
+															}
+														},
+														"required": [
+															"id",
+															"name",
+															"extension",
+															"color"
+														]
+													}
+												}
+											},
+											"required": ["syntaxes"]
+										}
+									},
+									"required": ["success", "data"]
+								}
+							}
+						}
+					}
+				},
+				"description": "Retrieves a list of all syntaxes in the system for administrative purposes.",
+				"tags": ["DoggoPaste Admin"]
 			}
 		}
 	}

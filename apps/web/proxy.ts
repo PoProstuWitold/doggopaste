@@ -24,12 +24,18 @@ export async function proxy(req: NextRequest) {
 		/^\/p\/[a-zA-Z0-9-]+\/edit$/
 	]
 
+	const adminPaths: (string | RegExp)[] = ['/dashboard']
+
 	const isProtected = protectedPaths.some((route) =>
 		route instanceof RegExp ? route.test(path) : route === path
 	)
 
-	let isLoggedIn = false
+	const isAdminRoute = adminPaths.some((route) =>
+		route instanceof RegExp ? route.test(path) : route === path
+	)
 
+	let isLoggedIn = false
+	let isAdmin = false
 	// Try to get user info from the API
 	const me = await fetch(`${getBaseApiUrl()}/api/auth/get-session`, {
 		headers: await headers()
@@ -41,6 +47,7 @@ export async function proxy(req: NextRequest) {
 				const data = JSON.parse(text)
 				if (data?.user) {
 					isLoggedIn = true
+					isAdmin = data.user.role === 'admin'
 				}
 			} catch (err) {
 				console.warn('Invalid JSON: ', err)
@@ -63,6 +70,14 @@ export async function proxy(req: NextRequest) {
 			path
 		)
 		return NextResponse.redirect(new URL('/login', req.url))
+	}
+
+	if (isAdminRoute && !isAdmin) {
+		console.info(
+			'[middleware] Redirecting non-admin user from admin path:',
+			path
+		)
+		return NextResponse.redirect(new URL('/', req.url))
 	}
 
 	return NextResponse.next()

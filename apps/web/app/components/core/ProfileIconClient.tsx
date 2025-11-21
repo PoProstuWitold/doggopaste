@@ -6,7 +6,8 @@ import toast from 'react-hot-toast'
 import { BiLogIn, BiLogOut } from 'react-icons/bi'
 import { CgProfile } from 'react-icons/cg'
 import { FaFileCode, FaUserAlt } from 'react-icons/fa'
-import { MdHealthAndSafety } from 'react-icons/md'
+import { MdAdminPanelSettings, MdHealthAndSafety } from 'react-icons/md'
+import { SlDocs } from 'react-icons/sl'
 import type { User } from '@/app/types'
 import { createDynamicAuthClient } from '@/app/utils/auth-client'
 import { wait } from '@/app/utils/functions'
@@ -93,15 +94,35 @@ export const ProfileIconClient: React.FC<ProfileIconClientProps> = ({
 							<span>My DoggoPaste</span>
 						</Link>
 						{user.role === 'admin' && (
-							<Link
-								href='/status'
-								className='btn btn-outline btn-sm justify-start'
-								aria-label='Go to system status'
-								onClick={() => setIsOpen(false)}
-							>
-								<MdHealthAndSafety className='w-5 h-5' />
-								<span>System Status</span>
-							</Link>
+							<>
+								<Link
+									href='/status'
+									className='btn btn-outline btn-sm justify-start'
+									aria-label='Go to system status'
+									onClick={() => setIsOpen(false)}
+								>
+									<MdHealthAndSafety className='w-5 h-5' />
+									<span>System Status</span>
+								</Link>
+								<Link
+									href='/dashboard'
+									className='btn btn-outline btn-sm justify-start'
+									aria-label='Go to admin dashboard'
+									onClick={() => setIsOpen(false)}
+								>
+									<MdAdminPanelSettings className='w-5 h-5' />
+									<span>Admin Dashboard</span>
+								</Link>
+								<a
+									href={`/api/docs`}
+									target='_blank'
+									rel='noreferrer'
+									className='btn btn-outline btn-sm justify-start'
+								>
+									<SlDocs className='w-5 h-5' />
+									<span>API Docs</span>
+								</a>
+							</>
 						)}
 						<button
 							onClick={async () => {

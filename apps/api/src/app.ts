@@ -17,6 +17,7 @@ import {
 	responseTime,
 	wsMiddleware
 } from './middlewares/index.js'
+import adminRoutes from './routes/admin.js'
 import folderRoutes from './routes/folders.js'
 import pasteRoutes from './routes/pastes.js'
 import pasteRealtimeRoutes from './routes/pastes-realtime.js'
@@ -124,6 +125,7 @@ export function createApp() {
 	app.route('/pastes-realtime', pasteRealtimeRoutes)
 	app.route('/user', userRoutes)
 	app.route('/folders', folderRoutes)
+	app.route('/admin', adminRoutes)
 
 	return app
 }

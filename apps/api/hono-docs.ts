@@ -158,6 +158,41 @@ export default defineConfig({
 						'Checks if user with given name exists and returns basic info about them.'
 				}
 			]
+		},
+		{
+			name: 'DoggoPaste Admin',
+			apiPrefix: '/admin',
+			appTypePath: 'src/routes/admin.ts',
+			api: [
+				{
+					api: '/pastes',
+					method: 'get',
+					summary: '/pastes',
+					description:
+						'Retrieves a list of all pastes in the system for administrative purposes.'
+				},
+				{
+					api: '/pastes-realtime',
+					method: 'get',
+					summary: '/pastes-realtime',
+					description:
+						'Retrieves a list of all realtime pastes in the system for administrative purposes.'
+				},
+				{
+					api: '/tags',
+					method: 'get',
+					summary: '/tags',
+					description:
+						'Retrieves a list of all tags in the system for administrative purposes.'
+				},
+				{
+					api: '/syntaxes',
+					method: 'get',
+					summary: '/syntaxes',
+					description:
+						'Retrieves a list of all syntaxes in the system for administrative purposes.'
+				}
+			]
 		}
 	]
 })
