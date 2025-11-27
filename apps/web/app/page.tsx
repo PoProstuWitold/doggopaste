@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { headers } from 'next/headers'
 import Image from 'next/image'
 import Link from 'next/link'
-import { FaBookOpen, FaGithub, FaQuestionCircle } from 'react-icons/fa'
+import { FaGithub, FaInfoCircle, FaQuestionCircle } from 'react-icons/fa'
 import { MdLightbulb, MdMenuBook, MdSchool } from 'react-icons/md'
 import { FeatureSection } from './components/custom/FeatureSection'
 import { createDynamicAuthClient } from './utils/auth-client'
@@ -113,7 +113,7 @@ export default async function HomePage() {
 									<Link
 										href='/api/docs'
 										target='_blank'
-										className='btn btn-primary btn-sm flex items-center gap-2'
+										className='btn btn-accent btn-sm flex items-center gap-2'
 									>
 										<MdMenuBook className='text-lg' />
 										Docs
@@ -122,7 +122,7 @@ export default async function HomePage() {
 										href='/guide'
 										className='btn btn-outline btn-sm flex items-center gap-2'
 									>
-										<FaBookOpen className='text-lg' />
+										<FaInfoCircle className='text-lg' />
 										Guide
 									</Link>
 									<Link
