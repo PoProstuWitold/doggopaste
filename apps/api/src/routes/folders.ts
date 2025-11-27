@@ -1,8 +1,14 @@
-import { and, eq, sql } from 'drizzle-orm'
+import { and, desc, eq, inArray, sql } from 'drizzle-orm'
 import { alias } from 'drizzle-orm/pg-core'
 import { Hono } from 'hono'
 import { db } from '../db/index.js'
-import { foldersTable, pastesTable, syntaxesTable } from '../db/schema.js'
+import {
+	foldersTable,
+	pastesTable,
+	pasteTagsTable,
+	syntaxesTable,
+	tagsTable
+} from '../db/schema.js'
 import { GenericException } from '../exceptions/generic-exception.js'
 import { userGuard } from '../middlewares/user-guard.js'
 import type { Env } from '../types.js'
@@ -373,65 +379,49 @@ const app = new Hono<Env>()
 			})
 		}
 
-		const rawPastes = await db
+		const pastes = await db
 			.select({
-				id: pastesTable.id,
-				createdAt: pastesTable.createdAt,
-				updatedAt: pastesTable.updatedAt,
-				userId: pastesTable.userId,
-				folderId: pastesTable.folderId,
-				title: pastesTable.title,
-				description: pastesTable.description,
-				slug: pastesTable.slug,
-				category: pastesTable.category,
-				content: pastesTable.content,
-				expiresAt: pastesTable.expiresAt,
-				expiration: pastesTable.expiration,
-				passwordHash: pastesTable.passwordHash,
-				hits: pastesTable.hits,
-				visibility: pastesTable.visibility,
-				organizationId: pastesTable.organizationId,
-				syntaxName: syntaxesTable.name,
-				syntaxExtension: syntaxesTable.extension,
-				syntaxColor: syntaxesTable.color
+				paste: pastesTable,
+				syntax: {
+					name: syntaxesTable.name,
+					extension: syntaxesTable.extension,
+					color: syntaxesTable.color
+				}
 			})
 			.from(pastesTable)
 			.leftJoin(syntaxesTable, eq(pastesTable.syntaxId, syntaxesTable.id))
-			.where(
-				and(
-					eq(pastesTable.folderId, id),
-					eq(pastesTable.userId, user.id)
-				)
-			)
+			.where(eq(pastesTable.visibility, 'public'))
+			.orderBy(desc(pastesTable.updatedAt))
 
-		const flattened = rawPastes.map((p) => ({
-			id: p.id,
-			createdAt: p.createdAt,
-			updatedAt: p.updatedAt,
-			userId: p.userId,
-			folderId: p.folderId,
-			title: p.title,
-			description: p.description,
-			slug: p.slug,
-			category: p.category,
-			content: p.content,
-			expiresAt: p.expiresAt,
-			expiration: p.expiration,
-			passwordHash: p.passwordHash,
-			hits: p.hits,
-			visibility: p.visibility,
-			organizationId: p.organizationId,
-			tags: [],
-			syntax: {
-				name: p.syntaxName,
-				extension: p.syntaxExtension,
-				color: p.syntaxColor
-			}
+		if (pastes.length === 0) {
+			return c.json({ success: true, data: [], total: 0 })
+		}
+
+		const pasteIds = pastes.map((p) => p.paste.id)
+		const tags = await db
+			.select({
+				pasteId: pasteTagsTable.pasteId,
+				name: tagsTable.name
+			})
+			.from(pasteTagsTable)
+			.innerJoin(tagsTable, eq(pasteTagsTable.tagId, tagsTable.id))
+			.where(inArray(pasteTagsTable.pasteId, pasteIds))
+
+		const groupedTags: Record<string, string[]> = {}
+		for (const { pasteId, name } of tags) {
+			groupedTags[pasteId] ||= []
+			groupedTags[pasteId].push(name)
+		}
+
+		const enrichedPastes = pastes.map(({ paste, syntax }) => ({
+			...paste,
+			tags: groupedTags[paste.id] || [],
+			syntax
 		}))
 
 		return c.json({
 			success: true,
-			data: { folder: row, pastes: flattened }
+			data: { folder: row, pastes: enrichedPastes }
 		})
 	})
 
