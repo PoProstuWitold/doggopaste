@@ -80,7 +80,7 @@ export default async function FolderPage({
 				cache: 'no-store'
 			}
 		)
-		
+
 		if (!folderRes.ok) {
 			if (folderRes.status === 404) notFound()
 			throw new Error('Failed to load folder')
