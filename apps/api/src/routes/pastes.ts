@@ -213,7 +213,25 @@ const app = new Hono<Env>()
 	.get('/:slug', validatorParamStringSlug, async (c) => {
 		const { slug } = c.req.valid('param')
 
-		// 1. Get paste with syntax
+		// 1. Increment hits and get paste with syntax
+		const [updated] = await db
+			.update(pastesTable)
+			.set({
+				hits: sql`${pastesTable.hits} + 1`
+			})
+			.where(eq(pastesTable.slug, slug))
+			.returning({
+				id: pastesTable.id
+			})
+
+		if (!updated) {
+			throw new GenericException({
+				statusCode: 404,
+				name: 'Not Found',
+				message: 'Paste not found'
+			})
+		}
+
 		const [row] = await db
 			.select({
 				paste: pastesTable,
@@ -226,14 +244,6 @@ const app = new Hono<Env>()
 			.from(pastesTable)
 			.leftJoin(syntaxesTable, eq(pastesTable.syntaxId, syntaxesTable.id))
 			.where(eq(pastesTable.slug, slug))
-
-		if (!row) {
-			throw new GenericException({
-				statusCode: 404,
-				name: 'Not Found',
-				message: 'Paste not found'
-			})
-		}
 
 		if (row.paste.visibility === 'private') {
 			const user = c.get('user')
@@ -379,7 +389,8 @@ const app = new Hono<Env>()
 				folderId,
 				passwordHash: passwordEnabled
 					? await argon2.hash(password)
-					: null
+					: null,
+				updatedAt: new Date()
 			}
 
 			const [updatedPaste] = await db

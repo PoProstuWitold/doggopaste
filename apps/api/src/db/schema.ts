@@ -159,7 +159,9 @@ export const syntaxesTable = pgTable('syntaxes', {
 export const pastesTable = pgTable(
 	'pastes',
 	{
-		...essentialColumns,
+		id: uuid().primaryKey().defaultRandom(),
+		createdAt: timestamp('created_at').notNull().defaultNow(),
+		updatedAt: timestamp('updated_at').notNull().defaultNow(),
 		userId: uuid('user_id').references(() => usersTable.id, {
 			onDelete: 'set null'
 		}), // null dla gości
