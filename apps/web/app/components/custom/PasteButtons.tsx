@@ -7,7 +7,6 @@ import toast from 'react-hot-toast'
 import { BsFiletypeRaw } from 'react-icons/bs'
 import { FaCheck, FaShare } from 'react-icons/fa'
 import { FaCodeFork } from 'react-icons/fa6'
-import { ImEmbed2 } from 'react-icons/im'
 import { MdDelete, MdDownload, MdEdit } from 'react-icons/md'
 import type { Paste, User } from '../../types'
 import { getBaseApiUrl } from '../../utils/functions'
@@ -110,11 +109,6 @@ export const PasteButtons = ({
 					</div>
 				</span>
 			)}
-			<button type='button' className='btn btn-sm btn-info'>
-				<div className='flex items-center gap-1 font-extrabold'>
-					Embed <ImEmbed2 />
-				</div>
-			</button>
 			<Link
 				href={`/p/${paste.slug}/fork`}
 				className='btn btn-sm btn-secondary'

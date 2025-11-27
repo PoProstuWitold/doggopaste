@@ -45,7 +45,7 @@ export function ContentEditor() {
 									history: true,
 									syntaxHighlighting: true
 								}}
-								className='overflow-auto h-[650px]'
+								className='overflow-auto h-[200px] lg:h-[650px]'
 								theme={cmTheme}
 							/>
 						</>

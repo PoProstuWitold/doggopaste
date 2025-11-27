@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { FormProvider, useForm } from 'react-hook-form'
 import toast from 'react-hot-toast'
 import type { Paste, PasteForm as PasteFormType } from '@/app/types'
@@ -25,6 +25,7 @@ export function PasteForm({
 	paste?: Paste
 	type?: 'realtime' | 'static'
 }) {
+	const [isSubmitting, setIsSubmitting] = useState(false)
 	const router = useRouter()
 
 	const defaultsForCreate: PasteFormType = {
@@ -97,6 +98,7 @@ export function PasteForm({
 	} = useSensitiveContentChecker<PasteFormType>()
 
 	const onSubmit = async (data: PasteFormType) => {
+		setIsSubmitting(true)
 		const isCreateLike = mode === 'create' || mode === 'fork'
 		const endpoint = isCreateLike
 			? `${getBaseApiUrl()}/api/pastes`
@@ -162,7 +164,7 @@ export function PasteForm({
 				onSubmit={handleSubmit((data) =>
 					checkAndSubmit(data, onSubmit)
 				)}
-				className='flex flex-col gap-4 p-5 rounded-lg shadow-xl bg-base-200 mx-auto max-w-7xl'
+				className='flex flex-col gap-4 p-5 rounded-lg bg-base-200 mx-auto max-w-8xl'
 			>
 				<Header
 					mode={mode}
@@ -195,8 +197,11 @@ export function PasteForm({
 						<button
 							type='submit'
 							className='btn btn-primary w-full'
+							disabled={isSubmitting}
 						>
-							{mode === 'fork' ? 'Create Fork' : 'Submit'}
+							{mode === 'fork'
+								? `${isSubmitting ? 'Forking...' : 'Create Fork'}`
+								: `${isSubmitting ? (mode === 'edit' ? 'Saving...' : 'Creating...') : mode === 'edit' ? 'Save Changes' : 'Submit'}`}
 						</button>
 					</div>
 				</div>

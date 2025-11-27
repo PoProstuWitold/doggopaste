@@ -9,12 +9,16 @@ import {
 	FaCode,
 	FaEye,
 	FaFileCode,
+	FaFolder,
 	FaGlobe,
 	FaInfoCircle,
 	FaRegEdit,
-	FaTags
+	FaTags,
+	FaUser
 } from 'react-icons/fa'
-import { FaRegHourglassHalf } from 'react-icons/fa6'
+import { FaRegHourglassHalf, FaXmark } from 'react-icons/fa6'
+import { FiHash } from 'react-icons/fi'
+import { MdEnhancedEncryption } from 'react-icons/md'
 import { useTheme } from '../../context/ThemeContext'
 import type { Paste, User } from '../../types'
 import {
@@ -43,7 +47,7 @@ export default function SinglePaste({
 	)
 
 	return (
-		<>
+		<div className='mb-20'>
 			{showWarning && (
 				<div className='alert alert-error shadow-lg mb-4 max-w-7xl mx-auto relative'>
 					<button
@@ -52,7 +56,7 @@ export default function SinglePaste({
 						aria-label='Close warning'
 						type='button'
 					>
-						×
+						<FaXmark className='w-5 h-5' />
 					</button>
 					<div>
 						<span className='font-semibold'>Warning!</span> This
@@ -63,7 +67,7 @@ export default function SinglePaste({
 				</div>
 			)}
 
-			<div className='flex flex-col gap-4 p-5 rounded-lg shadow-xl bg-base-200 mx-auto max-w-7xl'>
+			<div className='flex flex-col gap-4 p-5 rounded-lg bg-base-200 mx-auto max-w-8xl'>
 				<div className='flex lg:flex-row flex-col items-center font-bold text-center gap-4 justify-center'>
 					<div className='flex flex-row items-center text-2xl font-bold text-center gap-4 justify-center'>
 						<FaFileCode className='w-7 h-7' />
@@ -74,25 +78,27 @@ export default function SinglePaste({
 				</div>
 				<div className='divider p-0 m-0' />
 				{/* Slug */}
-				<div className='w-full'>
-					<div className='form-control w-full'>
-						<div className='label'>
-							<span className='label-text'>Slug</span>
+				<div className='flex flex-col md:flex-row gap-4'>
+					<div className='w-full'>
+						<div className='form-control w-full'>
+							<div className='label'>
+								<span className='label-text'>Slug</span>
+							</div>
+							<p className='rounded-lg shadow gap-2 whitespace-pre-wrap break-words bg-base-300 p-2'>
+								{slug}
+							</p>
 						</div>
-						<p className='rounded-lg shadow gap-2 whitespace-pre-wrap break-words bg-base-300 p-2'>
-							{slug}
-						</p>
 					</div>
-				</div>
-				{/* Slug */}
-				<div className='w-full'>
-					<div className='form-control w-full'>
-						<div className='label'>
-							<span className='label-text'>Title</span>
+					{/* Slug */}
+					<div className='w-full'>
+						<div className='form-control w-full'>
+							<div className='label'>
+								<span className='label-text'>Title</span>
+							</div>
+							<p className='rounded-lg shadow gap-2 whitespace-pre-wrap break-words bg-base-300 p-2'>
+								{paste.title}
+							</p>
 						</div>
-						<p className='rounded-lg shadow gap-2 whitespace-pre-wrap break-words bg-base-300 p-2'>
-							{paste.title}
-						</p>
 					</div>
 				</div>
 				{/* Description */}
@@ -147,7 +153,22 @@ export default function SinglePaste({
 						Paste Metadata
 					</div>
 				</div>
-				<div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4'>
+				<div className='grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4'>
+					<PasteDetail
+						label='Syntax'
+						icon={<FaCode className='w-5 h-5' />}
+						value={
+							<span
+								className='badge font-semibold'
+								style={{
+									backgroundColor: bgColor,
+									color: getContrastTextColor(bgColor)
+								}}
+							>
+								{paste.syntax.name}
+							</span>
+						}
+					/>
 					<PasteDetail
 						label='Category'
 						icon={<BiCategory className='w-5 h-5' />}
@@ -167,63 +188,11 @@ export default function SinglePaste({
 						value={firstLetterUppercase(paste.visibility)}
 					/>
 					<PasteDetail
-						label='Expiration'
-						icon={<FaRegHourglassHalf className='w-5 h-5' />}
-						value={
-							<span className='flex md:flex-row flex-col gap-2'>
-								{paste.expiresAt
-									? getExpirationLabel(paste.expiration)
-									: 'Never Expires'}
-								{paste.expiresAt && (
-									<span>
-										(
-										{new Date(
-											paste.expiresAt
-										).toLocaleString('pl-PL')}
-										)
-									</span>
-								)}
-							</span>
-						}
+						label='Hits'
+						icon={<FaEye className='w-5 h-5' />}
+						value={paste.hits ? paste.hits : '0'}
 					/>
-					<PasteDetail
-						label='Syntax'
-						icon={<FaCode className='w-5 h-5' />}
-						value={
-							<span
-								className='badge font-semibold'
-								style={{
-									backgroundColor: bgColor,
-									color: getContrastTextColor(bgColor)
-								}}
-							>
-								{paste.syntax.name}
-							</span>
-						}
-					/>
-					<PasteDetail
-						label='Tags'
-						icon={<FaTags className='w-5 h-5' />}
-						value={
-							<div className='flex flex-wrap gap-2'>
-								{paste.tags.length
-									? paste.tags.map((tag, _index) => (
-											<span
-												key={tag}
-												className='badge badge-accent'
-											>
-												#{tag}
-											</span>
-										))
-									: 'No tags'}
-							</div>
-						}
-					/>
-					<PasteDetail
-						label='Password'
-						icon={<BsShieldLock className='w-5 h-5' />}
-						value={paste.passwordHash ? 'Enabled' : 'Disabled'}
-					/>
+
 					<PasteDetail
 						label='Created'
 						icon={<FaClock className='w-5 h-5' />}
@@ -253,27 +222,90 @@ export default function SinglePaste({
 						}
 					/>
 					<PasteDetail
-						label='Hits'
-						icon={<FaEye className='w-5 h-5' />}
-						value={paste.hits ? paste.hits : '0'}
+						label='Expiration'
+						icon={<FaRegHourglassHalf className='w-5 h-5' />}
+						value={
+							<span className='flex md:flex-row flex-col gap-2'>
+								{paste.expiresAt
+									? getExpirationLabel(paste.expiration)
+									: 'Never Expires'}
+								{paste.expiresAt && (
+									<span>
+										(
+										{new Date(
+											paste.expiresAt
+										).toLocaleString('pl-PL')}
+										)
+									</span>
+								)}
+							</span>
+						}
+					/>
+					<PasteDetail
+						label='Guest Paste'
+						icon={<FaUser className='w-5 h-5' />}
+						value={paste.userId ? 'No' : 'Yes'}
+					/>
+					<PasteDetail
+						label='Folder'
+						icon={<FaFolder className='w-5 h-5' />}
+						value={paste.folderId ? 'In a folder' : 'No folder'}
+					/>
+					<PasteDetail
+						label='Length'
+						icon={<FiHash className='w-5 h-5' />}
+						value={paste.content.length + ' characters'}
+					/>
+					<PasteDetail
+						label='Password'
+						icon={<BsShieldLock className='w-5 h-5' />}
+						value={paste.passwordHash ? 'Enabled' : 'Disabled'}
+					/>
+					<PasteDetail
+						label='Encryption'
+						icon={<MdEnhancedEncryption className='w-5 h-5' />}
+						value={paste.passwordHash ? 'Enabled' : 'Disabled'}
+					/>
+					<PasteDetail
+						className='col-span-full'
+						label='Tags'
+						icon={<FaTags className='w-5 h-5' />}
+						value={
+							<div className='flex flex-wrap gap-2'>
+								{paste.tags.length
+									? paste.tags.map((tag, _index) => (
+											<span
+												key={tag}
+												className='badge badge-accent'
+											>
+												#{tag}
+											</span>
+										))
+									: 'No tags'}
+							</div>
+						}
 					/>
 				</div>
 			</div>
-		</>
+		</div>
 	)
 }
 
 function PasteDetail({
 	label,
 	value,
-	icon
+	icon,
+	className
 }: {
 	label: string
 	value: string | React.ReactNode
 	icon: React.ReactNode
+	className?: string
 }) {
 	return (
-		<div className='bg-base-300 rounded-lg p-5 shadow flex flex-col gap-2'>
+		<div
+			className={`p-4 rounded-lg bg-base-300 flex flex-col gap-2 ${className}`}
+		>
 			<div className='font-semibold flex items-center gap-2'>
 				{icon}
 				<span>{label}</span>
