@@ -390,12 +390,13 @@ const app = new Hono<Env>()
 			})
 			.from(pastesTable)
 			.leftJoin(syntaxesTable, eq(pastesTable.syntaxId, syntaxesTable.id))
-			.where(eq(pastesTable.visibility, 'public'))
+			.where(
+				and(
+					eq(pastesTable.folderId, id),
+					eq(pastesTable.userId, user.id)
+				)
+			)
 			.orderBy(desc(pastesTable.updatedAt))
-
-		if (pastes.length === 0) {
-			return c.json({ success: true, data: [], total: 0 })
-		}
 
 		const pasteIds = pastes.map((p) => p.paste.id)
 		const tags = await db
