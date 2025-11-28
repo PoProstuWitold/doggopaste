@@ -10,6 +10,7 @@ import {
 	FaUserAlt
 } from 'react-icons/fa'
 import { FaRegHourglassHalf } from 'react-icons/fa6'
+import { MdEnhancedEncryption } from 'react-icons/md'
 import type { Paste } from '../../types'
 import {
 	firstLetterUppercase,
@@ -105,8 +106,13 @@ export const PasteCard: React.FC<PasteCardProps> = ({ paste }) => {
 					)}
 
 					{paste.passwordHash && (
-						<span className='badge badge-error'>
+						<span className='badge badge-warning'>
 							<BsShieldLock className='mr-1' /> Password Protected
+						</span>
+					)}
+					{paste.encrypted && (
+						<span className='badge badge-error'>
+							<MdEnhancedEncryption /> Ecrypted
 						</span>
 					)}
 				</div>

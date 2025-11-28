@@ -34,7 +34,8 @@ const app = new Hono<Env>()
 			folder,
 			password,
 			passwordEnabled,
-			pasteAsGuest
+			pasteAsGuest,
+			encrypted
 		} = c.req.valid('json')
 
 		if (slug === 'create') {
@@ -117,6 +118,27 @@ const app = new Hono<Env>()
 		}
 
 		// 6. Create paste
+		// Password logic: hash ONLY if password is enabled but paste isn't encrypted
+		let passwordHash: string | null = null
+
+		if (passwordEnabled) {
+			if (encrypted) {
+				// E2E: no password, client encrypts
+				passwordHash = null
+			} else {
+				// standard: we hash password
+				if (!password) {
+					throw new GenericException({
+						statusCode: 400,
+						name: 'Bad Request',
+						message:
+							'Password is required when encryption is disabled'
+					})
+				}
+				passwordHash = await argon2.hash(password)
+			}
+		}
+
 		const newPasteValues = {
 			title,
 			description,
@@ -127,10 +149,12 @@ const app = new Hono<Env>()
 			visibility,
 			folderId,
 			userId,
+			encrypted: encrypted ?? false,
 			slug: slug.length ? slug : await DoggoUtils.generateSlug(),
 			expiresAt: await DoggoUtils.calculateExpirationDate(expiration),
-			passwordHash: passwordEnabled ? await argon2.hash(password) : null
+			passwordHash: passwordHash
 		}
+
 		const [newPaste] = await db
 			.insert(pastesTable)
 			.values(newPasteValues)
@@ -267,7 +291,13 @@ const app = new Hono<Env>()
 			.where(eq(pasteTagsTable.pasteId, paste.id))
 
 		// 3. Delete if burn_after_read BEFORE sending response
-		if (paste.expiration === 'burn_after_read') {
+		const isServerProtected = !!paste.passwordHash
+		const isClientEncrypted = !!paste.encrypted
+		if (
+			paste.expiration === 'burn_after_read' &&
+			!isServerProtected &&
+			!isClientEncrypted
+		) {
 			await db.delete(pastesTable).where(eq(pastesTable.id, paste.id))
 			await DoggoUtils.removeUnusedTags()
 		}
@@ -275,12 +305,67 @@ const app = new Hono<Env>()
 		const enrichedPaste = {
 			...paste,
 			tags: tags.map((t) => t.name),
-			syntax
+			syntax,
+			content: isServerProtected ? '' : paste.content
 		}
 
 		return c.json({
 			success: true,
 			data: enrichedPaste
+		})
+	})
+	.post('/:slug/verify', validatorParamStringSlug, async (c) => {
+		const { slug } = c.req.valid('param')
+		const { password } = await c.req.json<{ password: string }>()
+
+		if (!password) {
+			throw new GenericException({
+				statusCode: 400,
+				name: 'Bad Request',
+				message: 'Password is required'
+			})
+		}
+
+		const [paste] = await db
+			.select({
+				id: pastesTable.id,
+				content: pastesTable.content,
+				passwordHash: pastesTable.passwordHash,
+				expiration: pastesTable.expiration
+			})
+			.from(pastesTable)
+			.where(eq(pastesTable.slug, slug))
+
+		if (!paste) {
+			throw new GenericException({
+				statusCode: 404,
+				name: 'Not Found',
+				message: 'Paste not found'
+			})
+		}
+
+		if (!paste.passwordHash) {
+			return c.json({ success: true, content: paste.content })
+		}
+
+		const isValid = await argon2.verify(paste.passwordHash, password)
+
+		if (!isValid) {
+			throw new GenericException({
+				statusCode: 403,
+				name: 'Forbidden',
+				message: 'Invalid password'
+			})
+		}
+
+		if (paste.expiration === 'burn_after_read') {
+			await db.delete(pastesTable).where(eq(pastesTable.id, paste.id))
+			await DoggoUtils.removeUnusedTags()
+		}
+
+		return c.json({
+			success: true,
+			content: paste.content
 		})
 	})
 	.put(
@@ -303,7 +388,8 @@ const app = new Hono<Env>()
 				visibility,
 				folder,
 				password,
-				passwordEnabled
+				passwordEnabled,
+				encrypted
 			} = c.req.valid('json')
 
 			// 1. Get paste by slug
@@ -320,7 +406,7 @@ const app = new Hono<Env>()
 				})
 			}
 
-			// 2. Check if the user is the owner of the paste
+			// 2. Check if the user is the owner
 			if (paste.userId !== user.id) {
 				throw new GenericException({
 					statusCode: 403,
@@ -329,14 +415,12 @@ const app = new Hono<Env>()
 				})
 			}
 
-			// 3. Resolve folder by ID (do not create folders here)
+			// 3. Resolve folder
 			let folderId: string | null = paste.folderId
 
 			if (folder === 'none') {
-				// clear folder on edit
 				folderId = null
 			} else {
-				// verify the folder exists and belongs to the same user
 				const [dbFolder] = await db
 					.select({ id: foldersTable.id })
 					.from(foldersTable)
@@ -359,7 +443,7 @@ const app = new Hono<Env>()
 				folderId = dbFolder.id
 			}
 
-			// 4. Get syntaxId by name
+			// 4. Resolve syntax
 			const [dbSyntax] = await db
 				.select({ id: syntaxesTable.id })
 				.from(syntaxesTable)
@@ -373,7 +457,18 @@ const app = new Hono<Env>()
 				})
 			}
 
-			// 5. Update paste
+			// 5. Password and encryption
+			let passwordHash: string | null = null
+
+			if (passwordEnabled) {
+				if (encrypted) {
+					passwordHash = null
+				} else {
+					passwordHash = await argon2.hash(password)
+				}
+			}
+
+			// 6. Update paste
 			const values = {
 				title,
 				slug: newSlug.length
@@ -387,10 +482,9 @@ const app = new Hono<Env>()
 				expiresAt: await DoggoUtils.calculateExpirationDate(expiration),
 				visibility,
 				folderId,
-				passwordHash: passwordEnabled
-					? await argon2.hash(password)
-					: null,
-				updatedAt: new Date()
+				updatedAt: new Date(),
+				encrypted: encrypted ?? false,
+				passwordHash: passwordHash
 			}
 
 			const [updatedPaste] = await db
@@ -399,12 +493,12 @@ const app = new Hono<Env>()
 				.where(eq(pastesTable.slug, slug))
 				.returning()
 
-			// 6. Remove old tags
+			// 7. Remove old tags
 			await db
 				.delete(pasteTagsTable)
 				.where(eq(pasteTagsTable.pasteId, paste.id))
 
-			// 7. Add new tags
+			// 8. Add new tags
 			const tagIds: string[] = []
 			for (const tagName of tags) {
 				const [existingTag] = await db
@@ -434,10 +528,10 @@ const app = new Hono<Env>()
 				)
 			}
 
-			// 8. Remove unused tags
+			// 9. Cleanup tags
 			await DoggoUtils.removeUnusedTags()
 
-			// 9. Return response
+			// 10. Return response
 			c.status(200)
 			return c.json({
 				success: true,
@@ -485,6 +579,7 @@ const app = new Hono<Env>()
 	})
 	.get('/:slug/download', validatorParamStringSlug, async (c) => {
 		const { slug } = c.req.valid('param')
+		const passwordQuery = c.req.query('password')
 
 		// 1. Get paste with syntax extension
 		const [row] = await db
@@ -506,9 +601,12 @@ const app = new Hono<Env>()
 			})
 		}
 
-		if (row.paste.visibility === 'private') {
+		const { paste, syntax } = row
+
+		// 2. Check visibility / ownership
+		if (paste.visibility === 'private') {
 			const user = c.get('user')
-			if (!user || row.paste.userId !== user.id) {
+			if (!user || paste.userId !== user.id) {
 				throw new GenericException({
 					statusCode: 403,
 					name: 'Forbidden',
@@ -517,32 +615,46 @@ const app = new Hono<Env>()
 			}
 		}
 
-		const paste = row.paste
-		const extension = row.syntax.extension
+		// 3. Handle Server-Side Password Protection
+		if (paste.passwordHash) {
+			if (!passwordQuery) {
+				throw new GenericException({
+					statusCode: 401,
+					name: 'Unauthorized',
+					message: 'Password required to download this paste'
+				})
+			}
 
-		// 2. (Optional) Disable download if password is set
-		// if (paste.passwordHash) {
-		// 	throw new GenericException({
-		// 		statusCode: 403,
-		// 		name: 'Forbidden',
-		// 		message: 'Paste is password protected'
-		// 	})
-		// }
+			const isValid = await argon2.verify(
+				paste.passwordHash,
+				passwordQuery
+			)
+			if (!isValid) {
+				throw new GenericException({
+					statusCode: 403,
+					name: 'Forbidden',
+					message: 'Invalid password'
+				})
+			}
+		}
 
-		// 3. Burn after read?
+		// 4. Burn after read?
 		if (paste.expiration === 'burn_after_read') {
 			await db.delete(pastesTable).where(eq(pastesTable.id, paste.id))
 			await DoggoUtils.removeUnusedTags()
 		}
 
-		// 4. Filename
+		// 5. Prepare Filename & Content
 		const safeTitle = DoggoUtils.sanitizeFileName(paste.title)
+		const extension = syntax?.extension || 'txt'
 		const fileName = `${safeTitle}.${extension}`
+		const contentToDownload = paste.content
 
-		// 5. Headers + response
+		// 6. Headers + response
 		c.header('Content-Type', 'text/plain; charset=utf-8')
 		c.header('Content-Disposition', `attachment; filename="${fileName}"`)
-		return c.body(paste.content)
+
+		return c.body(contentToDownload)
 	})
 
 export type AppType = typeof app

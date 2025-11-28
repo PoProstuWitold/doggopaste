@@ -7,6 +7,7 @@ import { createDynamicAuthClient } from '@/app/utils/auth-client'
 import { categories } from '@/app/utils/functions'
 import { ExpirationSelect } from './ExpirationSelect'
 import { FolderSelector } from './FolderSelector'
+import { PasswordSection } from './PasswordSection'
 import { SyntaxSelect } from './SyntaxSelect'
 import { TagsInput } from './TagsInput'
 import { VisibilitySelect } from './VisibilitySelect'
@@ -153,33 +154,6 @@ export function LeftColumn({ mode }: { mode: 'create' | 'edit' | 'fork' }) {
 						your pastes.
 					</p>
 				</>
-			)}
-		</div>
-	)
-}
-
-function PasswordSection() {
-	const { register, watch } = useFormContext<PasteFormType>()
-	const passwordEnabled = watch('passwordEnabled')
-	return (
-		<div className='flex flex-col gap-2'>
-			<label className='flex items-center gap-2 text-sm'>
-				<input
-					type='checkbox'
-					className='checkbox'
-					{...register('passwordEnabled')}
-					name='passwordEnabled'
-				/>
-				<span>Password protection?</span>
-			</label>
-			{passwordEnabled && (
-				<input
-					{...register('password')}
-					type='password'
-					className='input input-bordered w-full'
-					placeholder='Password'
-					name='password'
-				/>
 			)}
 		</div>
 	)

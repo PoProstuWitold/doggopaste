@@ -34,8 +34,8 @@ export const usersTable = pgTable('users', {
 	// admin plugin
 	role: varchar({ length: 512 }),
 	banned: boolean(),
-	banReason: varchar({ length: 512 }),
-	banExpires: numeric()
+	banReason: varchar('ban_reason', { length: 512 }),
+	banExpires: numeric('ban_expires')
 })
 
 export const sessionsTable = pgTable('sessions', {
@@ -111,7 +111,6 @@ export const invitationsTable = pgTable('invitations', {
 })
 
 // PROJECT SPECIFIC
-// typy wyliczeniowe
 export const visibilityEnum = pgEnum('visibility', [
 	'public',
 	'private',
@@ -155,7 +154,7 @@ export const syntaxesTable = pgTable('syntaxes', {
 	color: varchar({ length: 32 }).notNull()
 })
 
-// pastes (wklejki kodu)
+// static pastes
 export const pastesTable = pgTable(
 	'pastes',
 	{
@@ -164,24 +163,24 @@ export const pastesTable = pgTable(
 		updatedAt: timestamp('updated_at').notNull().defaultNow(),
 		userId: uuid('user_id').references(() => usersTable.id, {
 			onDelete: 'set null'
-		}), // null dla gości
+		}),
 		folderId: uuid('folder_id').references(() => foldersTable.id, {
 			onDelete: 'set null'
-		}), // folder pasty
+		}),
 		title: varchar({ length: 128 }).notNull(),
-		description: varchar({ length: 512 }), // opcjonalny opis
-		slug: varchar({ length: 64 }).unique(), // niestandardowy URL
+		description: varchar({ length: 512 }),
+		slug: varchar({ length: 64 }).unique(),
 		category: categoryEnum('category').notNull().default('none'),
 		content: text('content').notNull(),
 		syntaxId: uuid('syntax_id').references(() => syntaxesTable.id, {
 			onDelete: 'set null'
 		}),
-		expiresAt: timestamp('expires_at'), // Data, kiedy pasta wygaśnie
-		expiration: expirationEnum('expiration').notNull().default('never'), // Typ wygaśnięcia
-		passwordHash: varchar('password_hash', { length: 512 }), // hasło do pasty
-		hits: integer().notNull().default(0).$type<number>(), // liczba odsłon
+		expiresAt: timestamp('expires_at'),
+		expiration: expirationEnum('expiration').notNull().default('never'),
+		encrypted: boolean().default(false),
+		passwordHash: varchar('password_hash', { length: 512 }),
+		hits: integer().notNull().default(0).$type<number>(),
 		visibility: visibilityEnum('visibility').notNull().default('public'),
-		// Jeśli widoczność = "organization"
 		organizationId: uuid('organization_id').references(
 			() => organizationsTable.id,
 			{ onDelete: 'set null' }
@@ -206,7 +205,7 @@ export const pastesTable = pgTable(
 	]
 )
 
-// folders (foldery na pasty)
+// folders for static pastes
 export const foldersTable = pgTable(
 	'folders',
 	{
@@ -245,13 +244,13 @@ export const foldersTable = pgTable(
 	]
 )
 
-// tags (tagi do past)
+// tags for static pastes
 export const tagsTable = pgTable('tags', {
 	...essentialColumns,
 	name: varchar({ length: 32 }).notNull().unique()
 })
 
-// M:N -> Pasty <-> Tagi
+// M:N -> Static Pastes <-> Tags
 export const pasteTagsTable = pgTable('paste_tags', {
 	id: uuid().primaryKey().defaultRandom(),
 	pasteId: uuid('paste_id')
@@ -262,11 +261,12 @@ export const pasteTagsTable = pgTable('paste_tags', {
 		.references(() => tagsTable.id, { onDelete: 'cascade' })
 })
 
+// realtime editors
 export const realTimePastesTable = pgTable('realtime_pastes', {
 	...essentialColumns,
 	title: varchar({ length: 128 }).notNull(),
 	slug: varchar({ length: 64 }).unique().notNull(),
-	content: text('content').notNull(), // treść edytowana w czasie rzeczywistym
+	content: text('content').notNull(),
 	syntaxId: uuid('syntax_id').references(() => syntaxesTable.id, {
 		onDelete: 'set null'
 	}),

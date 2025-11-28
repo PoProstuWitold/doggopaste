@@ -6,22 +6,31 @@ import { useEffect, useState } from 'react'
 import toast from 'react-hot-toast'
 import { BsFiletypeRaw } from 'react-icons/bs'
 import { FaCheck, FaShare } from 'react-icons/fa'
-import { FaCodeFork } from 'react-icons/fa6'
+import { FaCodeFork, FaLock } from 'react-icons/fa6'
 import { MdDelete, MdDownload, MdEdit } from 'react-icons/md'
 import type { Paste, User } from '../../types'
 import { getBaseApiUrl } from '../../utils/functions'
 import { CustomDialog } from '../core/CustomDialog'
 import { CopyButton } from './CopyButton'
 
-export const PasteButtons = ({
-	paste,
-	user
-}: {
+interface PasteButtonsProps {
 	paste: Paste
 	user: User | null
-}) => {
-	const router = useRouter()
+	decryptedContent?: string | null
+	passwordInput?: string | null
+	isLocked?: boolean
+	content: string
+}
 
+export const PasteButtons = ({
+	paste,
+	user,
+	decryptedContent,
+	passwordInput,
+	isLocked = false,
+	content
+}: PasteButtonsProps) => {
+	const router = useRouter()
 	const [clientBaseUrl, setClientBaseUrl] = useState<string | null>(null)
 	const [shareLinkCopied, setShareLinkCopied] = useState(false)
 
@@ -29,25 +38,89 @@ export const PasteButtons = ({
 		setClientBaseUrl(getBaseApiUrl())
 	}, [])
 
-	const copy = async () => {
+	const copyLink = async () => {
 		if (!clientBaseUrl) return
 		try {
 			await navigator.clipboard.writeText(
 				`${clientBaseUrl}/p/${paste.slug}`
 			)
-		} catch {}
-		setShareLinkCopied(true)
-		setTimeout(() => setShareLinkCopied(false), 2000)
+			setShareLinkCopied(true)
+			setTimeout(() => setShareLinkCopied(false), 2000)
+		} catch {
+			toast.error('Failed to copy link')
+		}
+	}
+
+	const handleDownload = () => {
+		if (!clientBaseUrl) return
+
+		const extension = paste.syntax?.extension || 'txt'
+		const fileName = `${paste.title || 'paste'}.${extension}`
+
+		if (paste.encrypted) {
+			if (!decryptedContent) {
+				toast.error('Unlock content first to download.')
+				return
+			}
+			try {
+				const blob = new Blob([decryptedContent], {
+					type: 'text/plain;charset=utf-8'
+				})
+				const url = window.URL.createObjectURL(blob)
+				const link = document.createElement('a')
+				link.href = url
+				link.download = fileName
+				document.body.appendChild(link)
+				link.click()
+				document.body.removeChild(link)
+				window.URL.revokeObjectURL(url)
+				toast.success('Download started (decrypted)')
+			} catch (error) {
+				console.error('Download failed', error)
+				toast.error('Failed to generate file')
+			}
+			return
+		}
+
+		let downloadUrl = `${clientBaseUrl}/api/pastes/${paste.slug}/download`
+
+		if (paste.passwordHash && passwordInput) {
+			downloadUrl += `?password=${encodeURIComponent(passwordInput)}`
+		}
+
+		window.location.href = downloadUrl
+	}
+
+	const handleRaw = () => {
+		if (!clientBaseUrl) return
+
+		if (paste.encrypted) {
+			if (!decryptedContent) {
+				toast.error('Unlock content first to view raw.')
+				return
+			}
+			const blob = new Blob([decryptedContent], {
+				type: 'text/plain;charset=utf-8'
+			})
+			const url = window.URL.createObjectURL(blob)
+			window.open(url, '_blank')
+			return
+		}
+
+		let rawUrl = `/p/${paste.slug}/raw`
+
+		if (paste.passwordHash && passwordInput) {
+			rawUrl += `?password=${encodeURIComponent(passwordInput)}`
+		}
+
+		window.open(rawUrl, '_blank')
 	}
 
 	const handleDeletePaste = async () => {
 		try {
 			const res = await fetch(
 				`${getBaseApiUrl()}/api/pastes/${paste.slug}`,
-				{
-					method: 'DELETE',
-					credentials: 'include'
-				}
+				{ method: 'DELETE', credentials: 'include' }
 			)
 			const json = await res.json()
 
@@ -65,50 +138,49 @@ export const PasteButtons = ({
 
 	return (
 		<div className='flex flex-wrap gap-2 justify-center'>
-			<CopyButton text={paste.content} />
-			{clientBaseUrl ? (
-				<button
-					type='button'
-					onClick={copy}
-					className='btn btn-sm btn-ghost btn-outline'
-					title='Share Link'
-				>
-					Share
-					{shareLinkCopied ? <FaCheck /> : <FaShare />}
-				</button>
-			) : (
-				<button
-					type='button'
-					className='btn btn-sm btn-ghost btn-outline'
-					title='Share Link'
-				>
-					Share <FaShare />
-				</button>
-			)}
-			<Link
-				href={`/p/${paste.slug}/raw`}
+			{!isLocked && <CopyButton text={content} />}
+
+			<button
+				type='button'
+				onClick={copyLink}
+				className='btn btn-sm btn-ghost btn-outline'
+				title='Copy Share Link'
+				disabled={!clientBaseUrl}
+			>
+				Share
+				{shareLinkCopied ? <FaCheck /> : <FaShare />}
+			</button>
+
+			<button
+				type='button'
+				onClick={handleRaw}
 				className='btn btn-sm btn-warning'
+				disabled={isLocked || !clientBaseUrl}
+				title={isLocked ? 'Unlock to view raw' : 'View Raw'}
 			>
 				<div className='flex items-center gap-1 font-extrabold'>
-					Raw <BsFiletypeRaw />
+					Raw{' '}
+					{isLocked ? (
+						<FaLock className='w-3 h-3' />
+					) : (
+						<BsFiletypeRaw />
+					)}
 				</div>
-			</Link>
-			{clientBaseUrl ? (
-				<a
-					href={`${clientBaseUrl}/api/pastes/${paste.slug}/download`}
-					className='btn btn-sm btn-success'
-				>
-					<div className='flex items-center gap-1 font-extrabold'>
-						Download <MdDownload />
-					</div>
-				</a>
-			) : (
-				<span className='btn btn-sm btn-success'>
-					<div className='flex items-center gap-1 font-extrabold'>
-						Download <MdDownload />
-					</div>
-				</span>
-			)}
+			</button>
+
+			<button
+				type='button'
+				onClick={handleDownload}
+				className='btn btn-sm btn-success'
+				disabled={isLocked || !clientBaseUrl}
+				title={isLocked ? 'Unlock to download' : 'Download File'}
+			>
+				<div className='flex items-center gap-1 font-extrabold'>
+					Download{' '}
+					{isLocked ? <FaLock className='w-3 h-3' /> : <MdDownload />}
+				</div>
+			</button>
+
 			<Link
 				href={`/p/${paste.slug}/fork`}
 				className='btn btn-sm btn-secondary'
@@ -117,11 +189,13 @@ export const PasteButtons = ({
 					Fork <FaCodeFork />
 				</div>
 			</Link>
+
 			{user?.id === paste.userId && (
 				<>
 					<Link
 						href={`/p/${paste.slug}/edit`}
 						className='btn btn-sm btn-accent'
+						type='button'
 					>
 						<div className='flex items-center gap-1 font-extrabold'>
 							Edit <MdEdit />

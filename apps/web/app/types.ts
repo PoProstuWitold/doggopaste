@@ -74,7 +74,8 @@ export interface PasteForm {
 	visibility: string
 	folder: string
 	passwordEnabled: boolean
-	password: string
+	password: string | undefined
+	encrypted: boolean
 	pasteAsGuest: boolean
 }
 
@@ -98,6 +99,7 @@ export interface Paste {
 	syntax: Syntax
 	expiresAt: string | null
 	expiration: string
+	encrypted: boolean
 	passwordHash: string | null
 	hits: string | number
 	visibility: string

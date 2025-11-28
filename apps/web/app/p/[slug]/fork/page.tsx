@@ -88,6 +88,7 @@ export default async function EditPastePage({
 			organizationId: null,
 			expiresAt: null,
 			passwordHash: null,
+			encrypted: false,
 			hits: 0,
 			tags: []
 		}
