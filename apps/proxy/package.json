@@ -1,6 +1,6 @@
 {
 	"name": "proxy",
-	"version": "0.2.0",
+	"version": "0.3.0",
 	"private": true,
 	"type": "module",
 	"description": "Proxy for launching web and api on same port",
@@ -16,12 +16,12 @@
 	"devDependencies": {
 		"@types/connect": "^3.4.38",
 		"@types/finalhandler": "^1.2.4",
-		"@types/node": "^24.9.2",
-		"tsx": "^4.20.6"
+		"@types/node": "^24.10.1",
+		"tsx": "^4.21.0"
 	},
 	"dependencies": {
 		"connect": "^3.7.0",
-		"finalhandler": "^2.1.0",
+		"finalhandler": "^2.1.1",
 		"http-proxy-middleware": "^3.0.5"
 	}
 }
