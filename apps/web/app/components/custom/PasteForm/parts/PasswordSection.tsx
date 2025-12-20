@@ -42,11 +42,11 @@ export function PasswordSection() {
 							className='checkbox'
 							{...register('encrypted')}
 						/>
-						<span>Client-side encryption (E2E)</span>
+						<span>Client-side encryption</span>
 					</label>
 
 					<CustomDialog
-						title='Client-side encryption (E2E)'
+						title='Client-side encryption'
 						description='Important Security Information'
 						btnContent={<FaInfoCircle className='w-4 h-4' />}
 						btnClasses='btn btn-ghost btn-xs btn-circle text-info'
@@ -89,7 +89,8 @@ export function PasswordSection() {
 								Standard "Password protection" sends a password
 								hash to the server to verify access, but the
 								content is technically readable by the database
-								admin. E2E Encryption ensures total privacy.
+								admin. Client-side encryption Encryption ensures
+								total privacy.
 							</p>
 						</div>
 					</CustomDialog>

@@ -123,7 +123,7 @@ const app = new Hono<Env>()
 
 		if (passwordEnabled) {
 			if (encrypted) {
-				// E2E: no password, client encrypts
+				// CSE: no password, client encrypts
 				passwordHash = null
 			} else {
 				// standard: we hash password
