@@ -101,5 +101,5 @@ server.on('upgrade', (req, socket, head) => {
 })
 
 server.listen(3002, () => {
-	console.log('Proxy running on http://localhost:3002')
+	console.log('Proxy is running on port 3002. GLHF!')
 })

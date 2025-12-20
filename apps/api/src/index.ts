@@ -24,9 +24,7 @@ const server = serve(
 	},
 	(info) => {
 		console.info(
-			`Server is running at ${
-				info.address === '::' ? 'localhost:' : info.address
-			}${info.port} with ${info.family}. GLHF!`
+			`REST API & WebSockets server is running on port ${info.port}. GLHF!`
 		)
 	}
 )
