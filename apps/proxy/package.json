@@ -16,7 +16,7 @@
 	"devDependencies": {
 		"@types/connect": "^3.4.38",
 		"@types/finalhandler": "^1.2.4",
-		"@types/node": "^24.10.1",
+		"@types/node": "^25.0.3",
 		"tsx": "^4.21.0"
 	},
 	"dependencies": {
