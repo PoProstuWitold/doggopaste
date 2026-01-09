@@ -191,6 +191,40 @@ export default defineConfig({
 					summary: '/syntaxes',
 					description:
 						'Retrieves a list of all syntaxes in the system for administrative purposes.'
+				},
+				{
+					api: '/users/{id}',
+					method: 'delete',
+					summary: '/users/{id}',
+					description:
+						'Deletes a specific user identified by their id.'
+				},
+				{
+					api: '/pastes/{id}',
+					method: 'delete',
+					summary: '/pastes/{id}',
+					description:
+						'Deletes a specific paste identified by its id.'
+				},
+				{
+					api: '/pastes-realtime/{id}',
+					method: 'delete',
+					summary: '/pastes-realtime/{id}',
+					description:
+						'Deletes a specific realtime paste identified by its id.'
+				},
+				{
+					api: '/tags/{id}',
+					method: 'delete',
+					summary: '/tags/{id}',
+					description: 'Deletes a specific tag identified by its id.'
+				},
+				{
+					api: '/syntaxes/{id}',
+					method: 'put',
+					summary: '/syntaxes/{id}',
+					description:
+						'Updates the details of a specific syntax identified by its id.'
 				}
 			]
 		}

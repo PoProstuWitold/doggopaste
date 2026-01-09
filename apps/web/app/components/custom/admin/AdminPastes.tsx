@@ -193,7 +193,7 @@ const PasteRow: React.FC<PasteRowProps> = ({ staticPaste, onAction }) => {
 		setWorking(true)
 		try {
 			const res = await fetch(
-				`${getBaseApiUrl()}/api/pastes/${paste.id}`,
+				`${getBaseApiUrl()}/api/admin/pastes/${paste.id}`,
 				{
 					method: 'DELETE',
 					credentials: 'include'

@@ -184,6 +184,17 @@ const RealtimeRow: React.FC<RealtimeRowProps> = ({
 		if (!confirm('Delete this realtime paste?')) return
 		setWorking(true)
 		try {
+			const res = await fetch(
+				`${getBaseApiUrl()}/api/admin/pastes-realtime/${paste.id}`,
+				{
+					method: 'DELETE',
+					credentials: 'include'
+				}
+			)
+			if (!res.ok) {
+				const json = await res.json()
+				throw new Error(json.message || `Failed ${res.status}`)
+			}
 			onAction?.()
 		} catch (e) {
 			alert((e as Error).message || 'Delete failed')

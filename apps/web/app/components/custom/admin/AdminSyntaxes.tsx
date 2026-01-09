@@ -180,9 +180,27 @@ const SyntaxRow: React.FC<SyntaxRowProps> = ({ syntax, onAction }) => {
 		setWorking(true)
 		setError(null)
 		try {
-			// Placeholder PUT endpoint
-			await new Promise((res) => setTimeout(res, 600))
-			// simulate success and refresh
+			const res = await fetch(
+				`${getBaseApiUrl()}/api/admin/syntaxes/${syntax.id}`,
+				{
+					method: 'PUT',
+					headers: {
+						'Content-Type': 'application/json'
+					},
+					body: JSON.stringify({
+						name,
+						extension,
+						color
+					}),
+					credentials: 'include'
+				}
+			)
+
+			if (!res.ok) {
+				const json = await res.json()
+				throw new Error(json.message || `Failed ${res.status}`)
+			}
+
 			onAction?.()
 			setEditing(false)
 		} catch (e) {

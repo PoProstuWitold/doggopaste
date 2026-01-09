@@ -144,8 +144,18 @@ const TagRow: React.FC<TagRowProps> = ({ tag, onAction }) => {
 		if (!confirm('Delete this tag?')) return
 		setWorking(true)
 		try {
-			// Placeholder: DELETE endpoint once implemented
-			await new Promise((res) => setTimeout(res, 600))
+			const res = await fetch(
+				`${getBaseApiUrl()}/api/admin/tags/${tag.id}`,
+				{
+					method: 'DELETE',
+					credentials: 'include'
+				}
+			)
+
+			if (!res.ok) {
+				const json = await res.json()
+				throw new Error(json.message || `Failed ${res.status}`)
+			}
 			onAction?.()
 		} catch (e) {
 			alert((e as Error).message || 'Delete failed')

@@ -96,6 +96,9 @@
 														"organization"
 													]
 												},
+												"encrypted": {
+													"oneOf": [{}, {}]
+												},
 												"id": {
 													"type": "string"
 												},
@@ -135,6 +138,7 @@
 												"category",
 												"expiration",
 												"visibility",
+												"encrypted",
 												"id",
 												"createdAt",
 												"updatedAt",
@@ -240,6 +244,18 @@
 														"color"
 													]
 												},
+												"content": {
+													"type": "string"
+												},
+												"id": {
+													"type": "string"
+												},
+												"createdAt": {
+													"type": "string"
+												},
+												"updatedAt": {
+													"type": "string"
+												},
 												"userId": {
 													"type": "string"
 												},
@@ -274,9 +290,6 @@
 														"education"
 													]
 												},
-												"content": {
-													"type": "string"
-												},
 												"syntaxId": {
 													"type": "string"
 												},
@@ -295,6 +308,9 @@
 														"2w"
 													]
 												},
+												"encrypted": {
+													"oneOf": [{}, {}]
+												},
 												"passwordHash": {
 													"type": "string"
 												},
@@ -312,37 +328,29 @@
 												},
 												"organizationId": {
 													"type": "string"
-												},
-												"id": {
-													"type": "string"
-												},
-												"createdAt": {
-													"type": "string"
-												},
-												"updatedAt": {
-													"type": "string"
 												}
 											},
 											"required": [
 												"tags",
 												"syntax",
+												"content",
+												"id",
+												"createdAt",
+												"updatedAt",
 												"userId",
 												"folderId",
 												"title",
 												"description",
 												"slug",
 												"category",
-												"content",
 												"syntaxId",
 												"expiresAt",
 												"expiration",
+												"encrypted",
 												"passwordHash",
 												"hits",
 												"visibility",
-												"organizationId",
-												"id",
-												"createdAt",
-												"updatedAt"
+												"organizationId"
 											]
 										}
 									},
@@ -381,6 +389,15 @@
 										"data": {
 											"type": "object",
 											"properties": {
+												"id": {
+													"type": "string"
+												},
+												"createdAt": {
+													"type": "string"
+												},
+												"updatedAt": {
+													"type": "string"
+												},
 												"userId": {
 													"type": "string"
 												},
@@ -436,6 +453,9 @@
 														"2w"
 													]
 												},
+												"encrypted": {
+													"oneOf": [{}, {}]
+												},
 												"passwordHash": {
 													"type": "string"
 												},
@@ -453,18 +473,12 @@
 												},
 												"organizationId": {
 													"type": "string"
-												},
-												"id": {
-													"type": "string"
-												},
-												"createdAt": {
-													"type": "string"
-												},
-												"updatedAt": {
-													"type": "string"
 												}
 											},
 											"required": [
+												"id",
+												"createdAt",
+												"updatedAt",
 												"userId",
 												"folderId",
 												"title",
@@ -475,13 +489,11 @@
 												"syntaxId",
 												"expiresAt",
 												"expiration",
+												"encrypted",
 												"passwordHash",
 												"hits",
 												"visibility",
-												"organizationId",
-												"id",
-												"createdAt",
-												"updatedAt"
+												"organizationId"
 											]
 										}
 									},
@@ -528,6 +540,43 @@
 					}
 				},
 				"description": "Deletes a specific static paste identified by its slug.",
+				"tags": ["Static Pastes"]
+			}
+		},
+		"/pastes/{slug}/verify": {
+			"post": {
+				"summary": "Auto-generated POST /{slug}/verify",
+				"parameters": [
+					{
+						"name": "slug",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"default": {
+						"description": "Default fallback response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"success": {
+											"oneOf": [{}, {}]
+										},
+										"content": {
+											"type": "string"
+										}
+									},
+									"required": ["success", "content"]
+								}
+							}
+						}
+					}
+				},
 				"tags": ["Static Pastes"]
 			}
 		},
@@ -1176,6 +1225,31 @@
 													"items": {
 														"type": "object",
 														"properties": {
+															"tags": {
+																"type": "array",
+																"items": {
+																	"type": "string"
+																}
+															},
+															"syntax": {
+																"type": "object",
+																"properties": {
+																	"name": {
+																		"type": "string"
+																	},
+																	"extension": {
+																		"type": "string"
+																	},
+																	"color": {
+																		"type": "string"
+																	}
+																},
+																"required": [
+																	"name",
+																	"extension",
+																	"color"
+																]
+															},
 															"id": {
 																"type": "string"
 															},
@@ -1222,6 +1296,9 @@
 															"content": {
 																"type": "string"
 															},
+															"syntaxId": {
+																"type": "string"
+															},
 															"expiresAt": {
 																"type": "string"
 															},
@@ -1235,6 +1312,12 @@
 																	"1d",
 																	"1w",
 																	"2w"
+																]
+															},
+															"encrypted": {
+																"oneOf": [
+																	{},
+																	{}
 																]
 															},
 															"passwordHash": {
@@ -1254,32 +1337,11 @@
 															},
 															"organizationId": {
 																"type": "string"
-															},
-															"tags": {
-																"type": "array",
-																"items": {}
-															},
-															"syntax": {
-																"type": "object",
-																"properties": {
-																	"name": {
-																		"type": "string"
-																	},
-																	"extension": {
-																		"type": "string"
-																	},
-																	"color": {
-																		"type": "string"
-																	}
-																},
-																"required": [
-																	"name",
-																	"extension",
-																	"color"
-																]
 															}
 														},
 														"required": [
+															"tags",
+															"syntax",
 															"id",
 															"createdAt",
 															"updatedAt",
@@ -1290,14 +1352,14 @@
 															"slug",
 															"category",
 															"content",
+															"syntaxId",
 															"expiresAt",
 															"expiration",
+															"encrypted",
 															"passwordHash",
 															"hits",
 															"visibility",
-															"organizationId",
-															"tags",
-															"syntax"
+															"organizationId"
 														]
 													}
 												}
@@ -1690,6 +1752,44 @@
 				"tags": ["DoggoPaste Admin"]
 			}
 		},
+		"/admin/users/{id}": {
+			"delete": {
+				"summary": "/users/{id}",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"default": {
+						"description": "Default fallback response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"success": {
+											"oneOf": [{}, {}]
+										},
+										"message": {
+											"type": "string"
+										}
+									},
+									"required": ["success", "message"]
+								}
+							}
+						}
+					}
+				},
+				"description": "Deletes a specific user identified by their id.",
+				"tags": ["DoggoPaste Admin"]
+			}
+		},
 		"/admin/tags": {
 			"get": {
 				"summary": "/tags",
@@ -1793,6 +1893,158 @@
 					}
 				},
 				"description": "Retrieves a list of all syntaxes in the system for administrative purposes.",
+				"tags": ["DoggoPaste Admin"]
+			}
+		},
+		"/admin/pastes/{id}": {
+			"delete": {
+				"summary": "/pastes/{id}",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"default": {
+						"description": "Default fallback response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"success": {
+											"oneOf": [{}, {}]
+										},
+										"message": {
+											"type": "string"
+										}
+									},
+									"required": ["success", "message"]
+								}
+							}
+						}
+					}
+				},
+				"description": "Deletes a specific paste identified by its id.",
+				"tags": ["DoggoPaste Admin"]
+			}
+		},
+		"/admin/pastes-realtime/{id}": {
+			"delete": {
+				"summary": "/pastes-realtime/{id}",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"default": {
+						"description": "Default fallback response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"success": {
+											"oneOf": [{}, {}]
+										},
+										"message": {
+											"type": "string"
+										}
+									},
+									"required": ["success", "message"]
+								}
+							}
+						}
+					}
+				},
+				"description": "Deletes a specific realtime paste identified by its id.",
+				"tags": ["DoggoPaste Admin"]
+			}
+		},
+		"/admin/tags/{id}": {
+			"delete": {
+				"summary": "/tags/{id}",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"default": {
+						"description": "Default fallback response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"success": {
+											"oneOf": [{}, {}]
+										},
+										"message": {
+											"type": "string"
+										}
+									},
+									"required": ["success", "message"]
+								}
+							}
+						}
+					}
+				},
+				"description": "Deletes a specific tag identified by its id.",
+				"tags": ["DoggoPaste Admin"]
+			}
+		},
+		"/admin/syntaxes/{id}": {
+			"put": {
+				"summary": "/syntaxes/{id}",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"default": {
+						"description": "Default fallback response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"success": {
+											"oneOf": [{}, {}]
+										},
+										"message": {
+											"type": "string"
+										}
+									},
+									"required": ["success", "message"]
+								}
+							}
+						}
+					}
+				},
+				"description": "Updates the details of a specific syntax identified by its id.",
 				"tags": ["DoggoPaste Admin"]
 			}
 		}

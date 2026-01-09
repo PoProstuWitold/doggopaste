@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { FaDatabase, FaSync, FaTrash, FaUser } from 'react-icons/fa'
 import { createDynamicAuthClient } from '@/app/utils/auth-client'
+import { getBaseApiUrl } from '@/app/utils/functions'
 
 type ListUsersResult = Awaited<
 	ReturnType<ReturnType<typeof createDynamicAuthClient>['admin']['listUsers']>
@@ -155,7 +156,18 @@ const UserRow: React.FC<UserRowProps> = ({ user, onActionComplete }) => {
 		setWorking(true)
 		setError(null)
 		try {
-			// TODO: Replace with real endpoint call
+			const res = await fetch(
+				`${getBaseApiUrl()}/api/admin/users/${user.id}`,
+				{
+					method: 'DELETE',
+					credentials: 'include'
+				}
+			)
+
+			if (!res.ok) {
+				const json = await res.json()
+				throw new Error(json.message || `Failed ${res.status}`)
+			}
 			onActionComplete?.()
 		} catch (e) {
 			setError((e as Error).message || 'Delete failed')
