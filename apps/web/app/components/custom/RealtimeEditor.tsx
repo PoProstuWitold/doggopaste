@@ -406,7 +406,7 @@ export const RealtimeEditor = ({
 						className={`rounded-lg border border-dashed border-base-300 bg-base-100/90 dark:bg-base-200/90 overflow-auto max-h-[400px] md:max-h-[600px] lg:max-h-[800px] p-4 ${showCode ? 'w-full lg:w-1/2' : 'w-full'}`}
 					>
 						<div
-							className='prose prose-sm max-w-none dark:prose-invert'
+							className='markdown-preview'
 							// eslint-disable-next-line react/no-danger
 							dangerouslySetInnerHTML={{
 								__html: createSafeMarkdownHtml(content)

@@ -219,7 +219,7 @@ export function MarkdownPreview({ markdown, children }: MarkdownPreviewProps) {
 						className={`rounded-lg border border-dashed border-base-300 bg-base-100/90 dark:bg-base-200/90 overflow-auto max-h-[650px] p-4 ${mode === 'split' ? 'w-full lg:w-1/2' : 'w-full'}`}
 					>
 						<div
-							className='prose prose-sm max-w-none dark:prose-invert'
+							className='markdown-preview'
 							dangerouslySetInnerHTML={{ __html: renderedHtml }}
 						/>
 					</div>
