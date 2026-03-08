@@ -3,13 +3,14 @@
 import DOMPurify from 'dompurify'
 import { marked } from 'marked'
 import {
-	FaCode,
-	FaColumns,
-	FaEye,
-	FaLink,
-	FaUnlink
-} from 'react-icons/fa'
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+	type ReactNode,
+	useCallback,
+	useEffect,
+	useMemo,
+	useRef,
+	useState
+} from 'react'
+import { FaCode, FaColumns, FaEye, FaLink, FaUnlink } from 'react-icons/fa'
 
 type MarkdownViewMode = 'code' | 'preview' | 'split'
 
@@ -44,13 +45,13 @@ export function MarkdownPreview({ markdown, children }: MarkdownPreviewProps) {
 		[markdown]
 	)
 
-	const disableSyncScroll = () => {
+	const disableSyncScroll = useCallback(() => {
 		if (detachSyncRef.current) {
 			detachSyncRef.current()
 			detachSyncRef.current = null
 		}
 		setSyncEnabled(false)
-	}
+	}, [])
 
 	const changeMode = (nextMode: MarkdownViewMode) => {
 		if (nextMode !== 'split') {
@@ -72,7 +73,7 @@ export function MarkdownPreview({ markdown, children }: MarkdownPreviewProps) {
 		if (mode !== 'split') {
 			disableSyncScroll()
 		}
-	}, [mode])
+	}, [mode, disableSyncScroll])
 
 	const getScrollableElement = (container: HTMLElement): HTMLElement => {
 		// In static paste the wrapper has overflow-auto + max-h; CodeMirror may scroll inside .cm-scroller.
@@ -82,7 +83,9 @@ export function MarkdownPreview({ markdown, children }: MarkdownPreviewProps) {
 
 		if (isScrollable(container)) return container
 
-		const cmScroller = container.querySelector('.cm-scroller') as HTMLElement | null
+		const cmScroller = container.querySelector(
+			'.cm-scroller'
+		) as HTMLElement | null
 		if (cmScroller && isScrollable(cmScroller)) return cmScroller
 
 		// Fallback: prefer .cm-scroller if present (it's the one user usually scrolls in CodeMirror)
@@ -97,7 +100,10 @@ export function MarkdownPreview({ markdown, children }: MarkdownPreviewProps) {
 		// If target has no scroll range, nothing to sync
 		if (targetScrollable <= 0) return
 
-		const ratio = Math.max(0, Math.min(1, source.scrollTop / sourceScrollable))
+		const ratio = Math.max(
+			0,
+			Math.min(1, source.scrollTop / sourceScrollable)
+		)
 		target.scrollTop = ratio * targetScrollable
 	}
 
@@ -129,7 +135,9 @@ export function MarkdownPreview({ markdown, children }: MarkdownPreviewProps) {
 		}
 
 		codeEl.addEventListener('scroll', handleCodeScroll, { passive: true })
-		previewEl.addEventListener('scroll', handlePreviewScroll, { passive: true })
+		previewEl.addEventListener('scroll', handlePreviewScroll, {
+			passive: true
+		})
 
 		detachSyncRef.current = () => {
 			codeEl.removeEventListener('scroll', handleCodeScroll)
@@ -195,7 +203,9 @@ export function MarkdownPreview({ markdown, children }: MarkdownPreviewProps) {
 						) : (
 							<>
 								<FaLink className='w-3 h-3 sm:w-4 sm:h-4' />
-								<span className='hidden sm:inline'>Sync scroll</span>
+								<span className='hidden sm:inline'>
+									Sync scroll
+								</span>
 							</>
 						)}
 					</button>
@@ -220,6 +230,7 @@ export function MarkdownPreview({ markdown, children }: MarkdownPreviewProps) {
 					>
 						<div
 							className='markdown-preview'
+							// biome-ignore lint/security/noDangerouslySetInnerHtml: HTML from marked is sanitized with DOMPurify
 							dangerouslySetInnerHTML={{ __html: renderedHtml }}
 						/>
 					</div>

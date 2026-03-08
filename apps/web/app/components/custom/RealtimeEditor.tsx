@@ -22,9 +22,9 @@ import {
 	getBaseApiUrl,
 	getContrastTextColor
 } from '../../utils/functions'
+import { createSafeMarkdownHtml } from './MarkdownPreview'
 import { RealtimeCursors } from './RealtimeCursors'
 import { RealtimePasteButtons } from './RealtimePasteButtons'
-import { createSafeMarkdownHtml } from './MarkdownPreview'
 
 export const RealtimeEditor = ({
 	slug,
@@ -51,7 +51,9 @@ export const RealtimeEditor = ({
 	const socketId = useRef<string | null>(null)
 	const isRemoteChange = useRef(false)
 
-	const [markdownMode, setMarkdownMode] = useState<'code' | 'split' | 'preview'>('code')
+	const [markdownMode, setMarkdownMode] = useState<
+		'code' | 'split' | 'preview'
+	>('code')
 	const [markdownSyncEnabled, setMarkdownSyncEnabled] = useState(false)
 	const codeScrollRef = useRef<HTMLDivElement | null>(null)
 	const previewRef = useRef<HTMLDivElement | null>(null)
@@ -349,33 +351,33 @@ export const RealtimeEditor = ({
 			{isMarkdown && (
 				<div className='flex items-center justify-between gap-2'>
 					<div className='join'>
-					<button
-						type='button'
-						className={`btn btn-xs sm:btn-sm join-item ${markdownMode === 'code' ? 'btn-primary' : 'btn-ghost'}`}
-						onClick={() => setMarkdownMode('code')}
-						title='Show Markdown source only'
-					>
-						<FaCode className='w-3 h-3 sm:w-4 sm:h-4' />
-						<span className='hidden sm:inline'>Code</span>
-					</button>
-					<button
-						type='button'
-						className={`btn btn-xs sm:btn-sm join-item ${markdownMode === 'split' ? 'btn-primary' : 'btn-ghost'}`}
-						onClick={() => setMarkdownMode('split')}
-						title='Show code and preview side by side'
-					>
-						<FaColumns className='w-3 h-3 sm:w-4 sm:h-4' />
-						<span className='hidden sm:inline'>Split</span>
-					</button>
-					<button
-						type='button'
-						className={`btn btn-xs sm:btn-sm join-item ${markdownMode === 'preview' ? 'btn-primary' : 'btn-ghost'}`}
-						onClick={() => setMarkdownMode('preview')}
-						title='Show rendered preview only'
-					>
-						<FaEye className='w-3 h-3 sm:w-4 sm:h-4' />
-						<span className='hidden sm:inline'>Preview</span>
-					</button>
+						<button
+							type='button'
+							className={`btn btn-xs sm:btn-sm join-item ${markdownMode === 'code' ? 'btn-primary' : 'btn-ghost'}`}
+							onClick={() => setMarkdownMode('code')}
+							title='Show Markdown source only'
+						>
+							<FaCode className='w-3 h-3 sm:w-4 sm:h-4' />
+							<span className='hidden sm:inline'>Code</span>
+						</button>
+						<button
+							type='button'
+							className={`btn btn-xs sm:btn-sm join-item ${markdownMode === 'split' ? 'btn-primary' : 'btn-ghost'}`}
+							onClick={() => setMarkdownMode('split')}
+							title='Show code and preview side by side'
+						>
+							<FaColumns className='w-3 h-3 sm:w-4 sm:h-4' />
+							<span className='hidden sm:inline'>Split</span>
+						</button>
+						<button
+							type='button'
+							className={`btn btn-xs sm:btn-sm join-item ${markdownMode === 'preview' ? 'btn-primary' : 'btn-ghost'}`}
+							onClick={() => setMarkdownMode('preview')}
+							title='Show rendered preview only'
+						>
+							<FaEye className='w-3 h-3 sm:w-4 sm:h-4' />
+							<span className='hidden sm:inline'>Preview</span>
+						</button>
 					</div>
 
 					{markdownMode === 'split' && (
@@ -385,21 +387,21 @@ export const RealtimeEditor = ({
 							onClick={toggleMarkdownSyncScroll}
 							title='Toggle scroll sync between code and preview'
 						>
-										{markdownSyncEnabled ? (
-											<>
-												<FaUnlink className='w-3 h-3 sm:w-4 sm:h-4' />
-												<span className='hidden sm:inline'>
-													Unsync
-												</span>
-											</>
-										) : (
-											<>
-												<FaLink className='w-3 h-3 sm:w-4 sm:h-4' />
-												<span className='hidden sm:inline'>
-													Sync scroll
-												</span>
-											</>
-										)}
+							{markdownSyncEnabled ? (
+								<>
+									<FaUnlink className='w-3 h-3 sm:w-4 sm:h-4' />
+									<span className='hidden sm:inline'>
+										Unsync
+									</span>
+								</>
+							) : (
+								<>
+									<FaLink className='w-3 h-3 sm:w-4 sm:h-4' />
+									<span className='hidden sm:inline'>
+										Sync scroll
+									</span>
+								</>
+							)}
 						</button>
 					)}
 				</div>
@@ -424,7 +426,7 @@ export const RealtimeEditor = ({
 					>
 						<div
 							className='markdown-preview'
-							// eslint-disable-next-line react/no-danger
+							// biome-ignore lint/security/noDangerouslySetInnerHtml: HTML from createSafeMarkdownHtml is sanitized with DOMPurify
 							dangerouslySetInnerHTML={{
 								__html: createSafeMarkdownHtml(content)
 							}}

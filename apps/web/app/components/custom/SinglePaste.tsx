@@ -34,8 +34,8 @@ import {
 	getExpirationLabel
 } from '../../utils/functions'
 import { decryptWithPassword } from '../../utils/webCrypto'
-import { PasteButtons } from './PasteButtons'
 import { MarkdownPreview } from './MarkdownPreview'
+import { PasteButtons } from './PasteButtons'
 
 export default function SinglePaste({
 	slug,
@@ -315,8 +315,7 @@ export default function SinglePaste({
 												basicSetup={{
 													lineNumbers: true,
 													highlightActiveLine: true,
-													highlightActiveLineGutter:
-														true,
+													highlightActiveLineGutter: true,
 													foldGutter: true,
 													tabSize: 4,
 													history: false,
@@ -340,8 +339,7 @@ export default function SinglePaste({
 												basicSetup={{
 													lineNumbers: true,
 													highlightActiveLine: true,
-													highlightActiveLineGutter:
-														true,
+													highlightActiveLineGutter: true,
 													foldGutter: true,
 													tabSize: 4,
 													history: false,
@@ -469,7 +467,7 @@ export default function SinglePaste({
 						value={
 							showLockScreen
 								? 'Hidden'
-								: contentToDisplay.length + ' characters'
+								: `${contentToDisplay.length} characters`
 						}
 					/>
 					<PasteDetail
