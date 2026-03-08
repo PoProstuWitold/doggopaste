@@ -6,7 +6,7 @@ import { EditorState, StateEffect } from '@codemirror/state'
 import { keymap } from '@codemirror/view'
 import { basicSetup, EditorView } from 'codemirror'
 import { useEffect, useRef, useState } from 'react'
-import { FaBolt } from 'react-icons/fa'
+import { FaBolt, FaLink, FaUnlink } from 'react-icons/fa'
 import io, { type Socket } from 'socket.io-client'
 import { useTheme } from '../../context/ThemeContext'
 import type { RealtimePaste, Session, User } from '../../types'
@@ -368,7 +368,21 @@ export const RealtimeEditor = ({
 							onClick={toggleMarkdownSyncScroll}
 							title='Toggle scroll sync between code and preview'
 						>
-							{markdownSyncEnabled ? 'Unsync scroll' : 'Sync scroll'}
+										{markdownSyncEnabled ? (
+											<>
+												<FaUnlink className='w-3 h-3 sm:w-4 sm:h-4' />
+												<span className='hidden sm:inline'>
+													Unsync
+												</span>
+											</>
+										) : (
+											<>
+												<FaLink className='w-3 h-3 sm:w-4 sm:h-4' />
+												<span className='hidden sm:inline'>
+													Sync scroll
+												</span>
+											</>
+										)}
 						</button>
 					)}
 				</div>
