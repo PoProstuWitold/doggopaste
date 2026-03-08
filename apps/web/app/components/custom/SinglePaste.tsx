@@ -35,6 +35,7 @@ import {
 } from '../../utils/functions'
 import { decryptWithPassword } from '../../utils/webCrypto'
 import { PasteButtons } from './PasteButtons'
+import { MarkdownPreview } from './MarkdownPreview'
 
 export default function SinglePaste({
 	slug,
@@ -129,6 +130,8 @@ export default function SinglePaste({
 	const contentToDisplay = paste.encrypted
 		? decryptedContent || ''
 		: fetchedContent
+
+	const isMarkdown = paste.syntax.name === 'Markdown'
 
 	const showLockScreen = isServerLocked || isClientLocked
 
@@ -295,26 +298,60 @@ export default function SinglePaste({
 									</form>
 								</div>
 							) : (
-								<div className='min-w-0'>
-									<CodeMirror
-										value={contentToDisplay}
-										extensions={[
-											extensions[paste.syntax.name] ?? []
-										]}
-										readOnly={true}
-										onChange={() => {}}
-										basicSetup={{
-											lineNumbers: true,
-											highlightActiveLine: true,
-											highlightActiveLineGutter: true,
-											foldGutter: true,
-											tabSize: 4,
-											history: false,
-											syntaxHighlighting: true
-										}}
-										className='overflow-auto max-h-[650px]'
-										theme={cmTheme}
-									/>
+								<div className='min-w-0 flex flex-col gap-3'>
+									{isMarkdown ? (
+										<MarkdownPreview
+											markdown={contentToDisplay}
+										>
+											<CodeMirror
+												value={contentToDisplay}
+												extensions={[
+													extensions[
+														paste.syntax.name
+													] ?? []
+												]}
+												readOnly={true}
+												onChange={() => {}}
+												basicSetup={{
+													lineNumbers: true,
+													highlightActiveLine: true,
+													highlightActiveLineGutter:
+														true,
+													foldGutter: true,
+													tabSize: 4,
+													history: false,
+													syntaxHighlighting: true
+												}}
+												className='min-h-[300px]'
+												theme={cmTheme}
+											/>
+										</MarkdownPreview>
+									) : (
+										<div className='rounded-lg bg-base-300/80 overflow-auto max-h-[650px]'>
+											<CodeMirror
+												value={contentToDisplay}
+												extensions={[
+													extensions[
+														paste.syntax.name
+													] ?? []
+												]}
+												readOnly={true}
+												onChange={() => {}}
+												basicSetup={{
+													lineNumbers: true,
+													highlightActiveLine: true,
+													highlightActiveLineGutter:
+														true,
+													foldGutter: true,
+													tabSize: 4,
+													history: false,
+													syntaxHighlighting: true
+												}}
+												className='min-h-[300px]'
+												theme={cmTheme}
+											/>
+										</div>
+									)}
 								</div>
 							)}
 						</div>
