@@ -6,7 +6,14 @@ import { EditorState, StateEffect } from '@codemirror/state'
 import { keymap } from '@codemirror/view'
 import { basicSetup, EditorView } from 'codemirror'
 import { useEffect, useRef, useState } from 'react'
-import { FaBolt, FaLink, FaUnlink } from 'react-icons/fa'
+import {
+	FaBolt,
+	FaCode,
+	FaColumns,
+	FaEye,
+	FaLink,
+	FaUnlink
+} from 'react-icons/fa'
 import io, { type Socket } from 'socket.io-client'
 import { useTheme } from '../../context/ThemeContext'
 import type { RealtimePaste, Session, User } from '../../types'
@@ -211,8 +218,12 @@ export const RealtimeEditor = ({
 				source.scrollHeight - source.clientHeight || 1
 			const targetScrollHeight =
 				target.scrollHeight - target.clientHeight || 1
+			if (targetScrollHeight <= 0) return
 
-			const ratio = source.scrollTop / sourceScrollHeight
+			const ratio = Math.max(
+				0,
+				Math.min(1, source.scrollTop / sourceScrollHeight)
+			)
 			target.scrollTop = ratio * targetScrollHeight
 		}
 
@@ -338,27 +349,33 @@ export const RealtimeEditor = ({
 			{isMarkdown && (
 				<div className='flex items-center justify-between gap-2'>
 					<div className='join'>
-						<button
-							type='button'
-							className={`btn btn-xs sm:btn-sm join-item ${markdownMode === 'code' ? 'btn-primary' : 'btn-ghost'}`}
-							onClick={() => setMarkdownMode('code')}
-						>
-							Code
-						</button>
-						<button
-							type='button'
-							className={`btn btn-xs sm:btn-sm join-item ${markdownMode === 'split' ? 'btn-primary' : 'btn-ghost'}`}
-							onClick={() => setMarkdownMode('split')}
-						>
-							Split
-						</button>
-						<button
-							type='button'
-							className={`btn btn-xs sm:btn-sm join-item ${markdownMode === 'preview' ? 'btn-primary' : 'btn-ghost'}`}
-							onClick={() => setMarkdownMode('preview')}
-						>
-							Preview
-						</button>
+					<button
+						type='button'
+						className={`btn btn-xs sm:btn-sm join-item ${markdownMode === 'code' ? 'btn-primary' : 'btn-ghost'}`}
+						onClick={() => setMarkdownMode('code')}
+						title='Show Markdown source only'
+					>
+						<FaCode className='w-3 h-3 sm:w-4 sm:h-4' />
+						<span className='hidden sm:inline'>Code</span>
+					</button>
+					<button
+						type='button'
+						className={`btn btn-xs sm:btn-sm join-item ${markdownMode === 'split' ? 'btn-primary' : 'btn-ghost'}`}
+						onClick={() => setMarkdownMode('split')}
+						title='Show code and preview side by side'
+					>
+						<FaColumns className='w-3 h-3 sm:w-4 sm:h-4' />
+						<span className='hidden sm:inline'>Split</span>
+					</button>
+					<button
+						type='button'
+						className={`btn btn-xs sm:btn-sm join-item ${markdownMode === 'preview' ? 'btn-primary' : 'btn-ghost'}`}
+						onClick={() => setMarkdownMode('preview')}
+						title='Show rendered preview only'
+					>
+						<FaEye className='w-3 h-3 sm:w-4 sm:h-4' />
+						<span className='hidden sm:inline'>Preview</span>
+					</button>
 					</div>
 
 					{markdownMode === 'split' && (
