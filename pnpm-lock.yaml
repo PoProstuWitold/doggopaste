@@ -220,9 +220,18 @@ importers:
       dompurify:
         specifier: ^3.3.2
         version: 3.3.2
+      katex:
+        specifier: ^0.16.21
+        version: 0.16.38
       marked:
         specifier: ^17.0.4
         version: 17.0.4
+      marked-alert:
+        specifier: ^2.1.2
+        version: 2.1.2(marked@17.0.4)
+      marked-katex-extension:
+        specifier: ^5.1.7
+        version: 5.1.7(katex@0.16.38)(marked@17.0.4)
       next:
         specifier: 16.1.6
         version: 16.1.6(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -1841,6 +1850,10 @@ packages:
   codemirror@6.0.2:
     resolution: {integrity: sha512-VhydHotNW5w1UGK0Qj96BwSk/Zqbp9WbnyK2W/eVMv4QyF41INRGpjUhFJY7/uDNuudSc33a/PKr4iDqRduvHw==}
 
+  commander@8.3.0:
+    resolution: {integrity: sha512-OkTL9umf+He2DZkUq8f8J9of7yL6RJKI24dVITBmNfZBmri9zYZQrKkuXiKhyfPSu8tUhnVBB1iKXevvnlR4Ww==}
+    engines: {node: '>= 12'}
+
   connect@3.7.0:
     resolution: {integrity: sha512-ZqRXc+tZukToSNmh5C2iWMSoV3X1YUcPbqEM4DkEG5tNQXrQUZCNVGGv3IuicnkMtPfGf3Xtp8WCXs295iQ1pQ==}
     engines: {node: '>= 0.10.0'}
@@ -2200,6 +2213,10 @@ packages:
   jose@6.1.3:
     resolution: {integrity: sha512-0TpaTfihd4QMNwrz/ob2Bp7X04yuxJkjRGi4aKmOqwhov54i6u79oCv7T+C7lo70MKH6BesI3vscD1yb/yzKXQ==}
 
+  katex@0.16.38:
+    resolution: {integrity: sha512-cjHooZUmIAUmDsHBN+1n8LaZdpmbj03LtYeYPyuYB7OuloiaeaV6N4LcfjcnHVzGWjVQmKrxxTrpDcmSzEZQwQ==}
+    hasBin: true
+
   kysely@0.28.11:
     resolution: {integrity: sha512-zpGIFg0HuoC893rIjYX1BETkVWdDnzTzF5e0kWXJFg5lE0k1/LfNWBejrcnOFu8Q2Rfq/hTDTU7XLUM8QOrpzg==}
     engines: {node: '>=20.0.0'}
@@ -2284,6 +2301,17 @@ packages:
 
   magic-string@0.30.21:
     resolution: {integrity: sha512-vd2F4YUyEXKGcLHoq+TEyCjxueSeHnFxyyjNp80yg0XV4vUhnDer/lvvlqM/arB5bXQN5K2/3oinyCRyx8T2CQ==}
+
+  marked-alert@2.1.2:
+    resolution: {integrity: sha512-EFNRZ08d8L/iEIPLTlQMDjvwIsj03gxWCczYTht6DCiHJIZhMk4NK5gtPY9UqAYb09eV5VGT+jD4lp396E0I+w==}
+    peerDependencies:
+      marked: '>=7.0.0'
+
+  marked-katex-extension@5.1.7:
+    resolution: {integrity: sha512-CVFzrqwpXGVaHByqcVvO/JfzW/OMWrAF3pEfNYNIruzBzM64moANSHapCg1qbzEN+NGf5unHwkMfwJIXHzyDAw==}
+    peerDependencies:
+      katex: '>=0.16 <0.17'
+      marked: '>=4 <18'
 
   marked@17.0.4:
     resolution: {integrity: sha512-NOmVMM+KAokHMvjWmC5N/ZOvgmSWuqJB8FoYI019j4ogb/PeRMKoKIjReZ2w3376kkA8dSJIP8uD993Kxc0iRQ==}
@@ -4323,6 +4351,8 @@ snapshots:
       '@codemirror/state': 6.5.4
       '@codemirror/view': 6.39.15
 
+  commander@8.3.0: {}
+
   connect@3.7.0:
     dependencies:
       debug: 2.6.9
@@ -4675,6 +4705,10 @@ snapshots:
 
   jose@6.1.3: {}
 
+  katex@0.16.38:
+    dependencies:
+      commander: 8.3.0
+
   kysely@0.28.11: {}
 
   lightningcss-android-arm64@1.31.1:
@@ -4731,6 +4765,15 @@ snapshots:
   magic-string@0.30.21:
     dependencies:
       '@jridgewell/sourcemap-codec': 1.5.5
+
+  marked-alert@2.1.2(marked@17.0.4):
+    dependencies:
+      marked: 17.0.4
+
+  marked-katex-extension@5.1.7(katex@0.16.38)(marked@17.0.4):
+    dependencies:
+      katex: 0.16.38
+      marked: 17.0.4
 
   marked@17.0.4: {}
 

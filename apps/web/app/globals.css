@@ -132,3 +132,26 @@
 	font-weight: 600;
 	background: oklch(var(--b3));
 }
+
+/* GFM alerts (marked-alert): [!NOTE], [!TIP], [!IMPORTANT], [!WARNING], [!CAUTION] */
+.markdown-preview .markdown-alert {
+	margin: 0.75em 0;
+	padding: 0.75em 1em;
+	border-radius: 0.375rem;
+	border-left: 4px solid oklch(var(--bc) / 0.3);
+	background: oklch(var(--b3));
+}
+
+.markdown-preview .markdown-alert-title {
+	font-weight: 600;
+	margin-bottom: 0.35em;
+	display: flex;
+	align-items: center;
+	gap: 0.5em;
+}
+
+.markdown-preview .markdown-alert-note { border-left-color: oklch(var(--in)); }
+.markdown-preview .markdown-alert-tip { border-left-color: oklch(var(--su)); }
+.markdown-preview .markdown-alert-important { border-left-color: oklch(var(--p)); }
+.markdown-preview .markdown-alert-warning { border-left-color: oklch(var(--wa)); }
+.markdown-preview .markdown-alert-caution { border-left-color: oklch(var(--er)); }

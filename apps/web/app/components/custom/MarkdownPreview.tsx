@@ -1,7 +1,10 @@
 'use client'
 
 import DOMPurify from 'dompurify'
+import 'katex/dist/katex.min.css'
 import { marked } from 'marked'
+import markedAlert from 'marked-alert'
+import markedKatex from 'marked-katex-extension'
 import {
 	type ReactNode,
 	useCallback,
@@ -11,6 +14,9 @@ import {
 	useState
 } from 'react'
 import { FaCode, FaColumns, FaEye, FaLink, FaUnlink } from 'react-icons/fa'
+
+marked.use(markedKatex({ throwOnError: false }))
+marked.use(markedAlert())
 
 type MarkdownViewMode = 'code' | 'preview' | 'split'
 
