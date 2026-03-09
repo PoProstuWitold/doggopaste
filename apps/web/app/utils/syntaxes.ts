@@ -12,6 +12,7 @@ export const syntaxes = [
 	{ name: 'Swift', color: '#F05138', extension: 'swift' },
 	{ name: 'Kotlin', color: '#A97BFF', extension: 'kt' },
 	{ name: 'Ruby', color: '#701516', extension: 'rb' },
+	{ name: 'R', color: '#198CE7', extension: 'r' },
 	{ name: 'Dart', color: '#00B4AB', extension: 'dart' },
 	{ name: 'C', color: '#555555', extension: 'c' },
 	{ name: 'Scala', color: '#c22d40', extension: 'scala' },
