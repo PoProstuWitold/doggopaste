@@ -38,6 +38,7 @@ import { nginx } from '@codemirror/legacy-modes/mode/nginx'
 import { pascal } from '@codemirror/legacy-modes/mode/pascal'
 import { perl } from '@codemirror/legacy-modes/mode/perl'
 import { powerShell } from '@codemirror/legacy-modes/mode/powershell'
+import { r } from '@codemirror/legacy-modes/mode/r'
 import { ruby } from '@codemirror/legacy-modes/mode/ruby'
 import { shell } from '@codemirror/legacy-modes/mode/shell'
 import { swift } from '@codemirror/legacy-modes/mode/swift'
@@ -165,6 +166,7 @@ export const extensions = {
 	Perl: StreamLanguage.define(perl),
 	PowerShell: StreamLanguage.define(powerShell),
 	Shell: StreamLanguage.define(shell),
+	R: StreamLanguage.define(r),
 	Ruby: StreamLanguage.define(ruby),
 	Swift: StreamLanguage.define(swift),
 	TOML: StreamLanguage.define(toml)

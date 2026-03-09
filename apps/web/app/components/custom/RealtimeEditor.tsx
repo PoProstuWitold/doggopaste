@@ -6,7 +6,14 @@ import { EditorState, StateEffect } from '@codemirror/state'
 import { keymap } from '@codemirror/view'
 import { basicSetup, EditorView } from 'codemirror'
 import { useEffect, useRef, useState } from 'react'
-import { FaBolt } from 'react-icons/fa'
+import {
+	FaBolt,
+	FaCode,
+	FaColumns,
+	FaEye,
+	FaLink,
+	FaUnlink
+} from 'react-icons/fa'
 import io, { type Socket } from 'socket.io-client'
 import { useTheme } from '../../context/ThemeContext'
 import type { RealtimePaste, Session, User } from '../../types'
@@ -15,6 +22,7 @@ import {
 	getBaseApiUrl,
 	getContrastTextColor
 } from '../../utils/functions'
+import { createSafeMarkdownHtml } from './MarkdownPreview'
 import { RealtimeCursors } from './RealtimeCursors'
 import { RealtimePasteButtons } from './RealtimePasteButtons'
 
@@ -42,6 +50,14 @@ export const RealtimeEditor = ({
 	const socket = useRef<Socket | null>(null)
 	const socketId = useRef<string | null>(null)
 	const isRemoteChange = useRef(false)
+
+	const [markdownMode, setMarkdownMode] = useState<
+		'code' | 'split' | 'preview'
+	>('code')
+	const [markdownSyncEnabled, setMarkdownSyncEnabled] = useState(false)
+	const codeScrollRef = useRef<HTMLDivElement | null>(null)
+	const previewRef = useRef<HTMLDivElement | null>(null)
+	const detachSyncRef = useRef<(() => void) | null>(null)
 
 	const scrollTheme = EditorView.theme({
 		'&': {
@@ -144,6 +160,105 @@ export const RealtimeEditor = ({
 		return () => clearInterval(interval)
 	}, [slug, title, selectedSyntax])
 
+	const isMarkdown = selectedSyntax.name === 'Markdown'
+
+	// Cleanup scroll sync listeners on unmount
+	useEffect(() => {
+		return () => {
+			if (detachSyncRef.current) {
+				detachSyncRef.current()
+			}
+		}
+	}, [])
+
+	// Reset markdown view when leaving Markdown syntax
+	useEffect(() => {
+		if (!isMarkdown) {
+			if (detachSyncRef.current) {
+				detachSyncRef.current()
+				detachSyncRef.current = null
+			}
+			setMarkdownSyncEnabled(false)
+			setMarkdownMode('code')
+		}
+	}, [isMarkdown])
+
+	// Disable sync if mode is no longer split
+	useEffect(() => {
+		if (markdownMode !== 'split' && detachSyncRef.current) {
+			detachSyncRef.current()
+			detachSyncRef.current = null
+			setMarkdownSyncEnabled(false)
+		}
+	}, [markdownMode])
+
+	const toggleMarkdownSyncScroll = () => {
+		if (markdownSyncEnabled) {
+			if (detachSyncRef.current) {
+				detachSyncRef.current()
+				detachSyncRef.current = null
+			}
+			setMarkdownSyncEnabled(false)
+			return
+		}
+
+		if (!previewRef.current || !viewRef.current) return
+
+		// Prefer the actual CodeMirror scroll DOM if available
+		const codeEl =
+			(viewRef.current as unknown as { scrollDOM?: HTMLElement })
+				.scrollDOM ?? codeScrollRef.current
+
+		if (!codeEl) return
+
+		const previewEl = previewRef.current
+
+		let active: 'code' | 'preview' | null = null
+
+		const syncScroll = (source: HTMLElement, target: HTMLElement) => {
+			const sourceScrollHeight =
+				source.scrollHeight - source.clientHeight || 1
+			const targetScrollHeight =
+				target.scrollHeight - target.clientHeight || 1
+			if (targetScrollHeight <= 0) return
+
+			const ratio = Math.max(
+				0,
+				Math.min(1, source.scrollTop / sourceScrollHeight)
+			)
+			target.scrollTop = ratio * targetScrollHeight
+		}
+
+		const handleCodeScroll = () => {
+			if (active === 'preview') return
+			active = 'code'
+			syncScroll(codeEl, previewEl)
+			active = null
+		}
+
+		const handlePreviewScroll = () => {
+			if (active === 'code') return
+			active = 'preview'
+			syncScroll(previewEl, codeEl)
+			active = null
+		}
+
+		codeEl.addEventListener('scroll', handleCodeScroll)
+		previewEl.addEventListener('scroll', handlePreviewScroll)
+
+		detachSyncRef.current = () => {
+			codeEl.removeEventListener('scroll', handleCodeScroll)
+			previewEl.removeEventListener('scroll', handlePreviewScroll)
+		}
+
+		setMarkdownSyncEnabled(true)
+	}
+
+	const showCode =
+		!isMarkdown || markdownMode === 'code' || markdownMode === 'split'
+	const showPreview =
+		isMarkdown && (markdownMode === 'split' || markdownMode === 'preview')
+
 	return (
 		<div className='flex flex-col gap-10'>
 			<RealtimeCursors
@@ -233,10 +348,92 @@ export const RealtimeEditor = ({
 					</select>
 				</label>
 			</div>
+			{isMarkdown && (
+				<div className='flex items-center justify-between gap-2'>
+					<div className='join'>
+						<button
+							type='button'
+							className={`btn btn-xs sm:btn-sm join-item ${markdownMode === 'code' ? 'btn-primary' : 'btn-ghost'}`}
+							onClick={() => setMarkdownMode('code')}
+							title='Show Markdown source only'
+						>
+							<FaCode className='w-3 h-3 sm:w-4 sm:h-4' />
+							<span className='hidden sm:inline'>Code</span>
+						</button>
+						<button
+							type='button'
+							className={`btn btn-xs sm:btn-sm join-item ${markdownMode === 'split' ? 'btn-primary' : 'btn-ghost'}`}
+							onClick={() => setMarkdownMode('split')}
+							title='Show code and preview side by side'
+						>
+							<FaColumns className='w-3 h-3 sm:w-4 sm:h-4' />
+							<span className='hidden sm:inline'>Split</span>
+						</button>
+						<button
+							type='button'
+							className={`btn btn-xs sm:btn-sm join-item ${markdownMode === 'preview' ? 'btn-primary' : 'btn-ghost'}`}
+							onClick={() => setMarkdownMode('preview')}
+							title='Show rendered preview only'
+						>
+							<FaEye className='w-3 h-3 sm:w-4 sm:h-4' />
+							<span className='hidden sm:inline'>Preview</span>
+						</button>
+					</div>
+
+					{markdownMode === 'split' && (
+						<button
+							type='button'
+							className={`btn btn-xs sm:btn-sm btn-outline ${markdownSyncEnabled ? 'btn-success' : 'btn-ghost'}`}
+							onClick={toggleMarkdownSyncScroll}
+							title='Toggle scroll sync between code and preview'
+						>
+							{markdownSyncEnabled ? (
+								<>
+									<FaUnlink className='w-3 h-3 sm:w-4 sm:h-4' />
+									<span className='hidden sm:inline'>
+										Unsync
+									</span>
+								</>
+							) : (
+								<>
+									<FaLink className='w-3 h-3 sm:w-4 sm:h-4' />
+									<span className='hidden sm:inline'>
+										Sync scroll
+									</span>
+								</>
+							)}
+						</button>
+					)}
+				</div>
+			)}
 			<div
-				ref={editorRef}
-				className='max-h-[400px] md:max-h-[600px] lg:max-h-[800px] overflow-auto'
-			/>
+				className={`flex gap-4 ${showPreview && showCode ? 'flex-col lg:flex-row' : 'flex-col'}`}
+			>
+				<div
+					ref={codeScrollRef}
+					className={`rounded-lg bg-base-300/80 overflow-auto transition-all ${showPreview && showCode ? 'w-full lg:w-1/2' : 'w-full'} ${
+						showCode
+							? 'max-h-[400px] md:max-h-[600px] lg:max-h-[800px]'
+							: 'h-0 max-h-0 border-none p-0'
+					}`}
+				>
+					<div ref={editorRef} className='min-h-[300px]' />
+				</div>
+				{showPreview && (
+					<div
+						ref={previewRef}
+						className={`rounded-lg border border-dashed border-base-300 bg-base-100/90 dark:bg-base-200/90 overflow-auto max-h-[400px] md:max-h-[600px] lg:max-h-[800px] p-4 ${showCode ? 'w-full lg:w-1/2' : 'w-full'}`}
+					>
+						<div
+							className='markdown-preview'
+							// biome-ignore lint/security/noDangerouslySetInnerHtml: HTML from createSafeMarkdownHtml is sanitized with DOMPurify
+							dangerouslySetInnerHTML={{
+								__html: createSafeMarkdownHtml(content)
+							}}
+						/>
+					</div>
+				)}
+			</div>
 		</div>
 	)
 }
