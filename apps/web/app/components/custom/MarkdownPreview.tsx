@@ -25,8 +25,20 @@ interface MarkdownPreviewProps {
 	children: ReactNode
 }
 
+// Markdown preview
+function normalizeMarkdown(input: string): string {
+	return input
+		.replace(/\r\n/g, '\n')
+		.replace(/\u00A0/g, ' ')
+		.replace(/[\u2000-\u200A]/g, ' ')
+		.replace(/\u202F/g, ' ')
+		.replace(/\u205F/g, ' ')
+		.replace(/\u3000/g, ' ')
+		.replace(/\t/g, '    ')
+}
+
 export const createSafeMarkdownHtml = (markdown: string): string => {
-	const rawHtml = marked.parse(markdown || '', {
+	const rawHtml = marked.parse(normalizeMarkdown(markdown) || '', {
 		gfm: true,
 		breaks: true
 	}) as string

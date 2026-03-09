@@ -101,7 +101,7 @@ const faqItems: FaqItem[] = [
 				<ul className='list-disc list-inside mt-3 space-y-3'>
 					<li>
 						<span className='font-semibold'>
-							23 Programming Languages
+							24 Programming Languages
 						</span>
 						<div className='flex flex-wrap gap-2 mt-2'>
 							{[
@@ -117,6 +117,7 @@ const faqItems: FaqItem[] = [
 								'Swift',
 								'Kotlin',
 								'Ruby',
+								'R',
 								'Dart',
 								'C',
 								'Scala',
