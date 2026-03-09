@@ -15,6 +15,7 @@
 			"!**/node_modules",
 			"!**/package-lock.json",
 			"!**/apps/**/package-lock.json",
+			"!**/.pnpm-store",
 			"!**/.turbo",
 			"!**/apps/**/.turbo",
 			"!**/.vscode",
