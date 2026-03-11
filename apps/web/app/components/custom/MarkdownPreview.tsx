@@ -25,7 +25,6 @@ interface MarkdownPreviewProps {
 	children: ReactNode
 }
 
-// Markdown preview
 function normalizeMarkdown(input: string): string {
 	return input
 		.replace(/\r\n/g, '\n')
@@ -37,17 +36,128 @@ function normalizeMarkdown(input: string): string {
 		.replace(/\t/g, '    ')
 }
 
+const ALLOWED_TAGS = [
+	'a',
+	'blockquote',
+	'br',
+	'code',
+	'del',
+	'details',
+	'summary',
+	'div',
+	'em',
+	'h1',
+	'h2',
+	'h3',
+	'h4',
+	'h5',
+	'h6',
+	'hr',
+	'img',
+	'input',
+	'li',
+	'ol',
+	'p',
+	'pre',
+	'span',
+	'strong',
+	'table',
+	'tbody',
+	'td',
+	'th',
+	'thead',
+	'tr',
+	'ul',
+	'svg',
+	'path',
+	'math',
+	'semantics',
+	'mrow',
+	'mi',
+	'mn',
+	'mo',
+	'msup',
+	'msub',
+	'msubsup',
+	'mfrac',
+	'mtext',
+	'mspace',
+	'mtable',
+	'mtr',
+	'mtd',
+	'mstyle',
+	'munder',
+	'annotation',
+	'mover',
+	'mphantom',
+	'mpadded',
+	'menclose',
+	'msqrt',
+	'mroot'
+]
+const ALLOWED_ATTR = [
+	'href',
+	'src',
+	'alt',
+	'title',
+	'class',
+	'aria-hidden',
+	'type',
+	'checked',
+	'disabled',
+	'open',
+	'viewBox',
+	'width',
+	'height',
+	'd',
+	'xmlns',
+	'fill',
+	'stroke',
+	'stroke-width',
+	'display',
+	'rowspacing',
+	'columnalign',
+	'style'
+]
+const FORBID_TAGS = [
+	'script',
+	'iframe',
+	'object',
+	'embed',
+	'form',
+	'button',
+	'textarea',
+	'select',
+	'option',
+	'video',
+	'audio',
+	'meta',
+	'link'
+]
+const FORBID_ATTR = [
+	'onerror',
+	'onclick',
+	'onload',
+	'onfocus',
+	'onsubmit',
+	'onmouseenter',
+	'onmouseover'
+]
+
 export const createSafeMarkdownHtml = (markdown: string): string => {
 	const rawHtml = marked.parse(normalizeMarkdown(markdown) || '', {
 		gfm: true,
 		breaks: true
 	}) as string
 
-	if (typeof window === 'undefined') {
-		return rawHtml
-	}
+	if (typeof window === 'undefined') return ''
 
-	return DOMPurify.sanitize(rawHtml)
+	return DOMPurify.sanitize(rawHtml, {
+		ALLOWED_TAGS,
+		ALLOWED_ATTR,
+		FORBID_TAGS,
+		FORBID_ATTR
+	})
 }
 
 export function MarkdownPreview({ markdown, children }: MarkdownPreviewProps) {
@@ -164,7 +274,6 @@ export function MarkdownPreview({ markdown, children }: MarkdownPreviewProps) {
 
 		setSyncEnabled(true)
 
-		// od razu wyrównaj preview do aktualnej pozycji kodu
 		requestAnimationFrame(() => {
 			syncScroll(codeEl, previewEl)
 		})
@@ -236,7 +345,7 @@ export function MarkdownPreview({ markdown, children }: MarkdownPreviewProps) {
 				{showCode && (
 					<div
 						ref={codeRef}
-						className={`rounded-lg bg-base-300/80 overflow-auto max-h-[650px] ${mode === 'split' ? 'w-full lg:w-1/2' : 'w-full'}`}
+						className={`rounded-lg bg-base-300/80 overflow-auto max-h-162.5 ${mode === 'split' ? 'w-full lg:w-1/2' : 'w-full'}`}
 					>
 						{children}
 					</div>
@@ -244,7 +353,7 @@ export function MarkdownPreview({ markdown, children }: MarkdownPreviewProps) {
 				{showPreview && (
 					<div
 						ref={previewRef}
-						className={`rounded-lg border border-dashed border-base-300 bg-base-100/90 dark:bg-base-200/90 overflow-auto max-h-[650px] p-4 ${mode === 'split' ? 'w-full lg:w-1/2' : 'w-full'}`}
+						className={`rounded-lg border border-dashed border-base-300 bg-base-100/90 dark:bg-base-200/90 overflow-auto max-h-162.5 p-4 ${mode === 'split' ? 'w-full lg:w-1/2' : 'w-full'}`}
 					>
 						<div
 							className='markdown-preview'

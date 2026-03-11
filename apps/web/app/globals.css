@@ -10,16 +10,21 @@
 	utils: true;
 }
 
-/* Markdown preview – typographic styling so rendered MD looks like typical Markdown */
+/* Markdown preview */
 .markdown-preview {
-	font-size: 0.9375rem;
-	line-height: 1.6;
-	color: oklch(var(--bc) / 0.9);
-	word-wrap: break-word;
+    font-size: 0.9375rem;
+    line-height: 1.6;
+    color: var(--color-base-content);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
 
-.markdown-preview > * + * {
-	margin-top: 0.75em;
+.markdown-preview > *:first-child {
+    margin-top: 0;
+}
+
+.markdown-preview > *:last-child {
+    margin-bottom: 0;
 }
 
 .markdown-preview h1,
@@ -28,130 +33,335 @@
 .markdown-preview h4,
 .markdown-preview h5,
 .markdown-preview h6 {
-	font-weight: 600;
-	line-height: 1.3;
-	margin-top: 1.25em;
-	margin-bottom: 0.5em;
-	color: oklch(var(--bc));
+    font-weight: 600;
+    line-height: 1.3;
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
+    color: var(--color-base-content);
 }
 
-.markdown-preview h1 { font-size: 1.75rem; margin-top: 0; }
-.markdown-preview h2 { font-size: 1.4rem; padding-bottom: 0.25em; border-bottom: 1px solid oklch(var(--bc) / 0.2); }
-.markdown-preview h3 { font-size: 1.2rem; }
-.markdown-preview h4 { font-size: 1.1rem; }
-.markdown-preview h5 { font-size: 1rem; }
-.markdown-preview h6 { font-size: 0.9rem; opacity: 0.9; }
+.markdown-preview h1 {
+    font-size: 1.75rem;
+    margin-top: 0;
+    padding-bottom: 0.35rem;
+    border-bottom: 2px solid color-mix(in srgb, var(--color-base-content) 22%, transparent);
+}
 
-.markdown-preview p {
-	margin-top: 0;
-	margin-bottom: 0.75em;
+.markdown-preview h2 {
+    font-size: 1.4rem;
+    padding-bottom: 0.3rem;
+    border-bottom: 1.5px solid color-mix(in srgb, var(--color-base-content) 18%, transparent);
+}
+
+.markdown-preview h3 {
+    font-size: 1.2rem;
+    padding-bottom: 0.22rem;
+    border-bottom: 1px solid color-mix(in srgb, var(--color-base-content) 14%, transparent);
+}
+
+.markdown-preview h4 {
+    font-size: 1.1rem;
+    padding-bottom: 0.18rem;
+    border-bottom: 1px solid color-mix(in srgb, var(--color-base-content) 10%, transparent);
+}
+
+.markdown-preview h5 {
+    font-size: 1rem;
+}
+
+.markdown-preview h6 {
+    font-size: 0.9rem;
+    opacity: 0.85;
+}
+
+.markdown-preview p,
+.markdown-preview ul,
+.markdown-preview ol,
+.markdown-preview blockquote,
+.markdown-preview table,
+.markdown-preview pre {
+    margin-top: 0;
+    margin-bottom: 1rem;
 }
 
 .markdown-preview ul,
 .markdown-preview ol {
-	margin-top: 0;
-	margin-bottom: 0.75em;
-	padding-left: 1.5em;
+    padding-left: 1.5rem;
 }
 
-.markdown-preview ul { list-style-type: disc; }
-.markdown-preview ol { list-style-type: decimal; }
-.markdown-preview ul ul { list-style-type: circle; }
-.markdown-preview li { margin: 0.25em 0; }
+.markdown-preview ul {
+    list-style: disc;
+}
+
+.markdown-preview ol {
+    list-style: decimal;
+}
+
+.markdown-preview ul ul {
+    list-style: circle;
+}
+
+.markdown-preview ul ul ul {
+    list-style: square;
+}
+
+.markdown-preview li {
+    margin: 0.25rem 0;
+}
+
 .markdown-preview li > ul,
-.markdown-preview li > ol { margin-bottom: 0; }
+.markdown-preview li > ol {
+    margin-top: 0.25rem;
+    margin-bottom: 0;
+}
+
+.markdown-preview li > input[type="checkbox"] {
+    margin-right: 0.55rem;
+    transform: translateY(1px);
+    accent-color: var(--color-primary);
+    pointer-events: none;
+}
+
+.markdown-preview li:has(> input[type="checkbox"]) {
+    list-style: none;
+}
+
+.markdown-preview ul:has(li > input[type="checkbox"]) {
+    list-style: none;
+    padding-left: 0;
+}
 
 .markdown-preview code {
-	font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
-	font-size: 0.875em;
-	background: oklch(var(--b3));
-	color: oklch(var(--bc));
-	padding: 0.2em 0.35em;
-	border-radius: 0.25rem;
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 0.875em;
+    background: var(--color-base-300);
+    color: var(--color-base-content);
+    padding: 0.2em 0.35em;
+    border-radius: 0.25rem;
 }
 
 .markdown-preview pre {
-	margin-top: 0;
-	margin-bottom: 0.75em;
-	padding: 0.75rem 1rem;
-	overflow-x: auto;
-	background: oklch(var(--b3));
-	border-radius: 0.375rem;
-	font-size: 0.875rem;
-	line-height: 1.5;
+    padding: 0.85rem 1rem;
+    overflow-x: auto;
+    background: var(--color-base-300);
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    line-height: 1.5;
 }
 
 .markdown-preview pre code {
-	padding: 0;
-	background: none;
-	font-size: inherit;
+    padding: 0;
+    background: transparent;
+    border-radius: 0;
+    font-size: inherit;
 }
 
 .markdown-preview blockquote {
-	margin: 0.75em 0;
-	padding-left: 1em;
-	border-left: 4px solid oklch(var(--p));
-	color: oklch(var(--bc) / 0.85);
-	font-style: italic;
+    padding: 0.25rem 0 0.25rem 1rem;
+    border-left: 4px solid color-mix(in srgb, var(--color-base-content) 22%, transparent);
+    color: color-mix(in srgb, var(--color-base-content) 88%, transparent);
+    font-style: italic;
 }
 
-.markdown-preview strong { font-weight: 700; }
-.markdown-preview em { font-style: italic; }
+.markdown-preview blockquote > :last-child {
+    margin-bottom: 0;
+}
+
+.markdown-preview strong {
+    font-weight: 700;
+}
+
+.markdown-preview em {
+    font-style: italic;
+}
 
 .markdown-preview a {
-	color: oklch(var(--p));
-	text-decoration: underline;
-	text-underline-offset: 2px;
+    color: var(--color-primary);
+    text-decoration: underline;
+    text-underline-offset: 2px;
 }
 
 .markdown-preview a:hover {
-	opacity: 0.85;
+    opacity: 0.85;
 }
 
 .markdown-preview hr {
-	margin: 1.25em 0;
-	border: none;
-	border-top: 1px solid oklch(var(--bc) / 0.2);
+    display: block;
+    width: 100%;
+    height: 0;
+    margin: 1.5rem 0;
+    border: 0;
+    border-top: 3px solid color-mix(in srgb, var(--color-base-content) 32%, transparent);
+    opacity: 1;
 }
 
 .markdown-preview table {
-	width: 100%;
-	margin: 0.75em 0;
-	border-collapse: collapse;
-	font-size: 0.9em;
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9em;
+    display: block;
+    overflow-x: auto;
 }
 
 .markdown-preview th,
 .markdown-preview td {
-	padding: 0.4em 0.75em;
-	border: 1px solid oklch(var(--bc) / 0.2);
-	text-align: left;
+    padding: 0.45rem 0.75rem;
+    border: 1px solid color-mix(in srgb, var(--color-base-content) 18%, transparent);
+    text-align: left;
+    vertical-align: top;
 }
 
 .markdown-preview th {
-	font-weight: 600;
-	background: oklch(var(--b3));
+    font-weight: 600;
+    background: var(--color-base-300);
 }
 
-/* GFM alerts (marked-alert): [!NOTE], [!TIP], [!IMPORTANT], [!WARNING], [!CAUTION] */
+.markdown-preview tbody tr:nth-child(even) {
+    background: color-mix(in srgb, var(--color-base-200) 65%, transparent);
+}
+
+.markdown-preview img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 0.5rem;
+}
+
 .markdown-preview .markdown-alert {
-	margin: 0.75em 0;
-	padding: 0.75em 1em;
-	border-radius: 0.375rem;
-	border-left: 4px solid oklch(var(--bc) / 0.3);
-	background: oklch(var(--b3));
+    margin: 1rem 0;
+    padding: 0.9rem 1rem;
+    border: 1px solid color-mix(in srgb, var(--color-base-content) 12%, transparent);
+    border-left-width: 4px;
+    border-radius: 0.5rem;
+    background: var(--color-base-200);
+}
+
+.markdown-preview .markdown-alert > :first-child {
+    margin-top: 0;
+}
+
+.markdown-preview .markdown-alert > :last-child {
+    margin-bottom: 0;
 }
 
 .markdown-preview .markdown-alert-title {
-	font-weight: 600;
-	margin-bottom: 0.35em;
-	display: flex;
-	align-items: center;
-	gap: 0.5em;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+    line-height: 1.2;
 }
 
-.markdown-preview .markdown-alert-note { border-left-color: oklch(var(--in)); }
-.markdown-preview .markdown-alert-tip { border-left-color: oklch(var(--su)); }
-.markdown-preview .markdown-alert-important { border-left-color: oklch(var(--p)); }
-.markdown-preview .markdown-alert-warning { border-left-color: oklch(var(--wa)); }
-.markdown-preview .markdown-alert-caution { border-left-color: oklch(var(--er)); }
+.markdown-preview .markdown-alert-title svg {
+    flex-shrink: 0;
+}
+
+.markdown-preview .markdown-alert-note {
+    border-left-color: var(--color-info);
+}
+
+.markdown-preview .markdown-alert-note .markdown-alert-title {
+    color: var(--color-info);
+}
+
+.markdown-preview .markdown-alert-tip {
+    border-left-color: var(--color-success);
+}
+
+.markdown-preview .markdown-alert-tip .markdown-alert-title {
+    color: var(--color-success);
+}
+
+.markdown-preview .markdown-alert-important {
+    border-left-color: var(--color-primary);
+}
+
+.markdown-preview .markdown-alert-important .markdown-alert-title {
+    color: var(--color-primary);
+}
+
+.markdown-preview .markdown-alert-warning {
+    border-left-color: var(--color-warning);
+}
+
+.markdown-preview .markdown-alert-warning .markdown-alert-title {
+    color: var(--color-warning);
+}
+
+.markdown-preview .markdown-alert-caution {
+    border-left-color: var(--color-error);
+}
+
+.markdown-preview .markdown-alert-caution .markdown-alert-title {
+    color: var(--color-error);
+}
+
+.markdown-preview .markdown-alert-title svg {
+    fill: currentColor;
+}
+
+.markdown-preview .katex-display {
+    margin: 1rem 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+
+.markdown-preview .katex {
+    font-size: 1em;
+}
+
+.markdown-preview details {
+    margin: 1rem 0;
+}
+
+.markdown-preview summary {
+    cursor: pointer;
+    list-style: none;
+}
+
+.markdown-preview summary::-webkit-details-marker {
+    display: none;
+}
+
+.markdown-preview summary::marker {
+    content: "";
+}
+
+.markdown-preview summary {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.markdown-preview summary::before {
+    content: ">";
+    font-size: 0.8rem;
+    line-height: 1;
+    flex-shrink: 0;
+    transform: translateY(1px);
+    transition: transform 0.15s ease;
+    color: var(--color-base-content);
+}
+
+.markdown-preview details[open] > summary::before {
+    transform: rotate(90deg) translateX(1px);
+}
+
+.markdown-preview summary > h1,
+.markdown-preview summary > h2,
+.markdown-preview summary > h3,
+.markdown-preview summary > h4,
+.markdown-preview summary > h5,
+.markdown-preview summary > h6,
+.markdown-preview summary > p,
+.markdown-preview summary > span {
+    display: inline;
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+.markdown-preview details > ol,
+.markdown-preview details > ul {
+    margin-top: 0.75rem;
+}

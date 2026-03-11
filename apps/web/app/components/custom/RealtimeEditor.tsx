@@ -5,7 +5,7 @@ import { indentUnit } from '@codemirror/language'
 import { EditorState, StateEffect } from '@codemirror/state'
 import { keymap } from '@codemirror/view'
 import { basicSetup, EditorView } from 'codemirror'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import {
 	FaBolt,
 	FaCode,
@@ -44,6 +44,19 @@ export const RealtimeEditor = ({
 	const [selectedSyntax, setSelectedSyntax] = useState(
 		realtimePaste.syntax ?? { name: 'Plaintext' }
 	)
+	const [debouncedContent, setDebouncedContent] = useState(content)
+
+	useEffect(() => {
+		const timeout = setTimeout(() => {
+			setDebouncedContent(content)
+		}, 150)
+
+		return () => clearTimeout(timeout)
+	}, [content])
+
+	const renderedMarkdownHtml = useMemo(() => {
+		return createSafeMarkdownHtml(debouncedContent)
+	}, [debouncedContent])
 
 	const editorRef = useRef<HTMLDivElement>(null)
 	const viewRef = useRef<EditorView | null>(null)
@@ -61,7 +74,7 @@ export const RealtimeEditor = ({
 
 	const scrollTheme = EditorView.theme({
 		'&': {
-			maxHeight: '600px',
+			height: '800px',
 			overflow: 'auto'
 		}
 	})
@@ -192,6 +205,21 @@ export const RealtimeEditor = ({
 		}
 	}, [markdownMode])
 
+	const getScrollableElement = (container: HTMLElement): HTMLElement => {
+		const isScrollable = (el: HTMLElement) =>
+			el.scrollHeight > el.clientHeight
+
+		if (isScrollable(container)) return container
+
+		const cmScroller = container.querySelector(
+			'.cm-scroller'
+		) as HTMLElement | null
+
+		if (cmScroller && isScrollable(cmScroller)) return cmScroller
+
+		return cmScroller ?? container
+	}
+
 	const toggleMarkdownSyncScroll = () => {
 		if (markdownSyncEnabled) {
 			if (detachSyncRef.current) {
@@ -202,30 +230,25 @@ export const RealtimeEditor = ({
 			return
 		}
 
-		if (!previewRef.current || !viewRef.current) return
+		if (!previewRef.current || !codeScrollRef.current) return
 
-		// Prefer the actual CodeMirror scroll DOM if available
-		const codeEl =
-			(viewRef.current as unknown as { scrollDOM?: HTMLElement })
-				.scrollDOM ?? codeScrollRef.current
-
-		if (!codeEl) return
-
+		const codeEl = getScrollableElement(codeScrollRef.current)
 		const previewEl = previewRef.current
 
 		let active: 'code' | 'preview' | null = null
 
 		const syncScroll = (source: HTMLElement, target: HTMLElement) => {
-			const sourceScrollHeight =
-				source.scrollHeight - source.clientHeight || 1
-			const targetScrollHeight =
-				target.scrollHeight - target.clientHeight || 1
+			const sourceScrollHeight = source.scrollHeight - source.clientHeight
+			const targetScrollHeight = target.scrollHeight - target.clientHeight
+
+			if (sourceScrollHeight <= 0) return
 			if (targetScrollHeight <= 0) return
 
 			const ratio = Math.max(
 				0,
 				Math.min(1, source.scrollTop / sourceScrollHeight)
 			)
+
 			target.scrollTop = ratio * targetScrollHeight
 		}
 
@@ -243,8 +266,10 @@ export const RealtimeEditor = ({
 			active = null
 		}
 
-		codeEl.addEventListener('scroll', handleCodeScroll)
-		previewEl.addEventListener('scroll', handlePreviewScroll)
+		codeEl.addEventListener('scroll', handleCodeScroll, { passive: true })
+		previewEl.addEventListener('scroll', handlePreviewScroll, {
+			passive: true
+		})
 
 		detachSyncRef.current = () => {
 			codeEl.removeEventListener('scroll', handleCodeScroll)
@@ -252,6 +277,10 @@ export const RealtimeEditor = ({
 		}
 
 		setMarkdownSyncEnabled(true)
+
+		requestAnimationFrame(() => {
+			syncScroll(codeEl, previewEl)
+		})
 	}
 
 	const showCode =
@@ -428,7 +457,7 @@ export const RealtimeEditor = ({
 							className='markdown-preview'
 							// biome-ignore lint/security/noDangerouslySetInnerHtml: HTML from createSafeMarkdownHtml is sanitized with DOMPurify
 							dangerouslySetInnerHTML={{
-								__html: createSafeMarkdownHtml(content)
+								__html: renderedMarkdownHtml
 							}}
 						/>
 					</div>
