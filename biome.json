@@ -1,5 +1,5 @@
 {
-	"$schema": "https://biomejs.dev/schemas/2.4.3/schema.json",
+	"$schema": "https://biomejs.dev/schemas/2.4.9/schema.json",
 	"vcs": {
 		"enabled": false,
 		"clientKind": "git",
@@ -21,7 +21,8 @@
 			"!**/.vscode",
 			"!**/NavBar.tsx",
 			"!**/globals.css",
-			"!**/next-env.d.ts"
+			"!**/next-env.d.ts",
+			"!**/__tests__"
 		]
 	},
 	"formatter": {
@@ -39,6 +40,9 @@
 		"enabled": true,
 		"rules": {
 			"recommended": true,
+			"suspicious": {
+				"noArrayIndexKey": "off"
+			},
 			"complexity": {
 				"noStaticOnlyClass": "off"
 			},

@@ -1,3 +1,3 @@
-# DoggoPaste - API
+# DoggoPaste - REST API & WebSockets
 
-Hono REST and WebSockets backend for DoggoPaste
+Hono REST API and WebSockets backend for DoggoPaste

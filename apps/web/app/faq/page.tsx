@@ -96,7 +96,7 @@ const faqItems: FaqItem[] = [
 		question: 'What syntaxes are supported?',
 		answer: (
 			<div>
-				Both Static Pastes and Realtime Editors support 52 syntaxes in
+				Both Static Pastes and Realtime Editors support 53 syntaxes in
 				total, including:
 				<ul className='list-disc list-inside mt-3 space-y-3'>
 					<li>

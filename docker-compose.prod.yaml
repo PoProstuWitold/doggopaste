@@ -7,7 +7,6 @@ services:
     environment:
       APP_NAME: "DoggoPaste"
       APP_URL: "http://localhost:3002"
-      APP_LAN: "http://192.168.100.5:3002"
       DATABASE_URL: "postgresql://doggo:changeme@doggopaste_db_prod:5432/doggopaste"
       BETTER_AUTH_SECRET: "super_secret_doggo"
       GITHUB_CLIENT_ID: "your_github_client_id"

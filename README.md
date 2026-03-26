@@ -165,7 +165,6 @@ services:
     environment:
       APP_NAME: "DoggoPaste"
       APP_URL: "https://doggopaste.example.com"
-      APP_LAN: ""
       DATABASE_URL: ""
       BETTER_AUTH_SECRET: ""
       GITHUB_CLIENT_ID: ""
@@ -236,7 +235,6 @@ cd apps/api && pnpm run db:push
 ```ini
 APP_NAME="DoggoPaste"
 APP_URL="http://localhost:3002"
-APP_LAN="http://192.168.x.x:3002" # replace with your LAN IP
 DATABASE_URL="postgresql://doggo:changeme@localhost:5432/doggopaste"
 BETTER_AUTH_SECRET="" 
 ```

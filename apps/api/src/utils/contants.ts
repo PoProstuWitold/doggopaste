@@ -28,6 +28,5 @@ export const origins = [
 	'http://localhost:3001',
 	'http://localhost:3002',
 	...(process.env.APP_URL ? [process.env.APP_URL] : []),
-	...(process.env.APP_LAN ? [process.env.APP_LAN] : []),
 	...ipOrigins
 ]

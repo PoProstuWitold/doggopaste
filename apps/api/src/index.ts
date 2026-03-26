@@ -7,10 +7,6 @@ if (process.env.NODE_ENV !== 'test') {
 	if (!process.env.APP_URL) {
 		throw new Error('APP_URL is required')
 	}
-
-	if (!process.env.APP_LAN) {
-		throw new Error('APP_LAN is required')
-	}
 }
 
 await seedSyntaxes()
