@@ -1,8 +1,37 @@
 {
 	"name": "doggopaste",
-	"description": "Drop your code, let Doggo fetch it! Combination of a Pastebin and CodeShare. Free and selfhostable ",
 	"version": "0.5.0",
 	"private": true,
+	"description": "Drop your code, let Doggo fetch it! Combination of a Pastebin and CodeShare. Free and selfhostable.",
+	"license": "MIT",
+	"contributors": [
+		{
+			"name": "Witold Zawada",
+			"url": "https://github.com/PoProstuWitold"
+		},
+		{
+			"name": "Wiktor Wypyszyński",
+			"url": "https://github.com/Netr0n07"
+		}
+	],
+	"homepage": "https://github.com/PoProstuWitold/doggopaste",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/PoProstuWitold/doggopaste.git"
+	},
+	"bugs": {
+		"url": "https://github.com/PoProstuWitold/doggopaste/issues"
+	},
+	"keywords": [
+		"pastebin",
+		"codeshare",
+		"code-sharing",
+		"collaboration",
+		"realtime",
+		"self-hosted",
+		"monorepo",
+		"typescript"
+	],
 	"scripts": {
 		"build": "turbo run build",
 		"dev": "turbo run dev",
@@ -12,16 +41,17 @@
 		"check:fix": "biome check . --write"
 	},
 	"devDependencies": {
-		"@biomejs/biome": "^2.4.9",
-		"turbo": "^2.8.20",
-		"typescript": "^6.0.2"
+		"@biomejs/biome": "^2.4.13",
+		"turbo": "^2.9.6",
+		"typescript": "^6.0.3"
 	},
-	"packageManager": "pnpm@10.33.0",
 	"engines": {
-		"node": ">=22"
+		"node": ">=24",
+		"pnpm": ">=10"
 	},
+	"packageManager": "pnpm@10.33.2",
 	"volta": {
-		"node": "24.14.1",
-		"pnpm": "10.33.0"
+		"node": "24.15.0",
+		"pnpm": "10.33.2"
 	}
 }
