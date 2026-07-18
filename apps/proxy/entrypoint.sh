@@ -1,14 +1,13 @@
 #!/bin/sh
+set -eu
 
 echo "Welcome to DoggoPaste!"
 
-echo "Generating migrations..."
-pnpm --filter api run db:generate
+echo "Applying database migrations..."
+(
+    cd /app/apps/api
+    ./node_modules/.bin/drizzle-kit migrate
+)
 
-echo "Running migrations..."
-pnpm --filter api run db:migrate
-
-# Start the API with PM2
-echo "Starting with PM2 Runtime..."
-pm2-runtime start apps/proxy/build/index.js --name doggopaste_proxy
-echo "DoggoPaste has started successfully!"
+echo "Starting Proxy..."
+exec node /app/apps/proxy/build/index.js

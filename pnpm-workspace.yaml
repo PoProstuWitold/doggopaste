@@ -1,8 +1,16 @@
 packages:
   - apps/*
+allowBuilds:
+  argon2: true
+  esbuild: true
+  sharp: true
+minimumReleaseAgeExclude:
+  - argon2@0.45.0
+  - react-hook-form@7.82.0
 onlyBuiltDependencies:
   - '@biomejs/biome'
   - '@tailwindcss/oxide'
   - argon2
   - esbuild
   - sharp
+verifyDepsBeforeRun: false

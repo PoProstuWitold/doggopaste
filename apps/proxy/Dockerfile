@@ -35,16 +35,22 @@ RUN pnpm turbo run build --filter=api... --filter=web... --filter=proxy
 
 # --- Stage: runner (final image) ---
 FROM base AS runner
-WORKDIR /app
 
 RUN addgroup --system --gid 1001 doggo \
-  && adduser --system --uid 1001 doggo
+  && adduser --system --uid 1001 doggo \
+  && mkdir -p /app \
+  && chown doggo:doggo /app
+
+WORKDIR /app
+
+ENV pnpm_config_verify_deps_before_run=false
 
 # api: Hono
 COPY --from=installer --chown=doggo:doggo /app/apps/api/build ./apps/api/build
 COPY --from=installer --chown=doggo:doggo /app/apps/api/node_modules ./apps/api/node_modules
 COPY --from=installer --chown=doggo:doggo /app/apps/api/package.json ./apps/api/package.json
 COPY --from=installer --chown=doggo:doggo /app/apps/api/drizzle.config.ts ./apps/api/drizzle.config.ts
+COPY --from=installer --chown=doggo:doggo /app/apps/api/drizzle ./apps/api/drizzle
 COPY --from=installer --chown=doggo:doggo /app/apps/api/src/db/schema.ts ./apps/api/src/db/schema.ts
 COPY --from=installer --chown=doggo:doggo /app/apps/api/openapi/openapi.json ./apps/api/openapi/openapi.json
 

@@ -7,7 +7,10 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 const nextConfig = {
 	reactStrictMode: true,
 	outputFileTracingRoot: join(__dirname, '../../'),
-	output: 'standalone'
+	output: 'standalone',
+	experimental: {
+		useTypeScriptCli: true
+	}
 }
 
 export default nextConfig

@@ -1,6 +1,6 @@
 {
 	"name": "doggopaste",
-	"version": "0.5.0",
+	"version": "0.6.0",
 	"private": true,
 	"description": "Drop your code, let Doggo fetch it! Combination of a Pastebin and CodeShare. Free and selfhostable.",
 	"license": "MIT",
@@ -41,17 +41,16 @@
 		"check:fix": "biome check . --write"
 	},
 	"devDependencies": {
-		"@biomejs/biome": "^2.4.13",
-		"turbo": "^2.9.6",
-		"typescript": "^6.0.3"
+		"@biomejs/biome": "^2.5.4",
+		"turbo": "^2.10.5",
+		"typescript": "^7.0.2"
 	},
 	"engines": {
 		"node": ">=24",
 		"pnpm": ">=10"
 	},
-	"packageManager": "pnpm@10.33.2",
+	"packageManager": "pnpm@11.15.0",
 	"volta": {
-		"node": "24.15.0",
-		"pnpm": "10.33.2"
+		"node": "24.18.0"
 	}
 }
