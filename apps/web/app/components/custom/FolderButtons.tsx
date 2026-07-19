@@ -38,6 +38,7 @@ export const FolderButtons = ({
 				{
 					method: 'PATCH',
 					headers: { 'Content-Type': 'application/json' },
+					credentials: 'include',
 					body: JSON.stringify({ name: newName })
 				}
 			)
@@ -65,7 +66,8 @@ export const FolderButtons = ({
 			const res = await fetch(
 				`${getBaseApiUrl()}/api/folders/${encodeURIComponent(folderId)}`,
 				{
-					method: 'DELETE'
+					method: 'DELETE',
+					credentials: 'include'
 				}
 			)
 			const json = await res.json().catch(() => null)

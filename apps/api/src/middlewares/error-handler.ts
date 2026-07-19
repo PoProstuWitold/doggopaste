@@ -6,6 +6,21 @@ import type { ContentfulStatusCode, StatusCode } from 'hono/utils/http-status'
 import { GenericException } from '../exceptions/index.js'
 import { HttpStatusCodes } from '../utils/index.js'
 
+function unknownInternalServerError(
+	rawErr: Error | HTTPResponseError,
+	c: Context
+) {
+	console.error('Unhandled API error', rawErr)
+
+	const error: GenericException = {
+		statusCode: 500,
+		name: 'Internal Server Error',
+		message: 'Internal Server Error'
+	}
+
+	return c.json(error, 500)
+}
+
 // biome-ignore lint: no need to know exact error type
 function conflictize(err: any) {
 	const text = `${err?.message ?? ''} ${String(err?.cause ?? '')}`
@@ -42,6 +57,10 @@ export const errorHandler = (rawErr: Error | HTTPResponseError, c: Context) => {
 	if (rawErr instanceof APIError) {
 		const mapped =
 			(HttpStatusCodes.get(rawErr.status as string) as StatusCode) || 500
+		if (mapped === 500) {
+			return unknownInternalServerError(rawErr, c)
+		}
+
 		const error: GenericException = {
 			statusCode: mapped,
 			name: rawErr.status as string,
@@ -56,6 +75,9 @@ export const errorHandler = (rawErr: Error | HTTPResponseError, c: Context) => {
 
 	const status: StatusCode =
 		(Number(err?.statusCode) as StatusCode) || (500 as StatusCode)
+	if (status === 500) {
+		return unknownInternalServerError(rawErr, c)
+	}
 
 	const error: GenericException = {
 		statusCode: status,

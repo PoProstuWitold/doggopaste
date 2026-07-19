@@ -624,6 +624,14 @@
 									"type": "string",
 									"example": "attachment; filename=\"example.txt\""
 								}
+							},
+							"Cache-Control": {
+								"description": "Prevents storage of static paste download responses.",
+								"required": true,
+								"schema": {
+									"type": "string",
+									"enum": ["no-store"]
+								}
 							}
 						},
 						"content": {
@@ -635,13 +643,43 @@
 						}
 					},
 					"400": {
-						"description": "A password query parameter was supplied; passwords in URLs are rejected."
+						"description": "A password query parameter was supplied; passwords in URLs are rejected.",
+						"headers": {
+							"Cache-Control": {
+								"description": "Prevents storage of static paste download responses.",
+								"required": true,
+								"schema": {
+									"type": "string",
+									"enum": ["no-store"]
+								}
+							}
+						}
 					},
 					"401": {
-						"description": "The paste requires a password and must be downloaded with POST."
+						"description": "The paste requires a password and must be downloaded with POST.",
+						"headers": {
+							"Cache-Control": {
+								"description": "Prevents storage of static paste download responses.",
+								"required": true,
+								"schema": {
+									"type": "string",
+									"enum": ["no-store"]
+								}
+							}
+						}
 					},
 					"404": {
-						"description": "The paste is missing, expired, private, or inaccessible."
+						"description": "The paste is missing, expired, private, or inaccessible.",
+						"headers": {
+							"Cache-Control": {
+								"description": "Prevents storage of static paste download responses.",
+								"required": true,
+								"schema": {
+									"type": "string",
+									"enum": ["no-store"]
+								}
+							}
+						}
 					}
 				},
 				"parameters": [
@@ -654,7 +692,7 @@
 						}
 					}
 				],
-				"description": "Returns an accessible, non-password-protected static paste. Responses: 200 with `Content-Type: text/plain; charset=UTF-8` and `Content-Disposition: attachment; filename=\"...\"`; 400 when any `password` query parameter is present; 401 when the paste requires a password; 404 when the paste is private, expired, or missing. A 200 response increments `hits` exactly once.",
+				"description": "Returns an accessible, non-password-protected static paste. Responses: 200 with `Content-Type: text/plain; charset=UTF-8` and `Content-Disposition: attachment; filename=\"...\"`; 400 when any `password` query parameter is present; 401 when the paste requires a password; 404 when the paste is private, expired, or missing. Every response includes `Cache-Control: no-store`. A 200 response increments `hits` exactly once.",
 				"tags": ["Static Pastes"]
 			},
 			"post": {
@@ -672,7 +710,7 @@
 								}
 							},
 							"Cache-Control": {
-								"description": "Prevents storage of password-protected content.",
+								"description": "Prevents storage of static paste download responses.",
 								"required": true,
 								"schema": {
 									"type": "string",
@@ -689,13 +727,43 @@
 						}
 					},
 					"400": {
-						"description": "The JSON body is missing, malformed, or invalid, or the paste does not require a password."
+						"description": "The JSON body is missing, malformed, or invalid, or the paste does not require a password.",
+						"headers": {
+							"Cache-Control": {
+								"description": "Prevents storage of static paste download responses.",
+								"required": true,
+								"schema": {
+									"type": "string",
+									"enum": ["no-store"]
+								}
+							}
+						}
 					},
 					"403": {
-						"description": "The supplied password is incorrect."
+						"description": "The supplied password is incorrect.",
+						"headers": {
+							"Cache-Control": {
+								"description": "Prevents storage of static paste download responses.",
+								"required": true,
+								"schema": {
+									"type": "string",
+									"enum": ["no-store"]
+								}
+							}
+						}
 					},
 					"404": {
-						"description": "The paste is missing, expired, private, or inaccessible."
+						"description": "The paste is missing, expired, private, or inaccessible.",
+						"headers": {
+							"Cache-Control": {
+								"description": "Prevents storage of static paste download responses.",
+								"required": true,
+								"schema": {
+									"type": "string",
+									"enum": ["no-store"]
+								}
+							}
+						}
 					}
 				},
 				"parameters": [
@@ -708,7 +776,7 @@
 						}
 					}
 				],
-				"description": "Requires an `application/json` body shaped as `{ \"password\": \"non-empty string\" }`. Responses: 200 with `Content-Type: text/plain; charset=UTF-8`, `Content-Disposition: attachment; filename=\"...\"`, and `Cache-Control: no-store`; 400 for a missing, malformed, or invalid body or when the paste does not require a password; 403 for an incorrect password; 404 when the paste is private, expired, or missing. A 200 response increments `hits` exactly once.",
+				"description": "Requires an `application/json` body shaped as `{ \"password\": \"non-empty string\" }`. Responses: 200 with `Content-Type: text/plain; charset=UTF-8` and `Content-Disposition: attachment; filename=\"...\"`; 400 for a missing, malformed, or invalid body or when the paste does not require a password; 403 for an incorrect password; 404 when the paste is private, expired, or missing. Every response includes `Cache-Control: no-store`. A 200 response increments `hits` exactly once.",
 				"tags": ["Static Pastes"],
 				"requestBody": {
 					"required": true,

@@ -37,7 +37,15 @@ export function createApp() {
 		'*',
 		cors({
 			origin: origins,
-			allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'HEAD'],
+			allowMethods: [
+				'GET',
+				'POST',
+				'PUT',
+				'PATCH',
+				'DELETE',
+				'OPTIONS',
+				'HEAD'
+			],
 			allowHeaders: ['Content-Type', 'Authorization'],
 			exposeHeaders: ['Content-Type'],
 			credentials: true,

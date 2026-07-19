@@ -140,6 +140,7 @@ export function PasteForm({
 			}
 
 			setValue('content', contentToProcess, { shouldDirty: false })
+			setUnlockPassword('')
 			setIsLocked(false)
 		} catch (error) {
 			console.error(error)

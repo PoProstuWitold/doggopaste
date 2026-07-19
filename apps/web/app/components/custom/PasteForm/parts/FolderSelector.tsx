@@ -81,15 +81,17 @@ export function FolderSelector() {
 				body: JSON.stringify({ name, parentId })
 			})
 
-			const json = await res.json()
+			const json = (await res.json()) as {
+				success: boolean
+				message?: string
+				data: Folder
+			}
 			console.debug('[FolderSelector] create folder response:', json)
 			if (!res.ok) {
 				toast.error(json?.message || 'Failed to create folder')
 				return
 			}
-			// API returns data as an array (one element) per provided sample.
-			const arr = Array.isArray(json.data) ? json.data : [json.data]
-			const createdRaw = arr[0]
+			const createdRaw = json.data
 			// Normalize to Folder shape.
 			const created: Folder = {
 				id: createdRaw.id,

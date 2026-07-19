@@ -12,14 +12,19 @@ test(
 		await prepareDb()
 		const app = getTestApp()
 
-		await t.test('GET /pastes?userId=anon-id', async (t) => {
-			await t.test('returns 404 for non-existing user', async () => {
-				const userId = 'anon-id'
+		await t.test('GET /api/user/pastes?userId=:userId', async (t) => {
+			await t.test('returns an empty paste list for unknown owner', async () => {
+				const userId = '00000000-0000-4000-8000-000000000000'
 				const res = await app.request(
-					`/api/users/pastes?userId=${userId}`
+					`/api/user/pastes?userId=${userId}`
 				)
+				const json: any = await res.json()
 
-				strictEqual(res.status, 404)
+				strictEqual(res.status, 200)
+				strictEqual(json.success, true)
+				strictEqual(Number(json.total), 0)
+				strictEqual(Array.isArray(json.data), true)
+				strictEqual(json.data.length, 0)
 			})
 		})
 

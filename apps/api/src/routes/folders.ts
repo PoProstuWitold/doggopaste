@@ -99,11 +99,11 @@ const app = new Hono<Env>()
 
 		if (existing) {
 			// already exists - return the existing folder (re-use)
-			return c.json({ success: true, data: existing })
+			return c.json({ success: true, data: existing }, 200)
 		}
 
 		// 2) Does not exist - insert a new one
-		const inserted = await db
+		const insertedRows = (await db
 			.insert(foldersTable)
 			.values({
 				name,
@@ -111,11 +111,11 @@ const app = new Hono<Env>()
 				parentFolderId: normalizedParentId
 			})
 			.onConflictDoNothing() // safety in a case of race
-			.returning()
+			.returning()) as (typeof foldersTable.$inferSelect)[]
+		const inserted = insertedRows[0]
 
 		if (inserted) {
-			c.status(201)
-			return c.json({ success: true, data: inserted })
+			return c.json({ success: true, data: inserted }, 201)
 		}
 
 		// 3) Race condition (someone inserted between select and insert) - fetch and return the existing one
@@ -140,7 +140,7 @@ const app = new Hono<Env>()
 			})
 		}
 
-		return c.json({ success: true, data: raced })
+		return c.json({ success: true, data: raced }, 200)
 	})
 	/**
 	 * List folders for the authenticated user.
