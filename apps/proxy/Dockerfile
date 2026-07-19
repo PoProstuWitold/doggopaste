@@ -43,6 +43,14 @@ RUN addgroup --system --gid 1001 doggo \
 
 WORKDIR /app
 
+LABEL org.opencontainers.image.title="DoggoPaste" \
+      org.opencontainers.image.description="Drop your code, let Doggo fetch it! Combination of a Pastebin and CodeShare. Free and selfhostable." \
+      org.opencontainers.image.source="https://github.com/PoProstuWitold/doggopaste" \
+      org.opencontainers.image.url="https://hub.docker.com/r/poprostuwitold/doggopaste" \
+      org.opencontainers.image.documentation="https://github.com/PoProstuWitold/doggopaste#readme" \
+      org.opencontainers.image.licenses="MIT" \
+      org.opencontainers.image.authors="Witold Zawada (PoProstuWitold), Wiktor Wypyszyński (Netr0n07)"
+
 ENV pnpm_config_verify_deps_before_run=false
 
 # api: Hono
