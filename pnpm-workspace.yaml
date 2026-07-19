@@ -4,8 +4,10 @@ allowBuilds:
   argon2: true
   esbuild: true
   sharp: true
+minimumReleaseAge: 1440
 minimumReleaseAgeExclude:
   - argon2@0.45.0
+  - hono@4.12.31
   - react-hook-form@7.82.0
 onlyBuiltDependencies:
   - '@biomejs/biome'
