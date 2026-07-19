@@ -30,8 +30,10 @@ const app = new Hono<Env>()
 				})
 				const data: Session = (await verifyResponse.json()) as Session
 				if (data.session) session = data ?? null
-			} catch (err) {
-				console.warn('Token verification failed, ignoring:', err)
+			} catch {
+				console.warn(
+					'Token verification failed; continuing without a session'
+				)
 			}
 		}
 

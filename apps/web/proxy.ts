@@ -49,8 +49,8 @@ export async function proxy(req: NextRequest) {
 					isLoggedIn = true
 					isAdmin = data.user.role === 'admin'
 				}
-			} catch (err) {
-				console.warn('Invalid JSON: ', err)
+			} catch {
+				console.warn('Invalid session response')
 			}
 		}
 	}

@@ -30,8 +30,6 @@ export const Accounts: React.FC<AccountsProps> = ({
 			provider,
 			callbackURL: '/api/redirect'
 		})
-		console.info(data)
-		console.info(error)
 
 		if (data) {
 			toast.success(`Linked ${provider} account`)
@@ -54,8 +52,6 @@ export const Accounts: React.FC<AccountsProps> = ({
 		const { data, error } = await authClient.unlinkAccount({
 			providerId
 		})
-		console.info(data)
-		console.info(error)
 
 		if (data) {
 			toast.success(`Unlinked ${providerId} account`)

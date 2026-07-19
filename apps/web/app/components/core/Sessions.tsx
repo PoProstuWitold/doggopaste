@@ -24,8 +24,6 @@ export const Sessions: React.FC<SessionsProps> = ({
 
 	const revokeSession = async (token: string) => {
 		const { data, error } = await authClient.revokeSession({ token })
-		console.info(data)
-		console.info(error)
 
 		if (data?.status) {
 			toast.success('Session revoked')
@@ -43,8 +41,6 @@ export const Sessions: React.FC<SessionsProps> = ({
 
 	const revokeAllSessions = async () => {
 		const { data, error } = await authClient.revokeSessions()
-		console.info(data)
-		console.info(error)
 
 		if (data?.status) {
 			toast.success('All sessions revoked')
@@ -60,8 +56,6 @@ export const Sessions: React.FC<SessionsProps> = ({
 
 	const revokeOtherSessions = async () => {
 		const { data, error } = await authClient.revokeOtherSessions()
-		console.info(data)
-		console.info(error)
 
 		if (data?.status) {
 			toast.success('Other sessions revoked')

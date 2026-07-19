@@ -16,23 +16,20 @@ export const EditUser: React.FC = () => {
 	} = useForm<EditUserData>()
 
 	const onSubmit = async (formData: EditUserData) => {
-		console.info('Edit user data:', formData)
 		const { name } = formData
-		const { data, error } = await authClient.updateUser(
+		await authClient.updateUser(
 			{
 				name
 			},
 			{
-				onSuccess: async (ctx) => {
+				onSuccess: async () => {
 					//redirect to the dashboard
-					console.info('success', ctx)
 					toast.success('Updated user data')
 					await wait(500)
 					router.replace('/profile')
 					router.refresh()
 				},
 				onError: (ctx) => {
-					console.info('error', ctx)
 					toast.error(
 						ctx.error.message ||
 							'User with this name already exists'
@@ -40,8 +37,6 @@ export const EditUser: React.FC = () => {
 				}
 			}
 		)
-		console.info('data', data)
-		console.info('error', error)
 	}
 
 	return (

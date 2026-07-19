@@ -44,7 +44,6 @@ export default async function SinglePastePage({
 	})
 
 	const json = await res.json()
-	console.log('realtime paste', json)
 	console.log('slug', slug)
 
 	return (

@@ -26,9 +26,8 @@ export const Login: React.FC = () => {
 	const onSubmit = async (formData: SignInData & SignUpData) => {
 		if (isSignUp) {
 			// sign up logic
-			console.info('Sign Up Data:', formData)
 			const { email, password, name } = formData
-			const { data, error } = await authClient.signUp.email(
+			await authClient.signUp.email(
 				{
 					email,
 					password,
@@ -37,7 +36,6 @@ export const Login: React.FC = () => {
 				{
 					onSuccess: async (ctx) => {
 						//redirect to the dashboard
-						console.info('success', ctx)
 						toast.success(
 							`Signed up successfully as ${ctx.data.user.name}. Redirecting...`
 						)
@@ -46,7 +44,6 @@ export const Login: React.FC = () => {
 						router.refresh()
 					},
 					onError: (ctx) => {
-						console.info('ctx.error', ctx.error)
 						const msg =
 							ctx.error.details?.cause.constraint.includes(
 								'unique'
@@ -59,13 +56,10 @@ export const Login: React.FC = () => {
 					}
 				}
 			)
-			console.info('data', data)
-			console.info('error', error)
 		} else {
 			// sign in logic
-			console.info('Sign In Data:', formData)
 			const { email, password, rememberMe } = formData
-			const { data, error } = await authClient.signIn.email(
+			await authClient.signIn.email(
 				{
 					email,
 					password,
@@ -74,7 +68,6 @@ export const Login: React.FC = () => {
 				{
 					onSuccess: async (ctx) => {
 						//redirect to the dashboard
-						console.info('success', ctx)
 						toast.success(
 							`Signed in successfully as ${ctx.data.user.name}. Redirecting...`
 						)
@@ -83,13 +76,10 @@ export const Login: React.FC = () => {
 						router.refresh()
 					},
 					onError: (ctx) => {
-						console.info('error', ctx)
 						toast.error(ctx.error.message)
 					}
 				}
 			)
-			console.info('data', data)
-			console.info('error', error)
 		}
 	}
 
@@ -105,7 +95,6 @@ export const Login: React.FC = () => {
 			callbackURL: '/api/redirect'
 		})
 
-		console.info(data, error)
 		if (data) {
 			toast.success(
 				`Signed in successfully with ${provider}. Redirecting...`

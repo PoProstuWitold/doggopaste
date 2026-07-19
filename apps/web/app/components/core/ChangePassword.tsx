@@ -16,31 +16,26 @@ export const ChangePassword: React.FC = () => {
 	} = useForm<ChangePasswordData>()
 
 	const onSubmit = async (formData: ChangePasswordData) => {
-		console.info('Change password data:', formData)
 		const { currentPassword, newPassword, revokeOtherSessions } = formData
-		const { data, error } = await authClient.changePassword(
+		await authClient.changePassword(
 			{
 				currentPassword,
 				newPassword,
 				revokeOtherSessions
 			},
 			{
-				onSuccess: async (ctx) => {
+				onSuccess: async () => {
 					//redirect to the dashboard
-					console.info('success', ctx)
 					toast.success('Updated user data')
 					await wait(500)
 					router.replace('/profile')
 					router.refresh()
 				},
 				onError: (ctx) => {
-					console.info('error', ctx)
 					toast.error(ctx.error.message)
 				}
 			}
 		)
-		console.info('data', data)
-		console.info('error', error)
 	}
 
 	return (
