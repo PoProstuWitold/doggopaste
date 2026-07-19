@@ -29,7 +29,10 @@ export const PasteButtons = ({
 	const router = useRouter()
 	const [clientBaseUrl, setClientBaseUrl] = useState<string | null>(null)
 	const [shareLinkCopied, setShareLinkCopied] = useState(false)
-	const usesLocalContent = paste.passwordProtected || paste.encrypted
+	const usesLocalContent =
+		paste.passwordProtected ||
+		paste.encrypted ||
+		paste.expiration === 'burn_after_read'
 
 	useEffect(() => {
 		setClientBaseUrl(getBaseApiUrl())
@@ -63,13 +66,13 @@ export const PasteButtons = ({
 					type: 'text/plain;charset=utf-8'
 				})
 				const url = window.URL.createObjectURL(blob)
+				window.setTimeout(() => window.URL.revokeObjectURL(url), 500)
 				const link = document.createElement('a')
 				link.href = url
 				link.download = fileName
 				document.body.appendChild(link)
 				link.click()
 				document.body.removeChild(link)
-				window.setTimeout(() => window.URL.revokeObjectURL(url), 0)
 				toast.success('Download started')
 			} catch (error) {
 				console.error('Download failed', error)
@@ -89,16 +92,20 @@ export const PasteButtons = ({
 				type: 'text/plain;charset=utf-8'
 			})
 			const url = window.URL.createObjectURL(blob)
+			const revokeTimeout = window.setTimeout(
+				() => window.URL.revokeObjectURL(url),
+				60_000
+			)
 			const rawWindow = window.open(url, '_blank')
 
 			if (!rawWindow) {
+				window.clearTimeout(revokeTimeout)
 				window.URL.revokeObjectURL(url)
 				toast.error('Allow pop-ups to view raw content.')
 				return
 			}
 
 			rawWindow.opener = null
-			window.setTimeout(() => window.URL.revokeObjectURL(url), 60_000)
 			return
 		}
 
