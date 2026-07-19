@@ -232,7 +232,7 @@ export default function SinglePaste({
 							<div className='label'>
 								<span className='label-text'>Description</span>
 							</div>
-							<p className='rounded-lg shadow gap-2 whitespace-pre-wrap break-words bg-base-300 p-2'>
+							<p className='rounded-lg shadow gap-2 whitespace-pre-wrap wrap-break-word bg-base-300 p-2'>
 								{paste.description}
 							</p>
 						</div>
@@ -245,7 +245,7 @@ export default function SinglePaste({
 								<span className='label-text'>Content</span>
 							</div>
 							{showLockScreen ? (
-								<div className='h-[400px] bg-base-300 rounded-lg flex flex-col items-center justify-center gap-4 border-2 border-base-content/10'>
+								<div className='h-100 bg-base-300 rounded-lg flex flex-col items-center justify-center gap-4 border-2 border-base-content/10'>
 									{isServerLocked ? (
 										<BsShieldLock className='w-16 h-16 text-warning' />
 									) : (
@@ -323,12 +323,12 @@ export default function SinglePaste({
 													history: false,
 													syntaxHighlighting: true
 												}}
-												className='min-h-[300px]'
+												className='min-h-75'
 												theme={cmTheme}
 											/>
 										</MarkdownPreview>
 									) : (
-										<div className='rounded-lg bg-base-300/80 overflow-auto max-h-[650px]'>
+										<div className='rounded-lg bg-base-300/80 overflow-auto max-h-162.5'>
 											<CodeMirror
 												value={contentToDisplay}
 												extensions={[
@@ -347,7 +347,7 @@ export default function SinglePaste({
 													history: false,
 													syntaxHighlighting: true
 												}}
-												className='min-h-[300px]'
+												className='min-h-75'
 												theme={cmTheme}
 											/>
 										</div>
@@ -554,7 +554,7 @@ function PasteDetail({
 				{icon}
 				<span>{label}</span>
 			</div>
-			<div className='break-words'>{value}</div>
+			<div className='wrap-break-word'>{value}</div>
 		</div>
 	)
 }
