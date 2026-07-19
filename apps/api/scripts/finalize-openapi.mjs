@@ -18,20 +18,24 @@ const attachmentHeader = {
 	}
 }
 
-const textFileResponse = (passwordProtected = false) => ({
+const noStoreHeader = {
+	description: 'Prevents storage of static paste download responses.',
+	required: true,
+	schema: { type: 'string', enum: ['no-store'] }
+}
+
+const errorResponse = (description) => ({
+	description,
+	headers: {
+		'Cache-Control': noStoreHeader
+	}
+})
+
+const textFileResponse = () => ({
 	description: 'Paste content delivered as a UTF-8 text file.',
 	headers: {
 		'Content-Disposition': attachmentHeader,
-		...(passwordProtected
-			? {
-					'Cache-Control': {
-						description:
-							'Prevents storage of password-protected content.',
-						required: true,
-						schema: { type: 'string', enum: ['no-store'] }
-					}
-				}
-			: {})
+		'Cache-Control': noStoreHeader
 	},
 	content: {
 		'text/plain; charset=utf-8': {
@@ -42,17 +46,15 @@ const textFileResponse = (passwordProtected = false) => ({
 
 download.get.responses = {
 	200: textFileResponse(),
-	400: {
-		description:
-			'A password query parameter was supplied; passwords in URLs are rejected.'
-	},
-	401: {
-		description:
-			'The paste requires a password and must be downloaded with POST.'
-	},
-	404: {
-		description: 'The paste is missing, expired, private, or inaccessible.'
-	}
+	400: errorResponse(
+		'A password query parameter was supplied; passwords in URLs are rejected.'
+	),
+	401: errorResponse(
+		'The paste requires a password and must be downloaded with POST.'
+	),
+	404: errorResponse(
+		'The paste is missing, expired, private, or inaccessible.'
+	)
 }
 
 download.post.requestBody = {
@@ -77,15 +79,14 @@ download.post.requestBody = {
 }
 
 download.post.responses = {
-	200: textFileResponse(true),
-	400: {
-		description:
-			'The JSON body is missing, malformed, or invalid, or the paste does not require a password.'
-	},
-	403: { description: 'The supplied password is incorrect.' },
-	404: {
-		description: 'The paste is missing, expired, private, or inaccessible.'
-	}
+	200: textFileResponse(),
+	400: errorResponse(
+		'The JSON body is missing, malformed, or invalid, or the paste does not require a password.'
+	),
+	403: errorResponse('The supplied password is incorrect.'),
+	404: errorResponse(
+		'The paste is missing, expired, private, or inaccessible.'
+	)
 }
 
 await writeFile(openApiPath, `${JSON.stringify(spec, null, '\t')}\n`)

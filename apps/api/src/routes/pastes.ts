@@ -37,7 +37,6 @@ interface PasteDownloadOptions {
 interface PasteDownloadResult {
 	content: string
 	contentDisposition: string
-	passwordProtected: boolean
 }
 
 async function handlePasteDownload({
@@ -69,7 +68,7 @@ async function handlePasteDownload({
 	if (!row) throwPasteNotFound()
 
 	const { paste, syntax } = row
-	const readDecision = await authorizePasteRead(paste, {
+	await authorizePasteRead(paste, {
 		mode: 'download',
 		reader,
 		password
@@ -90,8 +89,7 @@ async function handlePasteDownload({
 
 	return {
 		content: paste.content,
-		contentDisposition: `attachment; filename="${safeTitle}.${extension}"`,
-		passwordProtected: readDecision.passwordProtected
+		contentDisposition: `attachment; filename="${safeTitle}.${extension}"`
 	}
 }
 
@@ -99,12 +97,14 @@ function sendPasteDownload(c: Context<Env>, download: PasteDownloadResult) {
 	c.header('Content-Type', 'text/plain; charset=utf-8')
 	c.header('Content-Disposition', download.contentDisposition)
 
-	if (download.passwordProtected) c.header('Cache-Control', 'no-store')
-
 	return c.body(download.content)
 }
 
 const app = new Hono<Env>()
+	.use('/:slug/download', async (c, next) => {
+		c.header('Cache-Control', 'no-store')
+		await next()
+	})
 	.post('/', validatorCreatePasteJson, async (c) => {
 		// 1. Validated JSON data
 		const {

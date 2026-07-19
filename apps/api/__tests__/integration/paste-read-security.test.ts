@@ -74,6 +74,9 @@ test(
 			Origin: 'http://localhost:3001',
 			...(authenticated ? { Cookie: cookie } : {})
 		})
+		const assertNoStore = (response: Response) => {
+			strictEqual(response.headers.get('cache-control'), 'no-store')
+		}
 
 		const pasteBody = (
 			slug: string,
@@ -425,6 +428,7 @@ test(
 				const body = await response.text()
 
 				strictEqual(response.status, 400)
+				assertNoStore(response)
 				strictEqual(body.includes(suppliedPassword), false)
 				strictEqual(body.includes(`content-${slugs.burnProtected}`), false)
 				strictEqual(body.includes('passwordHash'), false)
@@ -433,6 +437,13 @@ test(
 					`/api/pastes/missing-${suffix}/download?password=${suppliedPassword}`
 				)
 				strictEqual(missingPasteResponse.status, 400)
+				assertNoStore(missingPasteResponse)
+
+				const missingPasteWithoutQueryResponse = await app.request(
+					`/api/pastes/missing-${suffix}/download`
+				)
+				strictEqual(missingPasteWithoutQueryResponse.status, 404)
+				assertNoStore(missingPasteWithoutQueryResponse)
 
 				const [burnRow] = await db
 					.select({ id: pastesTable.id, hits: pastesTable.hits })
@@ -470,6 +481,7 @@ test(
 				)
 				const wrongBody = await wrongResponse.text()
 				strictEqual(wrongResponse.status, 403)
+				assertNoStore(wrongResponse)
 				strictEqual(wrongBody.includes(wrongPassword), false)
 				strictEqual(wrongBody.includes('passwordHash'), false)
 				strictEqual(
@@ -481,6 +493,7 @@ test(
 					`/api/pastes/${slugs.publicProtected}/download`
 				)
 				strictEqual(missingGetPasswordResponse.status, 401)
+				assertNoStore(missingGetPasswordResponse)
 
 				const noBodyResponse = await app.request(
 					`/api/pastes/${slugs.publicProtected}/download`,
@@ -490,6 +503,7 @@ test(
 					}
 				)
 				strictEqual(noBodyResponse.status, 400)
+				assertNoStore(noBodyResponse)
 
 				const malformedBodyResponse = await app.request(
 					`/api/pastes/${slugs.publicProtected}/download`,
@@ -500,6 +514,7 @@ test(
 					}
 				)
 				strictEqual(malformedBodyResponse.status, 400)
+				assertNoStore(malformedBodyResponse)
 
 				const missingPasswordResponse = await app.request(
 					`/api/pastes/${slugs.publicProtected}/download`,
@@ -510,6 +525,7 @@ test(
 					}
 				)
 				strictEqual(missingPasswordResponse.status, 400)
+				assertNoStore(missingPasswordResponse)
 
 				const unnecessaryPasswordResponse = await app.request(
 					`/api/pastes/${slugs.publicPlain}/download`,
@@ -520,6 +536,7 @@ test(
 					}
 				)
 				strictEqual(unnecessaryPasswordResponse.status, 400)
+				assertNoStore(unnecessaryPasswordResponse)
 
 				const [burnRow] = await db
 					.select({ id: pastesTable.id, hits: pastesTable.hits })
@@ -560,6 +577,7 @@ test(
 				const body = await response.text()
 
 				strictEqual(response.status, 200)
+				assertNoStore(response)
 				strictEqual(
 					response.headers.get('content-type'),
 					'text/plain; charset=utf-8'
@@ -568,7 +586,6 @@ test(
 					response.headers.get('content-disposition'),
 					`attachment; filename="Security_fixture_${slugs.publicProtected}.txt"`
 				)
-				strictEqual(response.headers.get('cache-control'), 'no-store')
 				strictEqual(body, protectedContent)
 				strictEqual(body.includes('passwordHash'), false)
 
@@ -593,6 +610,7 @@ test(
 				)
 
 				strictEqual(response.status, 200)
+				assertNoStore(response)
 				strictEqual(
 					await response.text(),
 					`content-${slugs.burnProtected}`
@@ -628,6 +646,7 @@ test(
 				)
 				const privateBody = await privateResponse.text()
 				strictEqual(privateResponse.status, 404)
+				assertNoStore(privateResponse)
 				strictEqual(privateBody.includes('passwordHash'), false)
 
 				const ownerResponse = await app.request(
@@ -639,6 +658,7 @@ test(
 					}
 				)
 				strictEqual(ownerResponse.status, 200)
+				assertNoStore(ownerResponse)
 				strictEqual(
 					await ownerResponse.text(),
 					`content-${slugs.privateProtected}`
@@ -654,6 +674,7 @@ test(
 				)
 				const expiredBody = await expiredResponse.text()
 				strictEqual(expiredResponse.status, 404)
+				assertNoStore(expiredResponse)
 				strictEqual(expiredBody.includes('passwordHash'), false)
 
 				const [privateRow] = await db
@@ -683,6 +704,7 @@ test(
 				const body = await response.text()
 
 				strictEqual(response.status, 200)
+				assertNoStore(response)
 				strictEqual(
 					response.headers.get('content-type'),
 					'text/plain; charset=utf-8'

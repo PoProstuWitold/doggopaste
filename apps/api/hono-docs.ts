@@ -63,14 +63,14 @@ export default defineConfig({
 					method: 'get',
 					summary: 'Download a paste without a password',
 					description:
-						'Returns an accessible, non-password-protected static paste. Responses: 200 with `Content-Type: text/plain; charset=UTF-8` and `Content-Disposition: attachment; filename="..."`; 400 when any `password` query parameter is present; 401 when the paste requires a password; 404 when the paste is private, expired, or missing. A 200 response increments `hits` exactly once.'
+						'Returns an accessible, non-password-protected static paste. Responses: 200 with `Content-Type: text/plain; charset=UTF-8` and `Content-Disposition: attachment; filename="..."`; 400 when any `password` query parameter is present; 401 when the paste requires a password; 404 when the paste is private, expired, or missing. Every response includes `Cache-Control: no-store`. A 200 response increments `hits` exactly once.'
 				},
 				{
 					api: '/{slug}/download',
 					method: 'post',
 					summary: 'Download a password-protected paste',
 					description:
-						'Requires an `application/json` body shaped as `{ "password": "non-empty string" }`. Responses: 200 with `Content-Type: text/plain; charset=UTF-8`, `Content-Disposition: attachment; filename="..."`, and `Cache-Control: no-store`; 400 for a missing, malformed, or invalid body or when the paste does not require a password; 403 for an incorrect password; 404 when the paste is private, expired, or missing. A 200 response increments `hits` exactly once.'
+						'Requires an `application/json` body shaped as `{ "password": "non-empty string" }`. Responses: 200 with `Content-Type: text/plain; charset=UTF-8` and `Content-Disposition: attachment; filename="..."`; 400 for a missing, malformed, or invalid body or when the paste does not require a password; 403 for an incorrect password; 404 when the paste is private, expired, or missing. Every response includes `Cache-Control: no-store`. A 200 response increments `hits` exactly once.'
 				}
 			]
 		},

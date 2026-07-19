@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { cookies } from 'next/headers'
+import { notFound } from 'next/navigation'
 import ForkPasteForm from '@/app/components/custom/ForkPasteForm'
 import type { Paste, PasteResponse, RealtimePasteResponse } from '@/app/types'
 import { getBaseApiUrl } from '@/app/utils/functions'
@@ -13,6 +14,8 @@ async function fetchStaticPaste(slug: string): Promise<PasteResponse> {
 			cookie: cookieHeader.toString()
 		}
 	})
+	if (res.status === 404) notFound()
+	if (!res.ok) throw new Error('Failed to fetch static paste')
 	const json = await res.json()
 	return json
 }
@@ -26,6 +29,8 @@ async function fetchRealtimePaste(
 			'Content-Type': 'application/json'
 		}
 	})
+	if (res.status === 404) notFound()
+	if (!res.ok) throw new Error('Failed to fetch realtime paste')
 	const json = await res.json()
 	return json
 }
@@ -68,7 +73,7 @@ export default async function EditPastePage({
 		const { data, success } = await fetchRealtimePaste(slug)
 
 		if (!success) {
-			return <div>Realtime Paste doesn't exist</div>
+			throw new Error('Invalid realtime paste response')
 		}
 
 		const paste: Paste = {
@@ -97,7 +102,7 @@ export default async function EditPastePage({
 	const { data, success } = await fetchStaticPaste(slug)
 
 	if (!success) {
-		return <div>Paste doesn't exist or it's private</div>
+		throw new Error('Invalid static paste response')
 	}
 
 	return <ForkPasteForm paste={data} />

@@ -15,9 +15,18 @@ import { VisibilitySelect } from './VisibilitySelect'
 export function LeftColumn({ mode }: { mode: 'create' | 'edit' | 'fork' }) {
 	const {
 		register,
+		setValue,
+		watch,
 		formState: { errors }
 	} = useFormContext<PasteFormType>()
 	const [user, setUser] = useState<User | null>(null)
+	const visibility = watch('visibility')
+
+	useEffect(() => {
+		if (visibility === 'private') {
+			setValue('pasteAsGuest', false)
+		}
+	}, [setValue, visibility])
 
 	useEffect(() => {
 		let ignore = false
@@ -139,6 +148,7 @@ export function LeftColumn({ mode }: { mode: 'create' | 'edit' | 'fork' }) {
 							className='checkbox'
 							{...register('pasteAsGuest')}
 							name='pasteAsGuest'
+							disabled={visibility === 'private'}
 						/>
 						<span>Paste as guest</span>
 					</label>
