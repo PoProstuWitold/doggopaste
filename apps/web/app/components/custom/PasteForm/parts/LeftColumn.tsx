@@ -27,7 +27,7 @@ export function LeftColumn({ mode }: { mode: 'create' | 'edit' | 'fork' }) {
 			const { data, error } = await authClient.getSession()
 
 			if (error) {
-				console.error('getSession error:', error)
+				console.error('Failed to fetch current session')
 				if (!ignore) setUser(null)
 				return
 			}

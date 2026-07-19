@@ -26,12 +26,12 @@ export const ProfileIconClient: React.FC<ProfileIconClientProps> = ({
 	const handleSignOut = async () => {
 		try {
 			const { error } = await authClient.signOut()
-			if (error) console.error('Error during sign out:', error)
+			if (error) console.error('Sign out request failed')
 			toast.success(`Signed out successfully. Bye ${user?.name}!`)
 			await wait(1000)
 			window.location.reload()
-		} catch (err) {
-			console.error('Unexpected error:', err)
+		} catch {
+			console.error('Unexpected sign out error')
 		}
 	}
 

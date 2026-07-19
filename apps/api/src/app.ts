@@ -56,7 +56,17 @@ export function createApp() {
 
 	// WebSockets & IP Address Middleware (disabled during tests)
 	if (!isTest) {
-		app.use(logger())
+		app.use(
+			logger((message, ...rest) => {
+				const sanitizedMessage = message
+					.replace(/\?\S*/u, '')
+					.replace(
+						/(\/api\/auth\/reset-password\/)[^\s/]+/u,
+						'$1[redacted]'
+					)
+				console.info(sanitizedMessage, ...rest)
+			})
+		)
 		app.use(wsMiddleware)
 		app.use(ipAddress)
 	}

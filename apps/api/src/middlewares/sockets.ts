@@ -28,10 +28,6 @@ export function initWebSockets(server: ServerType) {
 			console.info(`Socket ${socket.id} disconnected! Reason '${reason}'`)
 		})
 
-		socket.on('message', (msg, _callback) => {
-			console.info(`Received message from socket ${socket.id}: "${msg}"`)
-		})
-
 		// PROJECT SPECIFIC EVENTS
 		socket.on('join-room', (slug: string) => {
 			console.info(`Socket ${socket.id} joined room ${slug}`)
@@ -62,8 +58,8 @@ export function initWebSockets(server: ServerType) {
 						updatedAt: new Date()
 					})
 					.where(eq(realTimePastesTable.slug, slug))
-			} catch (err) {
-				console.error(`[WS] Failed to sync content for ${slug}:`, err)
+			} catch {
+				console.error(`[WS] Failed to sync content for ${slug}`)
 			}
 		})
 
@@ -92,8 +88,8 @@ export function initWebSockets(server: ServerType) {
 
 				// Notify ALL clients. Including the one that sent the event
 				io.to(slug).emit('meta-change', { title, syntax })
-			} catch (err) {
-				console.error(`[WS] Failed to sync metadata for ${slug}:`, err)
+			} catch {
+				console.error(`[WS] Failed to sync metadata for ${slug}`)
 			}
 		})
 
