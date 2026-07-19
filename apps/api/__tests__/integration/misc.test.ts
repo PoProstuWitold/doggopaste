@@ -30,8 +30,38 @@ test(
 
 		await t.test('GET /openapi', async () => {
 			const res = await app.request('/api/openapi')
+			const spec: any = await res.json()
+			const download = spec.paths['/pastes/{slug}/download']
 
 			strictEqual(res.status, 200)
+			strictEqual(
+				download.post.requestBody.content['application/json'].schema
+					.properties.password.type,
+				'string'
+			)
+			strictEqual(download.post.requestBody.required, true)
+			strictEqual(
+				download.get.responses['200'].content[
+					'text/plain; charset=utf-8'
+				].schema.type,
+				'string'
+			)
+			strictEqual(
+				download.get.responses['200'].headers['Content-Disposition']
+					.required,
+				true
+			)
+			strictEqual(download.get.responses['400'].description.length > 0, true)
+			strictEqual(download.get.responses['401'].description.length > 0, true)
+			strictEqual(download.get.responses['404'].description.length > 0, true)
+			strictEqual(
+				download.post.responses['200'].headers['Cache-Control'].schema
+					.enum[0],
+				'no-store'
+			)
+			strictEqual(download.post.responses['400'].description.length > 0, true)
+			strictEqual(download.post.responses['403'].description.length > 0, true)
+			strictEqual(download.post.responses['404'].description.length > 0, true)
 		})
 
 		await t.test('GET /api/docs', async () => {

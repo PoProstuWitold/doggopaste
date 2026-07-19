@@ -5,7 +5,9 @@ import { eq, inArray } from 'drizzle-orm'
 import { db } from '../../src/db/index.js'
 import {
 	foldersTable,
+	pasteTagsTable,
 	pastesTable,
+	tagsTable,
 	usersTable
 } from '../../src/db/schema.js'
 import { getTestApp, prepareDb } from '../test-utils.js'
@@ -20,19 +22,26 @@ test(
 		const app = getTestApp()
 		const suffix = `${Date.now()}-${crypto.randomUUID().slice(0, 8)}`
 		const email = `paste-security-${suffix}@example.test`
+		const protectedContent = `Zażółć gęślą jaźń — ${suffix} 🐕\n`
+		const tagSuffix = crypto.randomUUID().replaceAll('-', '').slice(0, 10)
+		const rejectedTags = [`auth${tagSuffix}`, `anon${tagSuffix}`]
 		const slugs = {
 			publicPlain: `public-plain-${suffix}`,
 			publicProtected: `public-protected-${suffix}`,
 			privatePlain: `private-plain-${suffix}`,
 			privateProtected: `private-protected-${suffix}`,
 			expired: `expired-${suffix}`,
-			expiredInFolder: `expired-folder-${suffix}`
+			expiredInFolder: `expired-folder-${suffix}`,
+			burnProtected: `burn-protected-${suffix}`,
+			rejectedAuthenticatedPrivate: `reject-auth-${suffix}`,
+			rejectedAnonymousPrivate: `reject-anon-${suffix}`
 		}
 
 		t.after(async () => {
 			await db
 				.delete(pastesTable)
 				.where(inArray(pastesTable.slug, Object.values(slugs)))
+			await db.delete(tagsTable).where(inArray(tagsTable.name, rejectedTags))
 			await db.delete(usersTable).where(eq(usersTable.email, email))
 		})
 
@@ -104,6 +113,7 @@ test(
 
 		const publicPlain = await createPaste(slugs.publicPlain)
 		const publicProtected = await createPaste(slugs.publicProtected, {
+			content: protectedContent,
 			password: 'correct-password',
 			passwordEnabled: true
 		})
@@ -118,6 +128,11 @@ test(
 		const expired = await createPaste(slugs.expired, {
 			expiration: '10m',
 			password: 'expired-password',
+			passwordEnabled: true
+		})
+		const burnProtected = await createPaste(slugs.burnProtected, {
+			expiration: 'burn_after_read',
+			password: 'burn-password',
 			passwordEnabled: true
 		})
 
@@ -145,6 +160,73 @@ test(
 			.set({ syntaxId: null })
 			.where(eq(pastesTable.id, publicPlain.id))
 
+		await t.test(
+			'private pastes cannot be created without an owner or with guest mode',
+			async () => {
+				const authenticatedResponse = await app.request('/api/pastes', {
+					method: 'POST',
+					headers: jsonHeaders(true),
+					body: JSON.stringify(
+						pasteBody(slugs.rejectedAuthenticatedPrivate, {
+							visibility: 'private',
+							pasteAsGuest: true,
+							tags: [rejectedTags[0]]
+						})
+					)
+				})
+				strictEqual(authenticatedResponse.status, 400)
+
+				for (const pasteAsGuest of [false, true]) {
+					const anonymousResponse = await app.request('/api/pastes', {
+						method: 'POST',
+						headers: jsonHeaders(),
+						body: JSON.stringify(
+							pasteBody(slugs.rejectedAnonymousPrivate, {
+								visibility: 'private',
+								pasteAsGuest,
+								tags: [rejectedTags[1]]
+							})
+						)
+					})
+					strictEqual(anonymousResponse.status, 401)
+				}
+
+				const rejectedSlugs = [
+					slugs.rejectedAuthenticatedPrivate,
+					slugs.rejectedAnonymousPrivate
+				]
+				const rejectedPastes = await db
+					.select({ id: pastesTable.id })
+					.from(pastesTable)
+					.where(inArray(pastesTable.slug, rejectedSlugs))
+				const createdTags = await db
+					.select({ id: tagsTable.id })
+					.from(tagsTable)
+					.where(inArray(tagsTable.name, rejectedTags))
+				const pasteRelations = await db
+					.select({ id: pasteTagsTable.id })
+					.from(pasteTagsTable)
+					.innerJoin(
+						pastesTable,
+						eq(pasteTagsTable.pasteId, pastesTable.id)
+					)
+					.where(inArray(pastesTable.slug, rejectedSlugs))
+				const tagRelations = await db
+					.select({ id: pasteTagsTable.id })
+					.from(pasteTagsTable)
+					.innerJoin(
+						tagsTable,
+						eq(pasteTagsTable.tagId, tagsTable.id)
+					)
+					.where(inArray(tagsTable.name, rejectedTags))
+
+				strictEqual(rejectedPastes.length, 0)
+				strictEqual(createdTags.length, 0)
+				strictEqual(pasteRelations.length, 0)
+				strictEqual(tagRelations.length, 0)
+			}
+		)
+
 		await t.test('create and update return safe details DTOs', async () => {
 			strictEqual(publicProtected.passwordProtected, true)
 			strictEqual('passwordHash' in publicProtected, false)
@@ -156,6 +238,7 @@ test(
 					headers: jsonHeaders(true),
 					body: JSON.stringify(
 						pasteBody(slugs.publicProtected, {
+							content: protectedContent,
 							folder: folder.id,
 							password: 'correct-password',
 							passwordEnabled: true
@@ -312,7 +395,7 @@ test(
 			}
 		)
 
-		await t.test('expired paste is rejected by every API read gate', async () => {
+		await t.test('expired paste is rejected by details and verify', async () => {
 			const getResponse = await app.request(`/api/pastes/${slugs.expired}`)
 			strictEqual(getResponse.status, 404)
 
@@ -325,12 +408,298 @@ test(
 				}
 			)
 			strictEqual(verifyResponse.status, 404)
-
-			const downloadResponse = await app.request(
-				`/api/pastes/${slugs.expired}/download?password=expired-password`
-			)
-			strictEqual(downloadResponse.status, 404)
 		})
+
+		await t.test(
+			'GET download rejects a password query without hits or burn',
+			async () => {
+				await db
+					.update(pastesTable)
+					.set({ hits: 0 })
+					.where(eq(pastesTable.id, burnProtected.id))
+
+				const suppliedPassword = 'burn-password'
+				const response = await app.request(
+					`/api/pastes/${slugs.burnProtected}/download?password=${suppliedPassword}`
+				)
+				const body = await response.text()
+
+				strictEqual(response.status, 400)
+				strictEqual(body.includes(suppliedPassword), false)
+				strictEqual(body.includes(`content-${slugs.burnProtected}`), false)
+				strictEqual(body.includes('passwordHash'), false)
+
+				const missingPasteResponse = await app.request(
+					`/api/pastes/missing-${suffix}/download?password=${suppliedPassword}`
+				)
+				strictEqual(missingPasteResponse.status, 400)
+
+				const [burnRow] = await db
+					.select({ id: pastesTable.id, hits: pastesTable.hits })
+					.from(pastesTable)
+					.where(eq(pastesTable.id, burnProtected.id))
+				ok(burnRow)
+				strictEqual(burnRow.hits, 0)
+			}
+		)
+
+		await t.test(
+			'POST download rejects wrong and missing passwords without hits or burn',
+			async () => {
+				await db
+					.update(pastesTable)
+					.set({ hits: 0 })
+					.where(eq(pastesTable.id, burnProtected.id))
+				await db
+					.update(pastesTable)
+					.set({ hits: 0 })
+					.where(eq(pastesTable.id, publicProtected.id))
+				await db
+					.update(pastesTable)
+					.set({ hits: 0 })
+					.where(eq(pastesTable.id, publicPlain.id))
+
+				const wrongPassword = 'wrong-password-must-not-leak'
+				const wrongResponse = await app.request(
+					`/api/pastes/${slugs.burnProtected}/download`,
+					{
+						method: 'POST',
+						headers: jsonHeaders(),
+						body: JSON.stringify({ password: wrongPassword })
+					}
+				)
+				const wrongBody = await wrongResponse.text()
+				strictEqual(wrongResponse.status, 403)
+				strictEqual(wrongBody.includes(wrongPassword), false)
+				strictEqual(wrongBody.includes('passwordHash'), false)
+				strictEqual(
+					wrongBody.includes(`content-${slugs.burnProtected}`),
+					false
+				)
+
+				const missingGetPasswordResponse = await app.request(
+					`/api/pastes/${slugs.publicProtected}/download`
+				)
+				strictEqual(missingGetPasswordResponse.status, 401)
+
+				const noBodyResponse = await app.request(
+					`/api/pastes/${slugs.publicProtected}/download`,
+					{
+						method: 'POST',
+						headers: jsonHeaders()
+					}
+				)
+				strictEqual(noBodyResponse.status, 400)
+
+				const malformedBodyResponse = await app.request(
+					`/api/pastes/${slugs.publicProtected}/download`,
+					{
+						method: 'POST',
+						headers: jsonHeaders(),
+						body: '{'
+					}
+				)
+				strictEqual(malformedBodyResponse.status, 400)
+
+				const missingPasswordResponse = await app.request(
+					`/api/pastes/${slugs.publicProtected}/download`,
+					{
+						method: 'POST',
+						headers: jsonHeaders(),
+						body: JSON.stringify({})
+					}
+				)
+				strictEqual(missingPasswordResponse.status, 400)
+
+				const unnecessaryPasswordResponse = await app.request(
+					`/api/pastes/${slugs.publicPlain}/download`,
+					{
+						method: 'POST',
+						headers: jsonHeaders(),
+						body: JSON.stringify({ password: 'not-needed' })
+					}
+				)
+				strictEqual(unnecessaryPasswordResponse.status, 400)
+
+				const [burnRow] = await db
+					.select({ id: pastesTable.id, hits: pastesTable.hits })
+					.from(pastesTable)
+					.where(eq(pastesTable.id, burnProtected.id))
+				ok(burnRow)
+				strictEqual(burnRow.hits, 0)
+
+				const [protectedRow] = await db
+					.select({ hits: pastesTable.hits })
+					.from(pastesTable)
+					.where(eq(pastesTable.id, publicProtected.id))
+				const [plainRow] = await db
+					.select({ hits: pastesTable.hits })
+					.from(pastesTable)
+					.where(eq(pastesTable.id, publicPlain.id))
+				strictEqual(protectedRow.hits, 0)
+				strictEqual(plainRow.hits, 0)
+			}
+		)
+
+		await t.test(
+			'POST download returns protected UTF-8 content and increments once',
+			async () => {
+				await db
+					.update(pastesTable)
+					.set({ hits: 41 })
+					.where(eq(pastesTable.id, publicProtected.id))
+
+				const response = await app.request(
+					`/api/pastes/${slugs.publicProtected}/download`,
+					{
+						method: 'POST',
+						headers: jsonHeaders(),
+						body: JSON.stringify({ password: 'correct-password' })
+					}
+				)
+				const body = await response.text()
+
+				strictEqual(response.status, 200)
+				strictEqual(
+					response.headers.get('content-type'),
+					'text/plain; charset=utf-8'
+				)
+				strictEqual(
+					response.headers.get('content-disposition'),
+					`attachment; filename="Security_fixture_${slugs.publicProtected}.txt"`
+				)
+				strictEqual(response.headers.get('cache-control'), 'no-store')
+				strictEqual(body, protectedContent)
+				strictEqual(body.includes('passwordHash'), false)
+
+				const [row] = await db
+					.select({ hits: pastesTable.hits })
+					.from(pastesTable)
+					.where(eq(pastesTable.id, publicProtected.id))
+				strictEqual(row.hits, 42)
+			}
+		)
+
+		await t.test(
+			'successful POST download preserves burn-after-read behavior',
+			async () => {
+				const response = await app.request(
+					`/api/pastes/${slugs.burnProtected}/download`,
+					{
+						method: 'POST',
+						headers: jsonHeaders(),
+						body: JSON.stringify({ password: 'burn-password' })
+					}
+				)
+
+				strictEqual(response.status, 200)
+				strictEqual(
+					await response.text(),
+					`content-${slugs.burnProtected}`
+				)
+
+				const [burnRow] = await db
+					.select({ id: pastesTable.id })
+					.from(pastesTable)
+					.where(eq(pastesTable.id, burnProtected.id))
+				strictEqual(burnRow, undefined)
+			}
+		)
+
+		await t.test(
+			'POST download applies private and expiration policy before password',
+			async () => {
+				await db
+					.update(pastesTable)
+					.set({ hits: 0 })
+					.where(eq(pastesTable.id, privateProtected.id))
+				await db
+					.update(pastesTable)
+					.set({ hits: 0 })
+					.where(eq(pastesTable.id, expired.id))
+
+				const privateResponse = await app.request(
+					`/api/pastes/${slugs.privateProtected}/download`,
+					{
+						method: 'POST',
+						headers: jsonHeaders(),
+						body: JSON.stringify({ password: 'private-password' })
+					}
+				)
+				const privateBody = await privateResponse.text()
+				strictEqual(privateResponse.status, 404)
+				strictEqual(privateBody.includes('passwordHash'), false)
+
+				const ownerResponse = await app.request(
+					`/api/pastes/${slugs.privateProtected}/download`,
+					{
+						method: 'POST',
+						headers: jsonHeaders(true),
+						body: JSON.stringify({ password: 'private-password' })
+					}
+				)
+				strictEqual(ownerResponse.status, 200)
+				strictEqual(
+					await ownerResponse.text(),
+					`content-${slugs.privateProtected}`
+				)
+
+				const expiredResponse = await app.request(
+					`/api/pastes/${slugs.expired}/download`,
+					{
+						method: 'POST',
+						headers: jsonHeaders(),
+						body: JSON.stringify({ password: 'expired-password' })
+					}
+				)
+				const expiredBody = await expiredResponse.text()
+				strictEqual(expiredResponse.status, 404)
+				strictEqual(expiredBody.includes('passwordHash'), false)
+
+				const [privateRow] = await db
+					.select({ hits: pastesTable.hits })
+					.from(pastesTable)
+					.where(eq(pastesTable.id, privateProtected.id))
+				const [expiredRow] = await db
+					.select({ hits: pastesTable.hits })
+					.from(pastesTable)
+					.where(eq(pastesTable.id, expired.id))
+				strictEqual(privateRow.hits, 1)
+				strictEqual(expiredRow.hits, 0)
+			}
+		)
+
+		await t.test(
+			'GET download returns public content and increments once',
+			async () => {
+				await db
+					.update(pastesTable)
+					.set({ hits: 73 })
+					.where(eq(pastesTable.id, publicPlain.id))
+
+				const response = await app.request(
+					`/api/pastes/${slugs.publicPlain}/download`
+				)
+				const body = await response.text()
+
+				strictEqual(response.status, 200)
+				strictEqual(
+					response.headers.get('content-type'),
+					'text/plain; charset=utf-8'
+				)
+				strictEqual(
+					response.headers.get('content-disposition'),
+					`attachment; filename="Security_fixture_${slugs.publicPlain}.txt"`
+				)
+				strictEqual(body, `content-${slugs.publicPlain}`)
+
+				const [row] = await db
+					.select({ hits: pastesTable.hits })
+					.from(pastesTable)
+					.where(eq(pastesTable.id, publicPlain.id))
+				strictEqual(row.hits, 74)
+			}
+		)
 
 		await t.test('failed reads do not increase hits', async () => {
 			await db

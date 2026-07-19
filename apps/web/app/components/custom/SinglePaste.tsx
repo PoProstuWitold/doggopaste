@@ -110,6 +110,8 @@ export default function SinglePaste({
 						)
 					}
 				}
+
+				setPasswordInput('')
 			} else if (isClientLocked) {
 				const clearText = await decryptWithPassword(
 					fetchedContent,
@@ -117,6 +119,7 @@ export default function SinglePaste({
 				)
 				setDecryptedContent(clearText)
 				setIsClientLocked(false)
+				setPasswordInput('')
 				toast.success('Content decrypted successfully!')
 			}
 		} catch (error) {
@@ -195,8 +198,6 @@ export default function SinglePaste({
 					<PasteButtons
 						paste={paste}
 						user={user}
-						decryptedContent={decryptedContent}
-						passwordInput={!isServerLocked ? passwordInput : ''}
 						isLocked={isServerLocked || isClientLocked}
 						content={contentToDisplay}
 					/>

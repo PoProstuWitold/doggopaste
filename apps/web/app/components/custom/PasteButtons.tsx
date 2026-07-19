@@ -16,8 +16,6 @@ import { CopyButton } from './CopyButton'
 interface PasteButtonsProps {
 	paste: Paste
 	user: User | null
-	decryptedContent?: string | null
-	passwordInput?: string | null
 	isLocked?: boolean
 	content: string
 }
@@ -25,14 +23,13 @@ interface PasteButtonsProps {
 export const PasteButtons = ({
 	paste,
 	user,
-	decryptedContent,
-	passwordInput,
 	isLocked = false,
 	content
 }: PasteButtonsProps) => {
 	const router = useRouter()
 	const [clientBaseUrl, setClientBaseUrl] = useState<string | null>(null)
 	const [shareLinkCopied, setShareLinkCopied] = useState(false)
+	const usesLocalContent = paste.passwordProtected || paste.encrypted
 
 	useEffect(() => {
 		setClientBaseUrl(getBaseApiUrl())
@@ -52,18 +49,17 @@ export const PasteButtons = ({
 	}
 
 	const handleDownload = () => {
-		if (!clientBaseUrl) return
-
 		const extension = paste.syntax?.extension || 'txt'
-		const fileName = `${paste.title || 'paste'}.${extension}`
+		const safeTitle =
+			paste.title
+				.replace(/[^\w\s.-]/g, '')
+				.replace(/\s+/g, '_')
+				.slice(0, 100) || 'paste'
+		const fileName = `${safeTitle}.${extension}`
 
-		if (paste.encrypted) {
-			if (!decryptedContent) {
-				toast.error('Unlock content first to download.')
-				return
-			}
+		if (usesLocalContent) {
 			try {
-				const blob = new Blob([decryptedContent], {
+				const blob = new Blob([content], {
 					type: 'text/plain;charset=utf-8'
 				})
 				const url = window.URL.createObjectURL(blob)
@@ -73,8 +69,8 @@ export const PasteButtons = ({
 				document.body.appendChild(link)
 				link.click()
 				document.body.removeChild(link)
-				window.URL.revokeObjectURL(url)
-				toast.success('Download started (decrypted)')
+				window.setTimeout(() => window.URL.revokeObjectURL(url), 0)
+				toast.success('Download started')
 			} catch (error) {
 				console.error('Download failed', error)
 				toast.error('Failed to generate file')
@@ -82,38 +78,31 @@ export const PasteButtons = ({
 			return
 		}
 
-		let downloadUrl = `${clientBaseUrl}/api/pastes/${paste.slug}/download`
+		if (!clientBaseUrl) return
 
-		if (paste.passwordProtected && passwordInput) {
-			downloadUrl += `?password=${encodeURIComponent(passwordInput)}`
-		}
-
-		window.location.href = downloadUrl
+		window.location.href = `${clientBaseUrl}/api/pastes/${paste.slug}/download`
 	}
 
 	const handleRaw = () => {
-		if (!clientBaseUrl) return
-
-		if (paste.encrypted) {
-			if (!decryptedContent) {
-				toast.error('Unlock content first to view raw.')
-				return
-			}
-			const blob = new Blob([decryptedContent], {
+		if (usesLocalContent) {
+			const blob = new Blob([content], {
 				type: 'text/plain;charset=utf-8'
 			})
 			const url = window.URL.createObjectURL(blob)
-			window.open(url, '_blank')
+			const rawWindow = window.open(url, '_blank')
+
+			if (!rawWindow) {
+				window.URL.revokeObjectURL(url)
+				toast.error('Allow pop-ups to view raw content.')
+				return
+			}
+
+			rawWindow.opener = null
+			window.setTimeout(() => window.URL.revokeObjectURL(url), 60_000)
 			return
 		}
 
-		let rawUrl = `/p/${paste.slug}/raw`
-
-		if (paste.passwordProtected && passwordInput) {
-			rawUrl += `?password=${encodeURIComponent(passwordInput)}`
-		}
-
-		window.open(rawUrl, '_blank')
+		window.open(`/p/${paste.slug}/raw`, '_blank')
 	}
 
 	const handleDeletePaste = async () => {
@@ -155,7 +144,7 @@ export const PasteButtons = ({
 				type='button'
 				onClick={handleRaw}
 				className='btn btn-sm btn-warning'
-				disabled={isLocked || !clientBaseUrl}
+				disabled={isLocked}
 				title={isLocked ? 'Unlock to view raw' : 'View Raw'}
 			>
 				<div className='flex items-center gap-1 font-extrabold'>
@@ -172,7 +161,7 @@ export const PasteButtons = ({
 				type='button'
 				onClick={handleDownload}
 				className='btn btn-sm btn-success'
-				disabled={isLocked || !clientBaseUrl}
+				disabled={isLocked || (!usesLocalContent && !clientBaseUrl)}
 				title={isLocked ? 'Unlock to download' : 'Download File'}
 			>
 				<div className='flex items-center gap-1 font-extrabold'>

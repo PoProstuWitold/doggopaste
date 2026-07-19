@@ -67,6 +67,14 @@ export async function authorizePasteRead(
 		})
 	}
 
+	if (mode === 'download' && password && !passwordProtected) {
+		throw new GenericException({
+			statusCode: 400,
+			name: 'Bad Request',
+			message: 'Paste is not password protected'
+		})
+	}
+
 	if ((mode === 'verify' || mode === 'download') && passwordProtected) {
 		if (!password) {
 			throw new GenericException({
