@@ -6,10 +6,13 @@ export async function GET(
 	request: Request,
 	{ params }: { params: Promise<{ slug: string }> }
 ) {
-	const { slug } = await params
+	if (new URL(request.url).searchParams.has('password')) {
+		return new NextResponse('Password query is not supported', {
+			status: 400
+		})
+	}
 
-	const { searchParams } = new URL(request.url)
-	const password = searchParams.get('password')
+	const { slug } = await params
 
 	const cookieHeader = await cookies()
 
@@ -30,39 +33,8 @@ export async function GET(
 	const paste = json.data
 
 	if (paste.passwordProtected && !paste.content) {
-		if (!password) {
-			return new NextResponse(
-				'Password required to view this raw paste',
-				{
-					status: 401
-				}
-			)
-		}
-
-		const verifyRes = await fetch(
-			`${getBaseApiUrl()}/api/pastes/${slug}/verify`,
-			{
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-					cookie: cookieHeader.toString()
-				},
-				body: JSON.stringify({ password })
-			}
-		)
-
-		if (!verifyRes.ok) {
-			return new NextResponse('Invalid password', { status: 403 })
-		}
-
-		const verifyJson = await verifyRes.json()
-
-		return new NextResponse(verifyJson.content, {
-			status: 200,
-			headers: {
-				'Content-Type': 'text/plain; charset=utf-8',
-				'Cache-Control': 'no-store'
-			}
+		return new NextResponse('Password required to view this raw paste', {
+			status: 401
 		})
 	}
 

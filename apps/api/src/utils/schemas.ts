@@ -1,4 +1,5 @@
 import { zValidator } from '@hono/zod-validator'
+import { HTTPException } from 'hono/http-exception'
 import { z } from 'zod'
 import { GenericException } from '../exceptions/index.js'
 
@@ -168,6 +169,49 @@ export const validatorCreatePasteJson = zValidator(
 		}
 	}
 )
+
+export const downloadPasteSchema = z.object({
+	password: z
+		.string()
+		.refine(
+			(password) => password.trim().length > 0,
+			'Password is required'
+		)
+})
+
+const downloadPasteJsonValidator = zValidator(
+	'json',
+	downloadPasteSchema,
+	async (result, _c) => {
+		if (result.success === false) {
+			throw new GenericException({
+				statusCode: 400,
+				name: 'Bad Request',
+				message: 'Invalid download data',
+				details: result.error.issues.map((issue) => ({
+					[issue.path.join('.')]: issue.message
+				}))
+			})
+		}
+	}
+)
+
+export const validatorDownloadPasteJson: typeof downloadPasteJsonValidator =
+	async (c, next) => {
+		try {
+			return await downloadPasteJsonValidator(c, next)
+		} catch (error) {
+			if (error instanceof HTTPException && error.status === 400) {
+				throw new GenericException({
+					statusCode: 400,
+					name: 'Bad Request',
+					message: 'Invalid download data'
+				})
+			}
+
+			throw error
+		}
+	}
 
 /* ---------- helpers ---------- */
 

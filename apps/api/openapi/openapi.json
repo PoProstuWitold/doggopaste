@@ -612,17 +612,36 @@
 		},
 		"/pastes/{slug}/download": {
 			"get": {
-				"summary": "/{slug}/download",
+				"summary": "Download a paste without a password",
 				"responses": {
-					"default": {
-						"description": "Default fallback response",
+					"200": {
+						"description": "Paste content delivered as a UTF-8 text file.",
+						"headers": {
+							"Content-Disposition": {
+								"description": "Attachment filename derived from the sanitized paste title and syntax extension.",
+								"required": true,
+								"schema": {
+									"type": "string",
+									"example": "attachment; filename=\"example.txt\""
+								}
+							}
+						},
 						"content": {
-							"application/json": {
+							"text/plain; charset=utf-8": {
 								"schema": {
 									"type": "string"
 								}
 							}
 						}
+					},
+					"400": {
+						"description": "A password query parameter was supplied; passwords in URLs are rejected."
+					},
+					"401": {
+						"description": "The paste requires a password and must be downloaded with POST."
+					},
+					"404": {
+						"description": "The paste is missing, expired, private, or inaccessible."
 					}
 				},
 				"parameters": [
@@ -635,8 +654,81 @@
 						}
 					}
 				],
-				"description": "Allows users to download the content of a specific static paste as a file.",
+				"description": "Returns an accessible, non-password-protected static paste. Responses: 200 with `Content-Type: text/plain; charset=UTF-8` and `Content-Disposition: attachment; filename=\"...\"`; 400 when any `password` query parameter is present; 401 when the paste requires a password; 404 when the paste is private, expired, or missing. A 200 response increments `hits` exactly once.",
 				"tags": ["Static Pastes"]
+			},
+			"post": {
+				"summary": "Download a password-protected paste",
+				"responses": {
+					"200": {
+						"description": "Paste content delivered as a UTF-8 text file.",
+						"headers": {
+							"Content-Disposition": {
+								"description": "Attachment filename derived from the sanitized paste title and syntax extension.",
+								"required": true,
+								"schema": {
+									"type": "string",
+									"example": "attachment; filename=\"example.txt\""
+								}
+							},
+							"Cache-Control": {
+								"description": "Prevents storage of password-protected content.",
+								"required": true,
+								"schema": {
+									"type": "string",
+									"enum": ["no-store"]
+								}
+							}
+						},
+						"content": {
+							"text/plain; charset=utf-8": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "The JSON body is missing, malformed, or invalid, or the paste does not require a password."
+					},
+					"403": {
+						"description": "The supplied password is incorrect."
+					},
+					"404": {
+						"description": "The paste is missing, expired, private, or inaccessible."
+					}
+				},
+				"parameters": [
+					{
+						"name": "slug",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"description": "Requires an `application/json` body shaped as `{ \"password\": \"non-empty string\" }`. Responses: 200 with `Content-Type: text/plain; charset=UTF-8`, `Content-Disposition: attachment; filename=\"...\"`, and `Cache-Control: no-store`; 400 for a missing, malformed, or invalid body or when the paste does not require a password; 403 for an incorrect password; 404 when the paste is private, expired, or missing. A 200 response increments `hits` exactly once.",
+				"tags": ["Static Pastes"],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"type": "object",
+								"required": ["password"],
+								"properties": {
+									"password": {
+										"type": "string",
+										"minLength": 1,
+										"pattern": "\\S",
+										"description": "Non-empty password; it is never accepted in the URL."
+									}
+								}
+							}
+						}
+					}
+				}
 			}
 		},
 		"/pastes-realtime/{slug}": {

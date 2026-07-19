@@ -1,6 +1,6 @@
 import * as argon2 from 'argon2'
 import { and, desc, eq, inArray, sql } from 'drizzle-orm'
-import { Hono } from 'hono'
+import { type Context, Hono } from 'hono'
 import { db } from '../db/index.js'
 import {
 	foldersTable,
@@ -24,8 +24,85 @@ import {
 	toPasteDetailsDto,
 	toPasteSummaryDto,
 	validatorCreatePasteJson,
+	validatorDownloadPasteJson,
 	validatorParamStringSlug
 } from '../utils/index.js'
+
+interface PasteDownloadOptions {
+	slug: string
+	reader: Env['Variables']['user']
+	password?: string | null
+}
+
+interface PasteDownloadResult {
+	content: string
+	contentDisposition: string
+	passwordProtected: boolean
+}
+
+async function handlePasteDownload({
+	slug,
+	reader,
+	password = null
+}: PasteDownloadOptions): Promise<PasteDownloadResult> {
+	const [row] = await db
+		.select({
+			paste: {
+				id: pastesTable.id,
+				title: pastesTable.title,
+				content: pastesTable.content,
+				expiration: pastesTable.expiration,
+				expiresAt: pastesTable.expiresAt,
+				encrypted: pastesTable.encrypted,
+				passwordHash: pastesTable.passwordHash,
+				visibility: pastesTable.visibility,
+				userId: pastesTable.userId
+			},
+			syntax: {
+				extension: syntaxesTable.extension
+			}
+		})
+		.from(pastesTable)
+		.leftJoin(syntaxesTable, eq(pastesTable.syntaxId, syntaxesTable.id))
+		.where(eq(pastesTable.slug, slug))
+
+	if (!row) throwPasteNotFound()
+
+	const { paste, syntax } = row
+	const readDecision = await authorizePasteRead(paste, {
+		mode: 'download',
+		reader,
+		password
+	})
+
+	await db
+		.update(pastesTable)
+		.set({ hits: sql`${pastesTable.hits} + 1` })
+		.where(eq(pastesTable.id, paste.id))
+
+	if (paste.expiration === 'burn_after_read') {
+		await db.delete(pastesTable).where(eq(pastesTable.id, paste.id))
+		await DoggoUtils.removeUnusedTags()
+	}
+
+	const safeTitle = DoggoUtils.sanitizeFileName(paste.title)
+	const extension = syntax?.extension || 'txt'
+
+	return {
+		content: paste.content,
+		contentDisposition: `attachment; filename="${safeTitle}.${extension}"`,
+		passwordProtected: readDecision.passwordProtected
+	}
+}
+
+function sendPasteDownload(c: Context<Env>, download: PasteDownloadResult) {
+	c.header('Content-Type', 'text/plain; charset=utf-8')
+	c.header('Content-Disposition', download.contentDisposition)
+
+	if (download.passwordProtected) c.header('Cache-Control', 'no-store')
+
+	return c.body(download.content)
+}
 
 const app = new Hono<Env>()
 	.post('/', validatorCreatePasteJson, async (c) => {
@@ -57,6 +134,23 @@ const app = new Hono<Env>()
 
 		// 2. User ID
 		const user = c.get('user')
+
+		if (visibility === 'private' && !user) {
+			throw new GenericException({
+				statusCode: 401,
+				name: 'Unauthorized',
+				message: 'Authentication is required to create a private paste'
+			})
+		}
+
+		if (visibility === 'private' && pasteAsGuest) {
+			throw new GenericException({
+				statusCode: 400,
+				name: 'Bad Request',
+				message: 'A private paste must have an owner'
+			})
+		}
+
 		const userId = pasteAsGuest ? null : (user?.id ?? null)
 
 		// 3. Resolve folder (must already exist and belong to the user)
@@ -583,64 +677,37 @@ const app = new Hono<Env>()
 	})
 	.get('/:slug/download', validatorParamStringSlug, async (c) => {
 		const { slug } = c.req.valid('param')
-		const passwordQuery = c.req.query('password')
 
-		// 1. Get paste with syntax extension
-		const [row] = await db
-			.select({
-				paste: {
-					id: pastesTable.id,
-					title: pastesTable.title,
-					content: pastesTable.content,
-					expiration: pastesTable.expiration,
-					expiresAt: pastesTable.expiresAt,
-					encrypted: pastesTable.encrypted,
-					passwordHash: pastesTable.passwordHash,
-					visibility: pastesTable.visibility,
-					userId: pastesTable.userId
-				},
-				syntax: {
-					extension: syntaxesTable.extension
-				}
-			})
-			.from(pastesTable)
-			.leftJoin(syntaxesTable, eq(pastesTable.syntaxId, syntaxesTable.id))
-			.where(eq(pastesTable.slug, slug))
-
-		if (!row) {
+		if (c.req.query('password') !== undefined) {
 			throw new GenericException({
-				statusCode: 404,
-				name: 'Not Found',
-				message: 'Paste not found'
+				statusCode: 400,
+				name: 'Bad Request',
+				message: 'Passwords are not accepted in query parameters'
 			})
 		}
 
-		const { paste, syntax } = row
-
-		await authorizePasteRead(paste, {
-			mode: 'download',
-			reader: c.get('user'),
-			password: passwordQuery
+		const download = await handlePasteDownload({
+			slug,
+			reader: c.get('user')
 		})
-
-		// 4. Burn after read?
-		if (paste.expiration === 'burn_after_read') {
-			await db.delete(pastesTable).where(eq(pastesTable.id, paste.id))
-			await DoggoUtils.removeUnusedTags()
-		}
-
-		// 5. Prepare Filename & Content
-		const safeTitle = DoggoUtils.sanitizeFileName(paste.title)
-		const extension = syntax?.extension || 'txt'
-		const fileName = `${safeTitle}.${extension}`
-		const contentToDownload = paste.content
-
-		// 6. Headers + response
-		c.header('Content-Type', 'text/plain; charset=utf-8')
-		c.header('Content-Disposition', `attachment; filename="${fileName}"`)
-
-		return c.body(contentToDownload)
+		return sendPasteDownload(c, download)
 	})
+	.post(
+		'/:slug/download',
+		validatorParamStringSlug,
+		validatorDownloadPasteJson,
+		async (c) => {
+			const { slug } = c.req.valid('param')
+			const { password } = c.req.valid('json')
+
+			const download = await handlePasteDownload({
+				slug,
+				reader: c.get('user'),
+				password
+			})
+			return sendPasteDownload(c, download)
+		}
+	)
 
 export type AppType = typeof app
 export default app
