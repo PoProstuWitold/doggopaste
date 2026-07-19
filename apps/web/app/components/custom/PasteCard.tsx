@@ -11,7 +11,7 @@ import {
 } from 'react-icons/fa'
 import { FaRegHourglassHalf } from 'react-icons/fa6'
 import { MdEnhancedEncryption } from 'react-icons/md'
-import type { Paste } from '../../types'
+import type { PasteSummary } from '../../types'
 import {
 	firstLetterUppercase,
 	getCategoryLabel,
@@ -20,7 +20,7 @@ import {
 } from '../../utils/functions'
 
 interface PasteCardProps {
-	paste: Paste
+	paste: PasteSummary
 }
 
 export const PasteCard: React.FC<PasteCardProps> = ({ paste }) => {
@@ -105,7 +105,7 @@ export const PasteCard: React.FC<PasteCardProps> = ({ paste }) => {
 						</span>
 					)}
 
-					{paste.passwordHash && (
+					{paste.passwordProtected && (
 						<span className='badge badge-warning'>
 							<BsShieldLock className='mr-1' /> Password Protected
 						</span>

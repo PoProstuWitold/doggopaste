@@ -84,7 +84,7 @@ export const PasteButtons = ({
 
 		let downloadUrl = `${clientBaseUrl}/api/pastes/${paste.slug}/download`
 
-		if (paste.passwordHash && passwordInput) {
+		if (paste.passwordProtected && passwordInput) {
 			downloadUrl += `?password=${encodeURIComponent(passwordInput)}`
 		}
 
@@ -109,7 +109,7 @@ export const PasteButtons = ({
 
 		let rawUrl = `/p/${paste.slug}/raw`
 
-		if (paste.passwordHash && passwordInput) {
+		if (paste.passwordProtected && passwordInput) {
 			rawUrl += `?password=${encodeURIComponent(passwordInput)}`
 		}
 

@@ -52,7 +52,7 @@ export default function SinglePaste({
 		paste.expiration === 'burn_after_read'
 	)
 	const [isServerLocked, setIsServerLocked] = useState(
-		!!paste.passwordHash && !paste.content
+		paste.passwordProtected && !paste.content
 	)
 	const [isClientLocked, setIsClientLocked] = useState(paste.encrypted)
 	const [fetchedContent, setFetchedContent] = useState<string>(paste.content)
@@ -75,6 +75,7 @@ export default function SinglePaste({
 					`${getBaseApiUrl()}/api/pastes/${slug}/verify`,
 					{
 						method: 'POST',
+						credentials: 'include',
 						headers: { 'Content-Type': 'application/json' },
 						body: JSON.stringify({ password: passwordInput })
 					}
@@ -474,7 +475,7 @@ export default function SinglePaste({
 						label='Password'
 						icon={<BsShieldLock className='w-5 h-5' />}
 						value={
-							paste.passwordHash ? (
+							paste.passwordProtected ? (
 								isServerLocked ? (
 									<span className='text-error font-bold flex gap-1 items-center'>
 										Locked <FaLock />

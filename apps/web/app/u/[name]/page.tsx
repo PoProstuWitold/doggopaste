@@ -11,7 +11,7 @@ import {
 } from 'react-icons/fa'
 import { FiEdit } from 'react-icons/fi'
 import { PasteCard } from '@/app/components/custom/PasteCard'
-import type { Folder, Paste, User } from '@/app/types'
+import type { Folder, PasteSummary, User } from '@/app/types'
 import { createDynamicAuthClient } from '@/app/utils/auth-client'
 import { buildFolderTree, renderFolderBranch } from '@/app/utils/folderHelpers'
 import { getBaseApiUrl } from '@/app/utils/functions'
@@ -96,7 +96,7 @@ export default async function UserPage({
 	)
 	if (!res.ok) throw new Error('Failed to load pastes')
 
-	const json = (await res.json()) as { data: Paste[]; total: number }
+	const json = (await res.json()) as { data: PasteSummary[]; total: number }
 	const pastes = json.data ?? []
 	const total = json.total ?? 0
 

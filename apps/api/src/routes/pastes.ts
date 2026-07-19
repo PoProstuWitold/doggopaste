@@ -13,7 +13,16 @@ import { GenericException } from '../exceptions/generic-exception.js'
 import { userGuard } from '../middlewares/user-guard.js'
 import type { Env } from '../types.js'
 import {
+	activePasteCondition,
+	authorizePasteRead,
 	DoggoUtils,
+	type PasteSummaryDto,
+	pasteDetailsSelection,
+	pasteRecordToDetailsSource,
+	pasteSummarySelection,
+	throwPasteNotFound,
+	toPasteDetailsDto,
+	toPasteSummaryDto,
 	validatorCreatePasteJson,
 	validatorParamStringSlug
 } from '../utils/index.js'
@@ -85,7 +94,12 @@ const app = new Hono<Env>()
 
 		// 4. Find syntax by name
 		const [dbSyntax] = await db
-			.select({ id: syntaxesTable.id })
+			.select({
+				id: syntaxesTable.id,
+				name: syntaxesTable.name,
+				extension: syntaxesTable.extension,
+				color: syntaxesTable.color
+			})
 			.from(syntaxesTable)
 			.where(eq(syntaxesTable.name, syntax))
 
@@ -174,21 +188,30 @@ const app = new Hono<Env>()
 		c.status(201)
 		return c.json({
 			success: true,
-			data: newPaste
+			data: toPasteDetailsDto(
+				pasteRecordToDetailsSource(newPaste),
+				dbSyntax,
+				tags,
+				newPaste.passwordHash === null
+			)
 		})
 	})
 	.get('/', async (c) => {
 		const limit = Number.parseInt(c.req.query('limit') || '10', 10)
 		const offset = Number.parseInt(c.req.query('offset') || '0', 10)
+		const whereClause = and(
+			eq(pastesTable.visibility, 'public'),
+			activePasteCondition()
+		)
 
 		const [total] = await db
 			.select({ count: sql<number>`COUNT(*)` })
 			.from(pastesTable)
-			.where(eq(pastesTable.visibility, 'public'))
+			.where(whereClause)
 
 		const pastes = await db
 			.select({
-				paste: pastesTable,
+				paste: pasteSummarySelection,
 				syntax: {
 					name: syntaxesTable.name,
 					extension: syntaxesTable.extension,
@@ -197,7 +220,7 @@ const app = new Hono<Env>()
 			})
 			.from(pastesTable)
 			.leftJoin(syntaxesTable, eq(pastesTable.syntaxId, syntaxesTable.id))
-			.where(eq(pastesTable.visibility, 'public'))
+			.where(whereClause)
 			.limit(limit)
 			.orderBy(desc(pastesTable.updatedAt))
 			.offset(offset)
@@ -222,11 +245,10 @@ const app = new Hono<Env>()
 			groupedTags[pasteId].push(name)
 		}
 
-		const enrichedPastes = pastes.map(({ paste, syntax }) => ({
-			...paste,
-			tags: groupedTags[paste.id] || [],
-			syntax
-		}))
+		const enrichedPastes: PasteSummaryDto[] = pastes.map(
+			({ paste, syntax }) =>
+				toPasteSummaryDto(paste, syntax, groupedTags[paste.id] || [])
+		)
 
 		return c.json({
 			success: true,
@@ -237,28 +259,10 @@ const app = new Hono<Env>()
 	.get('/:slug', validatorParamStringSlug, async (c) => {
 		const { slug } = c.req.valid('param')
 
-		// 1. Increment hits and get paste with syntax
-		const [updated] = await db
-			.update(pastesTable)
-			.set({
-				hits: sql`${pastesTable.hits} + 1`
-			})
-			.where(eq(pastesTable.slug, slug))
-			.returning({
-				id: pastesTable.id
-			})
-
-		if (!updated) {
-			throw new GenericException({
-				statusCode: 404,
-				name: 'Not Found',
-				message: 'Paste not found'
-			})
-		}
-
 		const [row] = await db
 			.select({
-				paste: pastesTable,
+				paste: pasteDetailsSelection,
+				passwordHash: pastesTable.passwordHash,
 				syntax: {
 					name: syntaxesTable.name,
 					extension: syntaxesTable.extension,
@@ -269,94 +273,84 @@ const app = new Hono<Env>()
 			.leftJoin(syntaxesTable, eq(pastesTable.syntaxId, syntaxesTable.id))
 			.where(eq(pastesTable.slug, slug))
 
-		if (row.paste.visibility === 'private') {
-			const user = c.get('user')
-			if (!user || row.paste.userId !== user.id) {
-				throw new GenericException({
-					statusCode: 403,
-					name: 'Forbidden',
-					message: 'You do not have access to this paste'
-				})
-			}
-		}
+		if (!row) throwPasteNotFound()
 
 		const paste = row.paste
 		const syntax = row.syntax
+		const readDecision = await authorizePasteRead(
+			{ ...paste, passwordHash: row.passwordHash },
+			{ mode: 'details', reader: c.get('user') }
+		)
 
-		// 2. Get tags
 		const tags = await db
 			.select({ name: tagsTable.name })
 			.from(pasteTagsTable)
 			.innerJoin(tagsTable, eq(pasteTagsTable.tagId, tagsTable.id))
 			.where(eq(pasteTagsTable.pasteId, paste.id))
 
-		// 3. Delete if burn_after_read BEFORE sending response
-		const isServerProtected = !!paste.passwordHash
-		const isClientEncrypted = !!paste.encrypted
+		let hits = paste.hits
+		if (readDecision.canReadContent) {
+			await db
+				.update(pastesTable)
+				.set({ hits: sql`${pastesTable.hits} + 1` })
+				.where(eq(pastesTable.id, paste.id))
+			hits += 1
+		}
+
 		if (
 			paste.expiration === 'burn_after_read' &&
-			!isServerProtected &&
-			!isClientEncrypted
+			!readDecision.passwordProtected &&
+			!readDecision.clientEncrypted
 		) {
 			await db.delete(pastesTable).where(eq(pastesTable.id, paste.id))
 			await DoggoUtils.removeUnusedTags()
 		}
 
-		const enrichedPaste = {
-			...paste,
-			tags: tags.map((t) => t.name),
-			syntax,
-			content: isServerProtected ? '' : paste.content
-		}
-
 		return c.json({
 			success: true,
-			data: enrichedPaste
+			data: toPasteDetailsDto(
+				{ ...paste, hits },
+				syntax,
+				tags.map((tag) => tag.name),
+				readDecision.canReadContent
+			)
 		})
 	})
 	.post('/:slug/verify', validatorParamStringSlug, async (c) => {
 		const { slug } = c.req.valid('param')
-		const { password } = await c.req.json<{ password: string }>()
-
-		if (!password) {
-			throw new GenericException({
-				statusCode: 400,
-				name: 'Bad Request',
-				message: 'Password is required'
-			})
-		}
 
 		const [paste] = await db
 			.select({
 				id: pastesTable.id,
 				content: pastesTable.content,
 				passwordHash: pastesTable.passwordHash,
-				expiration: pastesTable.expiration
+				expiration: pastesTable.expiration,
+				expiresAt: pastesTable.expiresAt,
+				encrypted: pastesTable.encrypted,
+				visibility: pastesTable.visibility,
+				userId: pastesTable.userId
 			})
 			.from(pastesTable)
 			.where(eq(pastesTable.slug, slug))
 
-		if (!paste) {
-			throw new GenericException({
-				statusCode: 404,
-				name: 'Not Found',
-				message: 'Paste not found'
-			})
-		}
+		if (!paste) throwPasteNotFound()
 
-		if (!paste.passwordHash) {
-			return c.json({ success: true, content: paste.content })
-		}
+		const body = await c.req
+			.json<{ password?: unknown }>()
+			.catch(() => null)
+		const password =
+			typeof body?.password === 'string' ? body.password : null
 
-		const isValid = await argon2.verify(paste.passwordHash, password)
+		await authorizePasteRead(paste, {
+			mode: 'verify',
+			reader: c.get('user'),
+			password
+		})
 
-		if (!isValid) {
-			throw new GenericException({
-				statusCode: 403,
-				name: 'Forbidden',
-				message: 'Invalid password'
-			})
-		}
+		await db
+			.update(pastesTable)
+			.set({ hits: sql`${pastesTable.hits} + 1` })
+			.where(eq(pastesTable.id, paste.id))
 
 		if (paste.expiration === 'burn_after_read') {
 			await db.delete(pastesTable).where(eq(pastesTable.id, paste.id))
@@ -445,7 +439,12 @@ const app = new Hono<Env>()
 
 			// 4. Resolve syntax
 			const [dbSyntax] = await db
-				.select({ id: syntaxesTable.id })
+				.select({
+					id: syntaxesTable.id,
+					name: syntaxesTable.name,
+					extension: syntaxesTable.extension,
+					color: syntaxesTable.color
+				})
 				.from(syntaxesTable)
 				.where(eq(syntaxesTable.name, syntax))
 
@@ -535,7 +534,12 @@ const app = new Hono<Env>()
 			c.status(200)
 			return c.json({
 				success: true,
-				data: updatedPaste
+				data: toPasteDetailsDto(
+					pasteRecordToDetailsSource(updatedPaste),
+					dbSyntax,
+					tags,
+					updatedPaste.passwordHash === null
+				)
 			})
 		}
 	)
@@ -584,7 +588,17 @@ const app = new Hono<Env>()
 		// 1. Get paste with syntax extension
 		const [row] = await db
 			.select({
-				paste: pastesTable,
+				paste: {
+					id: pastesTable.id,
+					title: pastesTable.title,
+					content: pastesTable.content,
+					expiration: pastesTable.expiration,
+					expiresAt: pastesTable.expiresAt,
+					encrypted: pastesTable.encrypted,
+					passwordHash: pastesTable.passwordHash,
+					visibility: pastesTable.visibility,
+					userId: pastesTable.userId
+				},
 				syntax: {
 					extension: syntaxesTable.extension
 				}
@@ -603,40 +617,11 @@ const app = new Hono<Env>()
 
 		const { paste, syntax } = row
 
-		// 2. Check visibility / ownership
-		if (paste.visibility === 'private') {
-			const user = c.get('user')
-			if (!user || paste.userId !== user.id) {
-				throw new GenericException({
-					statusCode: 403,
-					name: 'Forbidden',
-					message: 'You do not have access to this paste'
-				})
-			}
-		}
-
-		// 3. Handle Server-Side Password Protection
-		if (paste.passwordHash) {
-			if (!passwordQuery) {
-				throw new GenericException({
-					statusCode: 401,
-					name: 'Unauthorized',
-					message: 'Password required to download this paste'
-				})
-			}
-
-			const isValid = await argon2.verify(
-				paste.passwordHash,
-				passwordQuery
-			)
-			if (!isValid) {
-				throw new GenericException({
-					statusCode: 403,
-					name: 'Forbidden',
-					message: 'Invalid password'
-				})
-			}
-		}
+		await authorizePasteRead(paste, {
+			mode: 'download',
+			reader: c.get('user'),
+			password: passwordQuery
+		})
 
 		// 4. Burn after read?
 		if (paste.expiration === 'burn_after_read') {

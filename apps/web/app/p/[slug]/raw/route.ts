@@ -29,7 +29,7 @@ export async function GET(
 	const json = await res.json()
 	const paste = json.data
 
-	if (paste.passwordHash && !paste.content) {
+	if (paste.passwordProtected && !paste.content) {
 		if (!password) {
 			return new NextResponse(
 				'Password required to view this raw paste',
@@ -66,7 +66,7 @@ export async function GET(
 		})
 	}
 
-	if (!paste.content && !paste.passwordHash) {
+	if (!paste.content && !paste.passwordProtected) {
 		return new NextResponse('No content', { status: 404 })
 	}
 
@@ -74,7 +74,7 @@ export async function GET(
 		status: 200,
 		headers: {
 			'Content-Type': 'text/plain; charset=utf-8',
-			'Cache-Control': 'public, max-age=60'
+			'Cache-Control': 'no-store'
 		}
 	})
 }

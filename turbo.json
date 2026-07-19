@@ -17,6 +17,13 @@
 		"start": {
 			"dependsOn": ["^start"]
 		},
+		"test": {
+			"dependsOn": ["^test"],
+			"cache": false
+		},
+		"docs": {
+			"cache": false
+		},
 		"//#check": {},
 		"//#check:fix": {
 			"cache": false

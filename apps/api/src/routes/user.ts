@@ -9,6 +9,12 @@ import {
 	usersTable
 } from '../db/schema.js'
 import type { Env } from '../types.js'
+import {
+	activePasteCondition,
+	type PasteSummaryDto,
+	pasteSummarySelection,
+	toPasteSummaryDto
+} from '../utils/index.js'
 
 const app = new Hono<Env>()
 	.get('/pastes', async (c) => {
@@ -38,10 +44,11 @@ const app = new Hono<Env>()
 		const isOwner = user?.id === ownerId
 
 		const whereClause = isOwner
-			? eq(pastesTable.userId, ownerId)
+			? and(eq(pastesTable.userId, ownerId), activePasteCondition())
 			: and(
 					eq(pastesTable.userId, ownerId),
-					eq(pastesTable.visibility, 'public')
+					eq(pastesTable.visibility, 'public'),
+					activePasteCondition()
 				)
 
 		const [total] = await db
@@ -51,7 +58,7 @@ const app = new Hono<Env>()
 
 		const pastes = await db
 			.select({
-				paste: pastesTable,
+				paste: pasteSummarySelection,
 				syntax: {
 					name: syntaxesTable.name,
 					extension: syntaxesTable.extension,
@@ -85,11 +92,10 @@ const app = new Hono<Env>()
 			groupedTags[pasteId].push(name)
 		}
 
-		const enrichedPastes = pastes.map(({ paste, syntax }) => ({
-			...paste,
-			tags: groupedTags[paste.id] || [],
-			syntax
-		}))
+		const enrichedPastes: PasteSummaryDto[] = pastes.map(
+			({ paste, syntax }) =>
+				toPasteSummaryDto(paste, syntax, groupedTags[paste.id] || [])
+		)
 
 		return c.json({
 			success: true,

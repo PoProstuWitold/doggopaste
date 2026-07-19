@@ -13,6 +13,12 @@ import { GenericException } from '../exceptions/generic-exception.js'
 import { userGuard } from '../middlewares/user-guard.js'
 import type { Env } from '../types.js'
 import {
+	activePasteCondition,
+	type PasteSummaryDto,
+	pasteSummarySelection,
+	toPasteSummaryDto
+} from '../utils/index.js'
+import {
 	validatorCreateFolderJson,
 	validatorFolderIdParam,
 	validatorListFoldersQuery,
@@ -192,7 +198,7 @@ const app = new Hono<Env>()
 			// biome-ignore lint: false positive
 			// @ts-ignore
 			.leftJoin(sf, eq(sf.parentFolderId, f.id))
-			.leftJoin(p, eq(p.folderId, f.id))
+			.leftJoin(p, and(eq(p.folderId, f.id), activePasteCondition()))
 			.where(eq(f.userId, user.id))
 			.groupBy(f.id)
 			.orderBy(f.parentFolderId, f.name)
@@ -366,7 +372,7 @@ const app = new Hono<Env>()
 			// biome-ignore lint: false positive
 			// @ts-ignore
 			.leftJoin(sf, eq(sf.parentFolderId, f.id))
-			.leftJoin(p, eq(p.folderId, f.id))
+			.leftJoin(p, and(eq(p.folderId, f.id), activePasteCondition()))
 			.where(and(eq(f.id, id), eq(f.userId, user.id)))
 			.groupBy(f.id)
 			.then((res) => res[0])
@@ -381,7 +387,7 @@ const app = new Hono<Env>()
 
 		const pastes = await db
 			.select({
-				paste: pastesTable,
+				paste: pasteSummarySelection,
 				syntax: {
 					name: syntaxesTable.name,
 					extension: syntaxesTable.extension,
@@ -393,7 +399,8 @@ const app = new Hono<Env>()
 			.where(
 				and(
 					eq(pastesTable.folderId, id),
-					eq(pastesTable.userId, user.id)
+					eq(pastesTable.userId, user.id),
+					activePasteCondition()
 				)
 			)
 			.orderBy(desc(pastesTable.updatedAt))
@@ -414,11 +421,10 @@ const app = new Hono<Env>()
 			groupedTags[pasteId].push(name)
 		}
 
-		const enrichedPastes = pastes.map(({ paste, syntax }) => ({
-			...paste,
-			tags: groupedTags[paste.id] || [],
-			syntax
-		}))
+		const enrichedPastes: PasteSummaryDto[] = pastes.map(
+			({ paste, syntax }) =>
+				toPasteSummaryDto(paste, syntax, groupedTags[paste.id] || [])
+		)
 
 		return c.json({
 			success: true,
