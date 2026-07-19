@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { FaGithub } from 'react-icons/fa6'
 import { FiPlus } from 'react-icons/fi'
 import { PasteCard } from '../components/custom/PasteCard'
-import type { Paste } from '../types'
+import type { PasteSummary } from '../types'
 import { getBaseApiUrl } from '../utils/functions'
 
 export const dynamic = 'force-dynamic'
@@ -30,7 +30,7 @@ export default async function PublicPastes({
 	)
 
 	const json = await res.json()
-	const pastes: Paste[] = json.data
+	const pastes: PasteSummary[] = json.data
 	const total = json.total
 
 	return (

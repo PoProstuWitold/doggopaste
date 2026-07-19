@@ -31,7 +31,7 @@ export function PasteForm({
 	const [isSubmitting, setIsSubmitting] = useState(false)
 	const router = useRouter()
 
-	const hasServerLock = Boolean(paste?.passwordHash && !paste?.content)
+	const hasServerLock = Boolean(paste?.passwordProtected && !paste?.content)
 	const hasClientLock = Boolean(paste?.encrypted)
 
 	const [isLocked, setIsLocked] = useState(hasServerLock || hasClientLock)
@@ -67,8 +67,7 @@ export function PasteForm({
 					expiration: paste.expiration,
 					visibility: paste.visibility,
 					folder: paste.folderId || 'none',
-					passwordEnabled:
-						Boolean(paste.passwordHash) || paste.encrypted,
+					passwordEnabled: paste.passwordProtected || paste.encrypted,
 					encrypted: paste.encrypted,
 					password: '',
 					pasteAsGuest: false,
@@ -116,6 +115,7 @@ export function PasteForm({
 					`${getBaseApiUrl()}/api/pastes/${slug || paste.slug}/verify`,
 					{
 						method: 'POST',
+						credentials: 'include',
 						headers: { 'Content-Type': 'application/json' },
 						body: JSON.stringify({ password: unlockPassword })
 					}

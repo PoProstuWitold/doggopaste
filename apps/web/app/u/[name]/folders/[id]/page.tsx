@@ -7,7 +7,7 @@ import { FolderButtons } from '@/app/components/custom/FolderButtons'
 import { FolderCard } from '@/app/components/custom/FolderCard'
 import { NewFolderCard } from '@/app/components/custom/NewFolderCard'
 import { PasteCard } from '@/app/components/custom/PasteCard'
-import type { Folder, Paste, User } from '@/app/types'
+import type { Folder, PasteSummary, User } from '@/app/types'
 import { createDynamicAuthClient } from '@/app/utils/auth-client'
 import { getBaseApiUrl } from '@/app/utils/functions'
 
@@ -68,7 +68,7 @@ export default async function FolderPage({
 	let folders: Folder[] = []
 	let currentFolder: Folder | undefined
 	let childFolders: Folder[] = []
-	let pastes: Paste[] = []
+	let pastes: PasteSummary[] = []
 
 	if (isOwn) {
 		const cookieHeader = await cookies()
@@ -87,7 +87,7 @@ export default async function FolderPage({
 		}
 		const folderJson = (await folderRes.json()) as {
 			success: boolean
-			data: { folder: Folder; pastes: Paste[] }
+			data: { folder: Folder; pastes: PasteSummary[] }
 		}
 		currentFolder = folderJson.data.folder
 		pastes = folderJson.data.pastes || []

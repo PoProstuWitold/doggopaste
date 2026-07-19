@@ -39,21 +39,36 @@
 									"type": "object",
 									"properties": {
 										"success": {
-											"oneOf": [{}, {}]
+											"type": "boolean"
 										},
 										"data": {
 											"type": "object",
 											"properties": {
-												"title": {
+												"content": {
 													"type": "string"
 												},
-												"slug": {
+												"id": {
+													"type": "string"
+												},
+												"createdAt": {
+													"type": "string"
+												},
+												"updatedAt": {
+													"type": "string"
+												},
+												"userId": {
+													"type": "string"
+												},
+												"folderId": {
+													"type": "string"
+												},
+												"title": {
 													"type": "string"
 												},
 												"description": {
 													"type": "string"
 												},
-												"content": {
+												"slug": {
 													"type": "string"
 												},
 												"category": {
@@ -75,6 +90,9 @@
 														"education"
 													]
 												},
+												"expiresAt": {
+													"type": "string"
+												},
 												"expiration": {
 													"type": "string",
 													"enum": [
@@ -87,6 +105,15 @@
 														"2w"
 													]
 												},
+												"encrypted": {
+													"type": "boolean"
+												},
+												"passwordProtected": {
+													"type": "boolean"
+												},
+												"hits": {
+													"type": "number"
+												},
 												"visibility": {
 													"type": "string",
 													"enum": [
@@ -96,129 +123,6 @@
 														"organization"
 													]
 												},
-												"encrypted": {
-													"oneOf": [{}, {}]
-												},
-												"id": {
-													"type": "string"
-												},
-												"createdAt": {
-													"type": "string"
-												},
-												"updatedAt": {
-													"type": "string"
-												},
-												"userId": {
-													"type": "string"
-												},
-												"folderId": {
-													"type": "string"
-												},
-												"syntaxId": {
-													"type": "string"
-												},
-												"expiresAt": {
-													"type": "string"
-												},
-												"passwordHash": {
-													"type": "string"
-												},
-												"hits": {
-													"type": "number"
-												},
-												"organizationId": {
-													"type": "string"
-												}
-											},
-											"required": [
-												"title",
-												"slug",
-												"description",
-												"content",
-												"category",
-												"expiration",
-												"visibility",
-												"encrypted",
-												"id",
-												"createdAt",
-												"updatedAt",
-												"userId",
-												"folderId",
-												"syntaxId",
-												"expiresAt",
-												"passwordHash",
-												"hits",
-												"organizationId"
-											]
-										}
-									},
-									"required": ["success", "data"]
-								}
-							}
-						}
-					}
-				},
-				"description": "Creates a new static paste with the provided content and metadata.",
-				"tags": ["Static Pastes"]
-			},
-			"get": {
-				"summary": "/",
-				"responses": {
-					"default": {
-						"description": "Default fallback response",
-						"content": {
-							"application/json": {
-								"schema": {
-									"type": "object",
-									"properties": {
-										"success": {
-											"oneOf": [{}, {}]
-										},
-										"data": {
-											"type": "array",
-											"items": {}
-										},
-										"total": {
-											"type": "number"
-										}
-									},
-									"required": ["success", "data", "total"]
-								}
-							}
-						}
-					}
-				},
-				"description": "Retrieves a list of static pastes with pagination support.",
-				"tags": ["Static Pastes"]
-			}
-		},
-		"/pastes/{slug}": {
-			"get": {
-				"summary": "/{slug}",
-				"parameters": [
-					{
-						"name": "slug",
-						"in": "path",
-						"required": true,
-						"schema": {
-							"type": "string"
-						}
-					}
-				],
-				"responses": {
-					"default": {
-						"description": "Default fallback response",
-						"content": {
-							"application/json": {
-								"schema": {
-									"type": "object",
-									"properties": {
-										"success": {
-											"oneOf": [{}, {}]
-										},
-										"data": {
-											"type": "object",
-											"properties": {
 												"tags": {
 													"type": "array",
 													"items": {
@@ -243,7 +147,87 @@
 														"extension",
 														"color"
 													]
-												},
+												}
+											},
+											"required": [
+												"content",
+												"id",
+												"createdAt",
+												"updatedAt",
+												"userId",
+												"folderId",
+												"title",
+												"description",
+												"slug",
+												"category",
+												"expiresAt",
+												"expiration",
+												"encrypted",
+												"passwordProtected",
+												"hits",
+												"visibility",
+												"tags",
+												"syntax"
+											]
+										}
+									},
+									"required": ["success", "data"]
+								}
+							}
+						}
+					}
+				},
+				"description": "Creates a new static paste with the provided content and metadata.",
+				"tags": ["Static Pastes"]
+			},
+			"get": {
+				"summary": "/",
+				"responses": {
+					"default": {
+						"description": "Default fallback response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"success": {
+											"type": "boolean"
+										},
+										"data": {
+											"type": "array",
+											"items": {}
+										},
+										"total": {
+											"type": "number"
+										}
+									},
+									"required": ["success", "data", "total"]
+								}
+							}
+						}
+					}
+				},
+				"description": "Retrieves a list of static pastes with pagination support.",
+				"tags": ["Static Pastes"]
+			}
+		},
+		"/pastes/{slug}": {
+			"get": {
+				"summary": "/{slug}",
+				"responses": {
+					"default": {
+						"description": "Default fallback response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"success": {
+											"type": "boolean"
+										},
+										"data": {
+											"type": "object",
+											"properties": {
 												"content": {
 													"type": "string"
 												},
@@ -290,9 +274,6 @@
 														"education"
 													]
 												},
-												"syntaxId": {
-													"type": "string"
-												},
 												"expiresAt": {
 													"type": "string"
 												},
@@ -309,10 +290,10 @@
 													]
 												},
 												"encrypted": {
-													"oneOf": [{}, {}]
+													"type": "boolean"
 												},
-												"passwordHash": {
-													"type": "string"
+												"passwordProtected": {
+													"type": "boolean"
 												},
 												"hits": {
 													"type": "number"
@@ -326,13 +307,33 @@
 														"organization"
 													]
 												},
-												"organizationId": {
-													"type": "string"
+												"tags": {
+													"type": "array",
+													"items": {
+														"type": "string"
+													}
+												},
+												"syntax": {
+													"type": "object",
+													"properties": {
+														"name": {
+															"type": "string"
+														},
+														"extension": {
+															"type": "string"
+														},
+														"color": {
+															"type": "string"
+														}
+													},
+													"required": [
+														"name",
+														"extension",
+														"color"
+													]
 												}
 											},
 											"required": [
-												"tags",
-												"syntax",
 												"content",
 												"id",
 												"createdAt",
@@ -343,14 +344,14 @@
 												"description",
 												"slug",
 												"category",
-												"syntaxId",
 												"expiresAt",
 												"expiration",
 												"encrypted",
-												"passwordHash",
+												"passwordProtected",
 												"hits",
 												"visibility",
-												"organizationId"
+												"tags",
+												"syntax"
 											]
 										}
 									},
@@ -360,21 +361,21 @@
 						}
 					}
 				},
+				"parameters": [
+					{
+						"name": "slug",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
 				"description": "Fetches the details of a specific static paste identified by its slug.",
 				"tags": ["Static Pastes"]
 			},
 			"put": {
 				"summary": "/{slug}",
-				"parameters": [
-					{
-						"name": "slug",
-						"in": "path",
-						"required": true,
-						"schema": {
-							"type": "string"
-						}
-					}
-				],
 				"responses": {
 					"default": {
 						"description": "Default fallback response",
@@ -384,11 +385,14 @@
 									"type": "object",
 									"properties": {
 										"success": {
-											"oneOf": [{}, {}]
+											"type": "boolean"
 										},
 										"data": {
 											"type": "object",
 											"properties": {
+												"content": {
+													"type": "string"
+												},
 												"id": {
 													"type": "string"
 												},
@@ -432,12 +436,6 @@
 														"education"
 													]
 												},
-												"content": {
-													"type": "string"
-												},
-												"syntaxId": {
-													"type": "string"
-												},
 												"expiresAt": {
 													"type": "string"
 												},
@@ -454,10 +452,10 @@
 													]
 												},
 												"encrypted": {
-													"oneOf": [{}, {}]
+													"type": "boolean"
 												},
-												"passwordHash": {
-													"type": "string"
+												"passwordProtected": {
+													"type": "boolean"
 												},
 												"hits": {
 													"type": "number"
@@ -471,11 +469,34 @@
 														"organization"
 													]
 												},
-												"organizationId": {
-													"type": "string"
+												"tags": {
+													"type": "array",
+													"items": {
+														"type": "string"
+													}
+												},
+												"syntax": {
+													"type": "object",
+													"properties": {
+														"name": {
+															"type": "string"
+														},
+														"extension": {
+															"type": "string"
+														},
+														"color": {
+															"type": "string"
+														}
+													},
+													"required": [
+														"name",
+														"extension",
+														"color"
+													]
 												}
 											},
 											"required": [
+												"content",
 												"id",
 												"createdAt",
 												"updatedAt",
@@ -485,15 +506,14 @@
 												"description",
 												"slug",
 												"category",
-												"content",
-												"syntaxId",
 												"expiresAt",
 												"expiration",
 												"encrypted",
-												"passwordHash",
+												"passwordProtected",
 												"hits",
 												"visibility",
-												"organizationId"
+												"tags",
+												"syntax"
 											]
 										}
 									},
@@ -503,11 +523,6 @@
 						}
 					}
 				},
-				"description": "Updates the content or metadata of a specific static paste identified by its slug.",
-				"tags": ["Static Pastes"]
-			},
-			"delete": {
-				"summary": "/{slug}",
 				"parameters": [
 					{
 						"name": "slug",
@@ -518,6 +533,11 @@
 						}
 					}
 				],
+				"description": "Updates the content or metadata of a specific static paste identified by its slug.",
+				"tags": ["Static Pastes"]
+			},
+			"delete": {
+				"summary": "/{slug}",
 				"responses": {
 					"default": {
 						"description": "Default fallback response",
@@ -527,7 +547,7 @@
 									"type": "object",
 									"properties": {
 										"success": {
-											"oneOf": [{}, {}]
+											"type": "boolean"
 										},
 										"message": {
 											"type": "string"
@@ -539,13 +559,6 @@
 						}
 					}
 				},
-				"description": "Deletes a specific static paste identified by its slug.",
-				"tags": ["Static Pastes"]
-			}
-		},
-		"/pastes/{slug}/verify": {
-			"post": {
-				"summary": "Auto-generated POST /{slug}/verify",
 				"parameters": [
 					{
 						"name": "slug",
@@ -556,6 +569,13 @@
 						}
 					}
 				],
+				"description": "Deletes a specific static paste identified by its slug.",
+				"tags": ["Static Pastes"]
+			}
+		},
+		"/pastes/{slug}/verify": {
+			"post": {
+				"summary": "Create By Slug Verify",
 				"responses": {
 					"default": {
 						"description": "Default fallback response",
@@ -565,7 +585,7 @@
 									"type": "object",
 									"properties": {
 										"success": {
-											"oneOf": [{}, {}]
+											"type": "boolean"
 										},
 										"content": {
 											"type": "string"
@@ -577,12 +597,6 @@
 						}
 					}
 				},
-				"tags": ["Static Pastes"]
-			}
-		},
-		"/pastes/{slug}/download": {
-			"get": {
-				"summary": "/{slug}/download",
 				"parameters": [
 					{
 						"name": "slug",
@@ -593,6 +607,12 @@
 						}
 					}
 				],
+				"tags": ["Static Pastes"]
+			}
+		},
+		"/pastes/{slug}/download": {
+			"get": {
+				"summary": "/{slug}/download",
 				"responses": {
 					"default": {
 						"description": "Default fallback response",
@@ -605,13 +625,6 @@
 						}
 					}
 				},
-				"description": "Allows users to download the content of a specific static paste as a file.",
-				"tags": ["Static Pastes"]
-			}
-		},
-		"/pastes-realtime/{slug}": {
-			"post": {
-				"summary": "/{slug}",
 				"parameters": [
 					{
 						"name": "slug",
@@ -622,6 +635,13 @@
 						}
 					}
 				],
+				"description": "Allows users to download the content of a specific static paste as a file.",
+				"tags": ["Static Pastes"]
+			}
+		},
+		"/pastes-realtime/{slug}": {
+			"post": {
+				"summary": "/{slug}",
 				"responses": {
 					"default": {
 						"description": "Default fallback response",
@@ -631,7 +651,7 @@
 									"type": "object",
 									"properties": {
 										"success": {
-											"oneOf": [{}, {}]
+											"type": "boolean"
 										},
 										"realtimePaste": {
 											"type": "object",
@@ -694,11 +714,6 @@
 						}
 					}
 				},
-				"description": "Creates a new realtime paste or retrieves an existing one based on the provided slug.",
-				"tags": ["Realtime Pastes"]
-			},
-			"get": {
-				"summary": "/{slug}",
 				"parameters": [
 					{
 						"name": "slug",
@@ -709,6 +724,11 @@
 						}
 					}
 				],
+				"description": "Creates a new realtime paste or retrieves an existing one based on the provided slug.",
+				"tags": ["Realtime Pastes"]
+			},
+			"get": {
+				"summary": "/{slug}",
 				"responses": {
 					"default": {
 						"description": "Default fallback response",
@@ -718,7 +738,7 @@
 									"type": "object",
 									"properties": {
 										"success": {
-											"oneOf": [{}, {}]
+											"type": "boolean"
 										},
 										"data": {
 											"type": "object",
@@ -794,13 +814,6 @@
 						}
 					}
 				},
-				"description": "Fetches the details of a specific realtime paste identified by its slug.",
-				"tags": ["Realtime Pastes"]
-			}
-		},
-		"/pastes-realtime/{slug}/download": {
-			"get": {
-				"summary": "/{slug}/download",
 				"parameters": [
 					{
 						"name": "slug",
@@ -811,6 +824,13 @@
 						}
 					}
 				],
+				"description": "Fetches the details of a specific realtime paste identified by its slug.",
+				"tags": ["Realtime Pastes"]
+			}
+		},
+		"/pastes-realtime/{slug}/download": {
+			"get": {
+				"summary": "/{slug}/download",
 				"responses": {
 					"default": {
 						"description": "Default fallback response",
@@ -823,6 +843,16 @@
 						}
 					}
 				},
+				"parameters": [
+					{
+						"name": "slug",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
 				"description": "Allows users to download the content of a specific realtime paste as a file.",
 				"tags": ["Realtime Pastes"]
 			}
@@ -841,7 +871,7 @@
 											"type": "object",
 											"properties": {
 												"success": {
-													"oneOf": [{}, {}]
+													"type": "boolean"
 												},
 												"data": {
 													"type": "object",
@@ -881,7 +911,7 @@
 											"type": "object",
 											"properties": {
 												"success": {
-													"oneOf": [{}, {}]
+													"type": "boolean"
 												},
 												"data": {
 													"type": "array",
@@ -940,7 +970,7 @@
 									"type": "object",
 									"properties": {
 										"success": {
-											"oneOf": [{}, {}]
+											"type": "boolean"
 										},
 										"data": {
 											"type": "array",
@@ -999,7 +1029,7 @@
 									"type": "object",
 									"properties": {
 										"success": {
-											"oneOf": [{}, {}]
+											"type": "boolean"
 										},
 										"data": {
 											"type": "array",
@@ -1057,16 +1087,6 @@
 		"/folders/{id}": {
 			"patch": {
 				"summary": "/{id}",
-				"parameters": [
-					{
-						"name": "id",
-						"in": "path",
-						"required": true,
-						"schema": {
-							"type": "string"
-						}
-					}
-				],
 				"responses": {
 					"default": {
 						"description": "Default fallback response",
@@ -1076,7 +1096,7 @@
 									"type": "object",
 									"properties": {
 										"success": {
-											"oneOf": [{}, {}]
+											"type": "boolean"
 										},
 										"data": {
 											"type": "object",
@@ -1117,10 +1137,6 @@
 					}
 				},
 				"description": "Renames a folder",
-				"tags": ["Folders"]
-			},
-			"delete": {
-				"summary": "/{id}",
 				"parameters": [
 					{
 						"name": "id",
@@ -1131,6 +1147,10 @@
 						}
 					}
 				],
+				"tags": ["Folders"]
+			},
+			"delete": {
+				"summary": "/{id}",
 				"responses": {
 					"default": {
 						"description": "Default fallback response",
@@ -1140,7 +1160,7 @@
 									"type": "object",
 									"properties": {
 										"success": {
-											"oneOf": [{}, {}]
+											"type": "boolean"
 										},
 										"deleted": {}
 									},
@@ -1151,12 +1171,6 @@
 					}
 				},
 				"description": "Deletes a folder",
-				"tags": ["Folders"]
-			}
-		},
-		"/folders/f/{id}": {
-			"get": {
-				"summary": "/{id}",
 				"parameters": [
 					{
 						"name": "id",
@@ -1167,6 +1181,12 @@
 						}
 					}
 				],
+				"tags": ["Folders"]
+			}
+		},
+		"/folders/f/{id}": {
+			"get": {
+				"summary": "/{id}",
 				"responses": {
 					"default": {
 						"description": "Default fallback response",
@@ -1176,7 +1196,7 @@
 									"type": "object",
 									"properties": {
 										"success": {
-											"oneOf": [{}, {}]
+											"type": "boolean"
 										},
 										"data": {
 											"type": "object",
@@ -1225,31 +1245,6 @@
 													"items": {
 														"type": "object",
 														"properties": {
-															"tags": {
-																"type": "array",
-																"items": {
-																	"type": "string"
-																}
-															},
-															"syntax": {
-																"type": "object",
-																"properties": {
-																	"name": {
-																		"type": "string"
-																	},
-																	"extension": {
-																		"type": "string"
-																	},
-																	"color": {
-																		"type": "string"
-																	}
-																},
-																"required": [
-																	"name",
-																	"extension",
-																	"color"
-																]
-															},
 															"id": {
 																"type": "string"
 															},
@@ -1293,12 +1288,6 @@
 																	"education"
 																]
 															},
-															"content": {
-																"type": "string"
-															},
-															"syntaxId": {
-																"type": "string"
-															},
 															"expiresAt": {
 																"type": "string"
 															},
@@ -1315,13 +1304,10 @@
 																]
 															},
 															"encrypted": {
-																"oneOf": [
-																	{},
-																	{}
-																]
+																"type": "boolean"
 															},
-															"passwordHash": {
-																"type": "string"
+															"passwordProtected": {
+																"type": "boolean"
 															},
 															"hits": {
 																"type": "number"
@@ -1335,13 +1321,33 @@
 																	"unlisted"
 																]
 															},
-															"organizationId": {
-																"type": "string"
+															"tags": {
+																"type": "array",
+																"items": {
+																	"type": "string"
+																}
+															},
+															"syntax": {
+																"type": "object",
+																"properties": {
+																	"name": {
+																		"type": "string"
+																	},
+																	"extension": {
+																		"type": "string"
+																	},
+																	"color": {
+																		"type": "string"
+																	}
+																},
+																"required": [
+																	"name",
+																	"extension",
+																	"color"
+																]
 															}
 														},
 														"required": [
-															"tags",
-															"syntax",
 															"id",
 															"createdAt",
 															"updatedAt",
@@ -1351,15 +1357,14 @@
 															"description",
 															"slug",
 															"category",
-															"content",
-															"syntaxId",
 															"expiresAt",
 															"expiration",
 															"encrypted",
-															"passwordHash",
+															"passwordProtected",
 															"hits",
 															"visibility",
-															"organizationId"
+															"tags",
+															"syntax"
 														]
 													}
 												}
@@ -1373,6 +1378,16 @@
 						}
 					}
 				},
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
 				"description": "Retrieves a specific folder by id",
 				"tags": ["Folders"]
 			}
@@ -1389,7 +1404,7 @@
 									"type": "object",
 									"properties": {
 										"success": {
-											"oneOf": [{}, {}]
+											"type": "boolean"
 										},
 										"message": {
 											"type": "string"
@@ -1408,7 +1423,7 @@
 									"type": "object",
 									"properties": {
 										"success": {
-											"oneOf": [{}, {}]
+											"type": "boolean"
 										},
 										"data": {
 											"type": "array",
@@ -1431,16 +1446,6 @@
 		"/user/name/{name}": {
 			"get": {
 				"summary": "/name/{name}",
-				"parameters": [
-					{
-						"name": "name",
-						"in": "path",
-						"required": true,
-						"schema": {
-							"type": "string"
-						}
-					}
-				],
 				"responses": {
 					"400": {
 						"description": "Status 400",
@@ -1450,7 +1455,7 @@
 									"type": "object",
 									"properties": {
 										"success": {
-											"oneOf": [{}, {}]
+											"type": "boolean"
 										},
 										"message": {
 											"type": "string"
@@ -1469,7 +1474,7 @@
 									"type": "object",
 									"properties": {
 										"success": {
-											"oneOf": [{}, {}]
+											"type": "boolean"
 										},
 										"message": {
 											"type": "string"
@@ -1488,7 +1493,7 @@
 									"type": "object",
 									"properties": {
 										"success": {
-											"oneOf": [{}, {}]
+											"type": "boolean"
 										},
 										"data": {
 											"type": "object",
@@ -1520,6 +1525,16 @@
 						}
 					}
 				},
+				"parameters": [
+					{
+						"name": "name",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
 				"description": "Checks if user with given name exists and returns basic info about them.",
 				"tags": ["User"]
 			}
@@ -1536,7 +1551,7 @@
 									"type": "object",
 									"properties": {
 										"success": {
-											"oneOf": [{}, {}]
+											"type": "boolean"
 										},
 										"data": {
 											"type": "object",
@@ -1655,7 +1670,7 @@
 									"type": "object",
 									"properties": {
 										"success": {
-											"oneOf": [{}, {}]
+											"type": "boolean"
 										},
 										"data": {
 											"type": "object",
@@ -1755,16 +1770,6 @@
 		"/admin/users/{id}": {
 			"delete": {
 				"summary": "/users/{id}",
-				"parameters": [
-					{
-						"name": "id",
-						"in": "path",
-						"required": true,
-						"schema": {
-							"type": "string"
-						}
-					}
-				],
 				"responses": {
 					"default": {
 						"description": "Default fallback response",
@@ -1774,7 +1779,7 @@
 									"type": "object",
 									"properties": {
 										"success": {
-											"oneOf": [{}, {}]
+											"type": "boolean"
 										},
 										"message": {
 											"type": "string"
@@ -1787,6 +1792,16 @@
 					}
 				},
 				"description": "Deletes a specific user identified by their id.",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
 				"tags": ["DoggoPaste Admin"]
 			}
 		},
@@ -1802,7 +1817,7 @@
 									"type": "object",
 									"properties": {
 										"success": {
-											"oneOf": [{}, {}]
+											"type": "boolean"
 										},
 										"data": {
 											"type": "object",
@@ -1851,7 +1866,7 @@
 									"type": "object",
 									"properties": {
 										"success": {
-											"oneOf": [{}, {}]
+											"type": "boolean"
 										},
 										"data": {
 											"type": "object",
@@ -1899,16 +1914,6 @@
 		"/admin/pastes/{id}": {
 			"delete": {
 				"summary": "/pastes/{id}",
-				"parameters": [
-					{
-						"name": "id",
-						"in": "path",
-						"required": true,
-						"schema": {
-							"type": "string"
-						}
-					}
-				],
 				"responses": {
 					"default": {
 						"description": "Default fallback response",
@@ -1918,7 +1923,7 @@
 									"type": "object",
 									"properties": {
 										"success": {
-											"oneOf": [{}, {}]
+											"type": "boolean"
 										},
 										"message": {
 											"type": "string"
@@ -1931,12 +1936,6 @@
 					}
 				},
 				"description": "Deletes a specific paste identified by its id.",
-				"tags": ["DoggoPaste Admin"]
-			}
-		},
-		"/admin/pastes-realtime/{id}": {
-			"delete": {
-				"summary": "/pastes-realtime/{id}",
 				"parameters": [
 					{
 						"name": "id",
@@ -1947,6 +1946,12 @@
 						}
 					}
 				],
+				"tags": ["DoggoPaste Admin"]
+			}
+		},
+		"/admin/pastes-realtime/{id}": {
+			"delete": {
+				"summary": "/pastes-realtime/{id}",
 				"responses": {
 					"default": {
 						"description": "Default fallback response",
@@ -1956,7 +1961,7 @@
 									"type": "object",
 									"properties": {
 										"success": {
-											"oneOf": [{}, {}]
+											"type": "boolean"
 										},
 										"message": {
 											"type": "string"
@@ -1969,12 +1974,6 @@
 					}
 				},
 				"description": "Deletes a specific realtime paste identified by its id.",
-				"tags": ["DoggoPaste Admin"]
-			}
-		},
-		"/admin/tags/{id}": {
-			"delete": {
-				"summary": "/tags/{id}",
 				"parameters": [
 					{
 						"name": "id",
@@ -1985,6 +1984,12 @@
 						}
 					}
 				],
+				"tags": ["DoggoPaste Admin"]
+			}
+		},
+		"/admin/tags/{id}": {
+			"delete": {
+				"summary": "/tags/{id}",
 				"responses": {
 					"default": {
 						"description": "Default fallback response",
@@ -1994,7 +1999,7 @@
 									"type": "object",
 									"properties": {
 										"success": {
-											"oneOf": [{}, {}]
+											"type": "boolean"
 										},
 										"message": {
 											"type": "string"
@@ -2007,12 +2012,6 @@
 					}
 				},
 				"description": "Deletes a specific tag identified by its id.",
-				"tags": ["DoggoPaste Admin"]
-			}
-		},
-		"/admin/syntaxes/{id}": {
-			"put": {
-				"summary": "/syntaxes/{id}",
 				"parameters": [
 					{
 						"name": "id",
@@ -2023,6 +2022,12 @@
 						}
 					}
 				],
+				"tags": ["DoggoPaste Admin"]
+			}
+		},
+		"/admin/syntaxes/{id}": {
+			"put": {
+				"summary": "/syntaxes/{id}",
 				"responses": {
 					"default": {
 						"description": "Default fallback response",
@@ -2032,7 +2037,7 @@
 									"type": "object",
 									"properties": {
 										"success": {
-											"oneOf": [{}, {}]
+											"type": "boolean"
 										},
 										"message": {
 											"type": "string"
@@ -2044,6 +2049,16 @@
 						}
 					}
 				},
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
 				"description": "Updates the details of a specific syntax identified by its id.",
 				"tags": ["DoggoPaste Admin"]
 			}

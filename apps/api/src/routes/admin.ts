@@ -19,7 +19,11 @@ import { GenericException } from '../exceptions/generic-exception.js'
 import { adminGuard } from '../middlewares/admin-guard.js'
 import { userGuard } from '../middlewares/user-guard.js'
 import type { Env } from '../types.js'
-import { DoggoUtils, validatorParamStringId } from '../utils/index.js'
+import {
+	activePasteCondition,
+	DoggoUtils,
+	validatorParamStringId
+} from '../utils/index.js'
 
 const updateSyntaxSchema = z.object({
 	name: z.string().min(1).max(64),
@@ -53,6 +57,7 @@ const app = new Hono<Env>()
 			.from(pastesTable)
 			.leftJoin(syntaxesTable, eq(pastesTable.syntaxId, syntaxesTable.id))
 			.leftJoin(usersTable, eq(pastesTable.userId, usersTable.id))
+			.where(activePasteCondition())
 
 		return c.json({
 			success: true,

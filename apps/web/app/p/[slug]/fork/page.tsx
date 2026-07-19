@@ -85,9 +85,8 @@ export default async function EditPastePage({
 			visibility: 'public',
 			userId: null,
 			folderId: null,
-			organizationId: null,
 			expiresAt: null,
-			passwordHash: null,
+			passwordProtected: false,
 			encrypted: false,
 			hits: 0,
 			tags: []

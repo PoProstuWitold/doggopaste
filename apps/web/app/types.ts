@@ -85,7 +85,7 @@ export interface Syntax {
 	extension: string | null
 }
 
-export interface Paste {
+export interface PasteSummary {
 	id: string
 	createdAt: string
 	updatedAt: string
@@ -95,16 +95,18 @@ export interface Paste {
 	slug: string
 	description: string
 	category: string
-	content: string
 	syntax: Syntax
 	expiresAt: string | null
 	expiration: string
 	encrypted: boolean
-	passwordHash: string | null
+	passwordProtected: boolean
 	hits: string | number
 	visibility: string
-	organizationId: string | null
 	tags: string[]
+}
+
+export interface Paste extends PasteSummary {
+	content: string
 }
 
 export interface PasteResponse {
