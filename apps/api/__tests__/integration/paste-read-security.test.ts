@@ -10,6 +10,7 @@ import {
 	tagsTable,
 	usersTable
 } from '../../src/db/schema.js'
+import { updateOwnedPasteById } from '../../src/routes/pastes.js'
 import { getTestApp, prepareDb } from '../test-utils.js'
 
 type Json = Record<string, any>
@@ -255,6 +256,57 @@ test(
 			strictEqual('passwordHash' in json.data, false)
 		})
 
+		await t.test(
+			'update stays bound to the selected paste id and owner',
+			async () => {
+				const originalTitle = publicPlain.title as string
+				const movedSlug = `selected-moved-${suffix}`
+				await db
+					.update(pastesTable)
+					.set({ slug: movedSlug })
+					.where(eq(pastesTable.id, publicPlain.id))
+
+				const [replacement] = await db
+					.insert(pastesTable)
+					.values({
+						title: 'Replacement paste',
+						slug: slugs.publicPlain,
+						content: 'replacement-content'
+					})
+					.returning({ id: pastesTable.id })
+
+				try {
+					const updated = await updateOwnedPasteById(
+						publicPlain.id,
+						userId,
+						{ title: 'Selected owner paste' }
+					)
+					strictEqual(updated?.id, publicPlain.id)
+
+					const rejected = await updateOwnedPasteById(
+						publicPlain.id,
+						crypto.randomUUID(),
+						{ title: 'Unauthorized update' }
+					)
+					strictEqual(rejected, undefined)
+
+					const [replacementAfterUpdate] = await db
+						.select({ title: pastesTable.title })
+						.from(pastesTable)
+						.where(eq(pastesTable.id, replacement.id))
+					strictEqual(replacementAfterUpdate.title, 'Replacement paste')
+				} finally {
+					await db
+						.delete(pastesTable)
+						.where(eq(pastesTable.id, replacement.id))
+					await db
+						.update(pastesTable)
+						.set({ slug: slugs.publicPlain, title: originalTitle })
+						.where(eq(pastesTable.id, publicPlain.id))
+				}
+			}
+		)
+
 		await t.test('public, user and folder lists expose summaries only', async () => {
 			const publicResponse = await app.request(
 				`/api/pastes?limit=100&offset=0`
@@ -329,6 +381,38 @@ test(
 			strictEqual(json.data.syntax.extension, 'txt')
 			strictEqual(json.data.syntax.color, '#808080')
 		})
+
+		await t.test(
+			'concurrent details responses return the hits value committed by each read',
+			async () => {
+				await db
+					.update(pastesTable)
+					.set({ hits: 100 })
+					.where(eq(pastesTable.id, publicPlain.id))
+
+				const responses = await Promise.all([
+					app.request(`/api/pastes/${slugs.publicPlain}`),
+					app.request(`/api/pastes/${slugs.publicPlain}`)
+				])
+				const payloads = await Promise.all(
+					responses.map((response) => response.json() as Promise<Json>)
+				)
+				const returnedHits = payloads
+					.map((payload) => payload.data.hits as number)
+					.sort((left, right) => left - right)
+
+				strictEqual(responses[0].status, 200)
+				strictEqual(responses[1].status, 200)
+				strictEqual(returnedHits[0], 101)
+				strictEqual(returnedHits[1], 102)
+
+				const [row] = await db
+					.select({ hits: pastesTable.hits })
+					.from(pastesTable)
+					.where(eq(pastesTable.id, publicPlain.id))
+				strictEqual(row.hits, 102)
+			}
+		)
 
 		await t.test('verify cannot bypass private visibility', async () => {
 			for (const [slug, password] of [

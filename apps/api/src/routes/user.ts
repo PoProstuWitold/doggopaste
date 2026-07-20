@@ -14,15 +14,15 @@ import {
 	type PasteSummaryDto,
 	pasteSummarySelection,
 	toPasteSummaryDto,
-	validatorPaginationQuery
+	validatorUserPastesQuery
 } from '../utils/index.js'
 
 const app = new Hono<Env>()
-	.get('/pastes', validatorPaginationQuery, async (c) => {
+	.get('/pastes', validatorUserPastesQuery, async (c) => {
 		const user = c.get('user')
-		const { limit, offset } = c.req.valid('query')
+		const { limit, offset, userId } = c.req.valid('query')
 
-		const ownerId = c.req.query('userId') ?? user?.id
+		const ownerId = userId ?? user?.id
 		if (!ownerId) {
 			return c.json(
 				{

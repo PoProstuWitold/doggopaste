@@ -154,7 +154,13 @@ export const RealtimeEditor = ({
 			doc: realtimePaste.content || '',
 			extensions: createEditorExtensions()
 		})
-		viewRef.current = new EditorView({ state, parent: editorRef.current })
+		const view = new EditorView({ state, parent: editorRef.current })
+		viewRef.current = view
+
+		return () => {
+			view.destroy()
+			if (viewRef.current === view) viewRef.current = null
+		}
 	}, [])
 
 	// Reconfigure on syntax/theme change
@@ -449,16 +455,16 @@ export const RealtimeEditor = ({
 					ref={codeScrollRef}
 					className={`rounded-lg bg-base-300/80 overflow-auto transition-all ${showPreview && showCode ? 'w-full lg:w-1/2' : 'w-full'} ${
 						showCode
-							? 'max-h-[400px] md:max-h-[600px] lg:max-h-[800px]'
+							? 'max-h-100 md:max-h-150 lg:max-h-200'
 							: 'h-0 max-h-0 border-none p-0'
 					}`}
 				>
-					<div ref={editorRef} className='min-h-[300px]' />
+					<div ref={editorRef} className='min-h-75' />
 				</div>
 				{showPreview && (
 					<div
 						ref={previewRef}
-						className={`rounded-lg border border-dashed border-base-300 bg-base-100/90 dark:bg-base-200/90 overflow-auto max-h-[400px] md:max-h-[600px] lg:max-h-[800px] p-4 ${showCode ? 'w-full lg:w-1/2' : 'w-full'}`}
+						className={`rounded-lg border border-dashed border-base-300 bg-base-100/90 dark:bg-base-200/90 overflow-auto max-h-100 md:max-h-150 lg:max-h-200 p-4 ${showCode ? 'w-full lg:w-1/2' : 'w-full'}`}
 					>
 						<div
 							className='markdown-preview'

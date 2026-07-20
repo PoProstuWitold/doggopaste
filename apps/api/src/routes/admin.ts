@@ -27,9 +27,29 @@ import {
 
 const updateSyntaxSchema = z.object({
 	name: z.string().min(1).max(64),
-	extension: z.string().max(32).optional(),
+	extension: z
+		.string()
+		.max(32)
+		.refine(
+			(value) =>
+				value === '' || /^[a-z0-9]+(?:\.[a-z0-9]+)*$/i.test(value),
+			'Extension must be empty or contain only letters, numbers, and dots between segments'
+		)
+		.nullable()
+		.optional(),
 	color: z.string().min(1).max(32)
 })
+
+function isUniqueViolation(error: unknown): boolean {
+	if (!error || typeof error !== 'object') return false
+
+	const dbError = error as {
+		code?: string
+		cause?: { code?: string }
+	}
+
+	return dbError.code === '23505' || dbError.cause?.code === '23505'
+}
 
 const app = new Hono<Env>()
 	.get('/pastes', userGuard, adminGuard, async (c) => {
@@ -252,16 +272,32 @@ const app = new Hono<Env>()
 			const { id } = c.req.valid('param')
 			const { name, extension, color } = c.req.valid('json')
 
+			let updatedSyntax: { id: string } | undefined
+
 			try {
-				await db
+				const updatedRows = await db
 					.update(syntaxesTable)
 					.set({ name, extension, color })
 					.where(eq(syntaxesTable.id, id))
-			} catch (_e) {
+					.returning({ id: syntaxesTable.id })
+				updatedSyntax = updatedRows[0]
+			} catch (error) {
+				if (isUniqueViolation(error)) {
+					throw new GenericException({
+						statusCode: 409,
+						name: 'Conflict',
+						message: 'Syntax name already exists'
+					})
+				}
+
+				throw error
+			}
+
+			if (!updatedSyntax) {
 				throw new GenericException({
-					statusCode: 409,
-					name: 'Conflict',
-					message: 'Syntax name already exists'
+					statusCode: 404,
+					name: 'Not Found',
+					message: 'Syntax not found'
 				})
 			}
 

@@ -46,12 +46,11 @@ export class DoggoUtils {
 	}
 
 	public static async removeUnusedTags() {
-		const result = await db.execute(`
+		await db.execute(`
 			DELETE FROM tags
 			WHERE NOT EXISTS (
 				SELECT 1 FROM paste_tags WHERE tags.id = paste_tags.tag_id
 			)
 		`)
-		console.info('Removed unused tags: ', result.rowCount)
 	}
 }

@@ -27,7 +27,7 @@ export const PasteButtons = ({
 	content
 }: PasteButtonsProps) => {
 	const router = useRouter()
-	const [clientBaseUrl, setClientBaseUrl] = useState<string | null>(null)
+	const [apiBaseUrl, setApiBaseUrl] = useState<string | null>(null)
 	const [shareLinkCopied, setShareLinkCopied] = useState(false)
 	const usesLocalContent =
 		paste.passwordProtected ||
@@ -35,14 +35,13 @@ export const PasteButtons = ({
 		paste.expiration === 'burn_after_read'
 
 	useEffect(() => {
-		setClientBaseUrl(getBaseApiUrl())
+		setApiBaseUrl(getBaseApiUrl())
 	}, [])
 
 	const copyLink = async () => {
-		if (!clientBaseUrl) return
 		try {
 			await navigator.clipboard.writeText(
-				`${clientBaseUrl}/p/${paste.slug}`
+				`${window.location.origin}/p/${paste.slug}`
 			)
 			setShareLinkCopied(true)
 			setTimeout(() => setShareLinkCopied(false), 2000)
@@ -83,9 +82,9 @@ export const PasteButtons = ({
 			return
 		}
 
-		if (!clientBaseUrl) return
+		if (!apiBaseUrl) return
 
-		window.location.href = `${clientBaseUrl}/api/pastes/${paste.slug}/download`
+		window.location.href = `${apiBaseUrl}/api/pastes/${paste.slug}/download`
 	}
 
 	const handleRaw = () => {
@@ -143,7 +142,6 @@ export const PasteButtons = ({
 				onClick={copyLink}
 				className='btn btn-sm btn-ghost btn-outline'
 				title='Copy Share Link'
-				disabled={!clientBaseUrl}
 			>
 				Share
 				{shareLinkCopied ? <FaCheck /> : <FaShare />}
@@ -170,7 +168,7 @@ export const PasteButtons = ({
 				type='button'
 				onClick={handleDownload}
 				className='btn btn-sm btn-success'
-				disabled={isLocked || (!usesLocalContent && !clientBaseUrl)}
+				disabled={isLocked || (!usesLocalContent && !apiBaseUrl)}
 				title={isLocked ? 'Unlock to download' : 'Download File'}
 			>
 				<div className='flex items-center gap-1 font-extrabold'>

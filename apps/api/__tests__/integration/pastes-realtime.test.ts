@@ -1,5 +1,6 @@
 // biome-ignore-all lint: test files
 import { deepStrictEqual, ok, strictEqual } from 'node:assert'
+import { randomUUID } from 'node:crypto'
 import test from 'node:test'
 import { eq } from 'drizzle-orm'
 import { db } from '../../src/db/index.js'
@@ -19,6 +20,37 @@ test(
 		const app = getTestApp()
 		const slug = `rt-test-${Date.now()}`
 		const missingSlug = 'rt-missing-slug'
+
+		await t.test(
+			'rejects invalid slugs on every realtime HTTP endpoint',
+			async () => {
+				for (const invalidSlug of ['invalid_slug', 'a'.repeat(65)]) {
+					for (const request of [
+						{
+							path: `/api/pastes-realtime/${invalidSlug}`,
+							method: 'POST'
+						},
+						{
+							path: `/api/pastes-realtime/${invalidSlug}`,
+							method: 'GET'
+						},
+						{
+							path: `/api/pastes-realtime/${invalidSlug}/download`,
+							method: 'GET'
+						}
+					]) {
+						const res = await app.request(request.path, {
+							method: request.method
+						})
+						strictEqual(
+							res.status,
+							400,
+							`${request.method} ${request.path}`
+						)
+					}
+				}
+			}
+		)
 
 		await t.test('POST /:slug', async (t) => {
 			await t.test(
@@ -64,6 +96,52 @@ test(
 					)
 
 					strictEqual(res.status, 200)
+				}
+			)
+
+			await t.test(
+				'returns one paste for concurrent first requests',
+				async () => {
+					const raceSlug = `rt-race-${randomUUID().replaceAll('-', '')}`
+
+					try {
+						const request = () =>
+							app.request(`/api/pastes-realtime/${raceSlug}`, {
+								method: 'POST',
+								headers: {
+									'Content-Type': 'application/json'
+								},
+								body: JSON.stringify({})
+							})
+						const [firstRes, secondRes] = await Promise.all([
+							request(),
+							request()
+						])
+
+						strictEqual(firstRes.status, 200)
+						strictEqual(secondRes.status, 200)
+
+						const [firstJson, secondJson]: any[] = await Promise.all([
+							firstRes.json(),
+							secondRes.json()
+						])
+						strictEqual(
+							firstJson.realtimePaste.id,
+							secondJson.realtimePaste.id
+						)
+						strictEqual(firstJson.session, null)
+						strictEqual(secondJson.session, null)
+
+						const rows = await db
+							.select({ id: realTimePastesTable.id })
+							.from(realTimePastesTable)
+							.where(eq(realTimePastesTable.slug, raceSlug))
+						strictEqual(rows.length, 1)
+					} finally {
+						await db
+							.delete(realTimePastesTable)
+							.where(eq(realTimePastesTable.slug, raceSlug))
+					}
 				}
 			)
 		})

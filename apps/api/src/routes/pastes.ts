@@ -40,6 +40,20 @@ interface PasteDownloadResult {
 	contentDisposition: string
 }
 
+export async function updateOwnedPasteById(
+	id: string,
+	userId: string,
+	values: Partial<typeof pastesTable.$inferInsert>
+) {
+	const [updatedPaste] = await db
+		.update(pastesTable)
+		.set(values)
+		.where(and(eq(pastesTable.id, id), eq(pastesTable.userId, userId)))
+		.returning()
+
+	return updatedPaste
+}
+
 async function handlePasteDownload({
 	slug,
 	reader,
@@ -385,11 +399,12 @@ const app = new Hono<Env>()
 
 		let hits = paste.hits
 		if (readDecision.canReadContent) {
-			await db
+			const [updatedPaste] = await db
 				.update(pastesTable)
 				.set({ hits: sql`${pastesTable.hits} + 1` })
 				.where(eq(pastesTable.id, paste.id))
-			hits += 1
+				.returning({ hits: pastesTable.hits })
+			hits = updatedPaste?.hits ?? paste.hits
 		}
 
 		if (
@@ -581,11 +596,13 @@ const app = new Hono<Env>()
 				passwordHash: passwordHash
 			}
 
-			const [updatedPaste] = await db
-				.update(pastesTable)
-				.set(values)
-				.where(eq(pastesTable.slug, slug))
-				.returning()
+			const updatedPaste = await updateOwnedPasteById(
+				paste.id,
+				user.id,
+				values
+			)
+
+			if (!updatedPaste) throwPasteNotFound()
 
 			// 7. Remove old tags
 			await db

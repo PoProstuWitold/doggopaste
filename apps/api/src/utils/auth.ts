@@ -5,6 +5,19 @@ import { admin, oneTimeToken, openAPI, organization } from 'better-auth/plugins'
 import { db } from '../db/index.js'
 import { schema } from '../db/schema.js'
 import { origins } from './contants.js'
+import { parseAuthEnvironment } from './env.js'
+
+const authEnvironment = parseAuthEnvironment(process.env)
+
+const socialProviders =
+	authEnvironment.GITHUB_CLIENT_ID && authEnvironment.GITHUB_CLIENT_SECRET
+		? {
+				github: {
+					clientId: authEnvironment.GITHUB_CLIENT_ID,
+					clientSecret: authEnvironment.GITHUB_CLIENT_SECRET
+				}
+			}
+		: {}
 
 export const auth = betterAuth({
 	telemetry: {
@@ -15,10 +28,10 @@ export const auth = betterAuth({
 			'/get-session': false
 		}
 	},
-	appName: process.env.APP_NAME,
-	baseURL: process.env.APP_URL,
+	appName: authEnvironment.APP_NAME,
+	baseURL: authEnvironment.APP_URL,
 	basePath: '/api/auth',
-	secret: process.env.BETTER_AUTH_SECRET,
+	secret: authEnvironment.BETTER_AUTH_SECRET,
 	trustedOrigins: origins,
 	ipAddress: {
 		ipAddressHeaders: ['x-client-ip', 'x-forwarded-for'],
@@ -60,16 +73,16 @@ export const auth = betterAuth({
 		},
 		cookiePrefix: 'doggopaste',
 		defaultCookieAttributes: {
-			secure: false,
+			secure: authEnvironment.NODE_ENV === 'production',
 			httpOnly: true,
 			sameSite: 'Lax', // Allows CORS-based cookie sharing across subdomains
 			partitioned: false // New browser standards will mandate this for foreign cookies
 		},
-		...(process.env.COOKIE_DOMAIN
+		...(authEnvironment.COOKIE_DOMAIN
 			? {
 					crossSubDomainCookies: {
 						enabled: true,
-						domain: process.env.COOKIE_DOMAIN // e.g., ".example.com"
+						domain: authEnvironment.COOKIE_DOMAIN // e.g., ".example.com"
 					}
 				}
 			: {})
@@ -93,10 +106,5 @@ export const auth = betterAuth({
 		maxPasswordLength: 128,
 		resetPasswordTokenExpiresIn: 3600
 	},
-	socialProviders: {
-		github: {
-			clientId: process.env.GITHUB_CLIENT_ID as string,
-			clientSecret: process.env.GITHUB_CLIENT_SECRET as string
-		}
-	}
+	socialProviders
 })
