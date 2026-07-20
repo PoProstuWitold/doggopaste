@@ -38,44 +38,56 @@ export const usersTable = pgTable('users', {
 	banExpires: numeric('ban_expires')
 })
 
-export const sessionsTable = pgTable('sessions', {
-	...essentialColumns,
-	userId: uuid('user_id')
-		.notNull()
-		.references(() => usersTable.id, { onDelete: 'cascade' }),
-	token: varchar({ length: 512 }).notNull().unique(),
-	expiresAt: timestamp('expires_at').notNull(),
-	ipAddress: varchar('ip_address', { length: 512 }),
-	userAgent: varchar('user_agent', { length: 512 }),
-	// admin plugin
-	impersonatedBy: uuid(),
-	// organization plugin
-	activeOrganizationId: uuid(),
-	activeTeamId: uuid()
-})
+export const sessionsTable = pgTable(
+	'sessions',
+	{
+		...essentialColumns,
+		userId: uuid('user_id')
+			.notNull()
+			.references(() => usersTable.id, { onDelete: 'cascade' }),
+		token: varchar({ length: 512 }).notNull().unique(),
+		expiresAt: timestamp('expires_at').notNull(),
+		ipAddress: varchar('ip_address', { length: 512 }),
+		userAgent: varchar('user_agent', { length: 512 }),
+		// admin plugin
+		impersonatedBy: uuid(),
+		// organization plugin
+		activeOrganizationId: uuid(),
+		activeTeamId: uuid()
+	},
+	(t) => [index('sessions_user_id_idx').on(t.userId)]
+)
 
-export const accountsTable = pgTable('accounts', {
-	...essentialColumns,
-	userId: uuid('user_id')
-		.notNull()
-		.references(() => usersTable.id, { onDelete: 'cascade' }),
-	accountId: varchar('account_id', { length: 512 }).notNull().unique(),
-	providerId: varchar('provider_id', { length: 512 }).notNull(),
-	accessToken: varchar('access_token', { length: 512 }),
-	refreshToken: varchar('refresh_token', { length: 512 }),
-	accessTokenExpiresAt: timestamp('access_token_expires_at'),
-	refreshTokenExpiresAt: timestamp('refresh_token_expires_at'),
-	scope: varchar({ length: 512 }),
-	idToken: varchar('id_token', { length: 512 }),
-	password: varchar({ length: 512 })
-})
+export const accountsTable = pgTable(
+	'accounts',
+	{
+		...essentialColumns,
+		userId: uuid('user_id')
+			.notNull()
+			.references(() => usersTable.id, { onDelete: 'cascade' }),
+		accountId: varchar('account_id', { length: 512 }).notNull().unique(),
+		providerId: varchar('provider_id', { length: 512 }).notNull(),
+		accessToken: varchar('access_token', { length: 512 }),
+		refreshToken: varchar('refresh_token', { length: 512 }),
+		accessTokenExpiresAt: timestamp('access_token_expires_at'),
+		refreshTokenExpiresAt: timestamp('refresh_token_expires_at'),
+		scope: varchar({ length: 512 }),
+		idToken: varchar('id_token', { length: 512 }),
+		password: varchar({ length: 512 })
+	},
+	(t) => [index('accounts_user_id_idx').on(t.userId)]
+)
 
-export const verificationsTable = pgTable('verifications', {
-	...essentialColumns,
-	identifier: varchar({ length: 512 }).notNull(),
-	value: varchar({ length: 512 }).notNull(),
-	expiresAt: timestamp('expires_at').notNull()
-})
+export const verificationsTable = pgTable(
+	'verifications',
+	{
+		...essentialColumns,
+		identifier: varchar({ length: 512 }).notNull(),
+		value: varchar({ length: 512 }).notNull(),
+		expiresAt: timestamp('expires_at').notNull()
+	},
+	(t) => [index('verifications_identifier_idx').on(t.identifier)]
+)
 
 export const organizationsTable = pgTable('organizations', {
 	...essentialColumns,
@@ -85,30 +97,45 @@ export const organizationsTable = pgTable('organizations', {
 	metadata: varchar({ length: 512 })
 })
 
-export const membersTable = pgTable('members', {
-	...essentialColumns,
-	userId: uuid('user_id')
-		.notNull()
-		.references(() => usersTable.id, { onDelete: 'cascade' }),
-	organizationId: uuid('organization_id')
-		.notNull()
-		.references(() => organizationsTable.id, { onDelete: 'cascade' }),
-	role: varchar({ length: 512 })
-})
+export const membersTable = pgTable(
+	'members',
+	{
+		...essentialColumns,
+		userId: uuid('user_id')
+			.notNull()
+			.references(() => usersTable.id, { onDelete: 'cascade' }),
+		organizationId: uuid('organization_id')
+			.notNull()
+			.references(() => organizationsTable.id, { onDelete: 'cascade' }),
+		role: varchar({ length: 512 })
+	},
+	(t) => [
+		index('members_organization_id_idx').on(t.organizationId),
+		index('members_user_id_idx').on(t.userId)
+	]
+)
 
-export const invitationsTable = pgTable('invitations', {
-	...essentialColumns,
-	email: varchar({ length: 512 }),
-	inviterId: uuid('inviter_id')
-		.notNull()
-		.references(() => usersTable.id, { onDelete: 'cascade' }),
-	organizationId: uuid('organization_id')
-		.notNull()
-		.references(() => organizationsTable.id, { onDelete: 'cascade' }),
-	role: varchar({ length: 512 }),
-	status: varchar({ length: 512 }),
-	expiresAt: timestamp('expires_at').notNull()
-})
+export const invitationsTable = pgTable(
+	'invitations',
+	{
+		...essentialColumns,
+		email: varchar({ length: 512 }),
+		inviterId: uuid('inviter_id')
+			.notNull()
+			.references(() => usersTable.id, { onDelete: 'cascade' }),
+		organizationId: uuid('organization_id')
+			.notNull()
+			.references(() => organizationsTable.id, { onDelete: 'cascade' }),
+		role: varchar({ length: 512 }),
+		status: varchar({ length: 512 }),
+		expiresAt: timestamp('expires_at').notNull()
+	},
+	(t) => [
+		index('invitations_organization_id_idx').on(t.organizationId),
+		index('invitations_email_idx').on(t.email),
+		index('invitations_inviter_id_idx').on(t.inviterId)
+	]
+)
 
 // PROJECT SPECIFIC
 export const visibilityEnum = pgEnum('visibility', [
@@ -183,13 +210,30 @@ export const pastesTable = pgTable(
 		)
 	},
 	(t) => [
-		// index for listing by user and folder
-		index('pastes_user_folder_idx').on(t.userId, t.folderId),
+		index('pastes_user_updated_idx').on(
+			t.userId,
+			t.updatedAt.desc(),
+			t.id.desc()
+		),
+		index('pastes_folder_user_updated_idx').on(
+			t.folderId,
+			t.userId,
+			t.updatedAt.desc()
+		),
+		index('pastes_public_updated_idx').on(
+			t.visibility,
+			t.updatedAt.desc(),
+			t.id.desc()
+		),
 
 		// If folder_id is set, user_id must not be NULL
 		check(
 			'pastes_folder_requires_user_chk',
 			sql`${t.folderId} IS NULL OR ${t.userId} IS NOT NULL`
+		),
+		check(
+			'pastes_private_requires_user_chk',
+			sql`${t.visibility} <> 'private' OR ${t.userId} IS NOT NULL`
 		),
 
 		// Composite FK: (folder_id, user_id) -> folders (id, user_id)
@@ -197,7 +241,7 @@ export const pastesTable = pgTable(
 			name: 'pastes_folder_user_fk',
 			columns: [t.folderId, t.userId],
 			foreignColumns: [foldersTable.id, foldersTable.userId]
-		}).onDelete('set null')
+		})
 	]
 )
 
@@ -227,16 +271,20 @@ export const foldersTable = pgTable(
 			t.parentFolderId,
 			t.name
 		),
+		uniqueIndex('folders_root_name_uq')
+			.on(t.userId, t.name)
+			.where(sql`${t.parentFolderId} IS NULL`),
 
 		// 3) Index to speed up folder tree queries
 		index('folders_tree_idx').on(t.userId, t.parentFolderId),
+		index('folders_parent_folder_id_idx').on(t.parentFolderId, t.userId),
 
 		// Composite FK: (parent_folder_id, user_id) -> (id, user_id)
 		foreignKey({
 			name: 'folders_parent_user_fk',
 			columns: [t.parentFolderId, t.userId],
 			foreignColumns: [t.id, t.userId]
-		}).onDelete('set null')
+		})
 	]
 )
 
@@ -247,15 +295,22 @@ export const tagsTable = pgTable('tags', {
 })
 
 // M:N -> Static Pastes <-> Tags
-export const pasteTagsTable = pgTable('paste_tags', {
-	id: uuid().primaryKey().defaultRandom(),
-	pasteId: uuid('paste_id')
-		.notNull()
-		.references(() => pastesTable.id, { onDelete: 'cascade' }),
-	tagId: uuid('tag_id')
-		.notNull()
-		.references(() => tagsTable.id, { onDelete: 'cascade' })
-})
+export const pasteTagsTable = pgTable(
+	'paste_tags',
+	{
+		id: uuid().primaryKey().defaultRandom(),
+		pasteId: uuid('paste_id')
+			.notNull()
+			.references(() => pastesTable.id, { onDelete: 'cascade' }),
+		tagId: uuid('tag_id')
+			.notNull()
+			.references(() => tagsTable.id, { onDelete: 'cascade' })
+	},
+	(t) => [
+		uniqueIndex('paste_tags_paste_tag_uq').on(t.pasteId, t.tagId),
+		index('paste_tags_tag_id_idx').on(t.tagId)
+	]
+)
 
 // realtime editors
 export const realTimePastesTable = pgTable('realtime_pastes', {
@@ -266,9 +321,7 @@ export const realTimePastesTable = pgTable('realtime_pastes', {
 	syntaxId: uuid('syntax_id').references(() => syntaxesTable.id, {
 		onDelete: 'set null'
 	}),
-	visibility: visibilityEnum('visibility')
-		.notNull()
-		.default('public'),
+	visibility: visibilityEnum('visibility').notNull().default('public'),
 	organizationId: uuid('organization_id').references(
 		() => organizationsTable.id,
 		{ onDelete: 'set null' }

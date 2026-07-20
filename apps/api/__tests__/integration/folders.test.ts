@@ -46,7 +46,7 @@ test(
 		ok(cookie)
 
 		const folderName = `Folder${suffix.slice(0, 12)}`
-		const createFolder = () =>
+		const createFolder = (name = folderName) =>
 			app.request('/api/folders', {
 				method: 'POST',
 				headers: {
@@ -54,7 +54,7 @@ test(
 					Origin: 'http://localhost:3001',
 					Cookie: cookie
 				},
-				body: JSON.stringify({ name: folderName, parentId: null })
+				body: JSON.stringify({ name, parentId: null })
 			})
 
 		await t.test(
@@ -78,6 +78,30 @@ test(
 				strictEqual(reusedJson.success, true)
 				strictEqual(Array.isArray(reusedJson.data), false)
 				strictEqual(reusedJson.data.id, createdJson.data.id)
+			}
+		)
+
+		await t.test(
+			'concurrent root creates return one shared folder',
+			async () => {
+				const concurrentName = `Concurrent${suffix.slice(0, 12)}`
+				const responses = await Promise.all([
+					createFolder(concurrentName),
+					createFolder(concurrentName)
+				])
+				const payloads = (await Promise.all(
+					responses.map((response) => response.json())
+				)) as Json[]
+
+				strictEqual(
+					responses.filter((response) => response.status === 201).length,
+					1
+				)
+				strictEqual(
+					responses.filter((response) => response.status === 200).length,
+					1
+				)
+				strictEqual(payloads[0].data.id, payloads[1].data.id)
 			}
 		)
 	}

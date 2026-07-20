@@ -40,6 +40,88 @@ interface PasteDownloadResult {
 	contentDisposition: string
 }
 
+type PasteTransaction = Parameters<Parameters<typeof db.transaction>[0]>[0]
+
+type PasteAccessSnapshot = Pick<
+	typeof pastesTable.$inferSelect,
+	| 'id'
+	| 'expiration'
+	| 'expiresAt'
+	| 'encrypted'
+	| 'passwordHash'
+	| 'visibility'
+	| 'userId'
+> & { expiresAtVersion: string | null; rowVersion: string }
+
+function unchangedActivePasteCondition(paste: PasteAccessSnapshot) {
+	return and(
+		eq(pastesTable.id, paste.id),
+		eq(pastesTable.expiration, paste.expiration),
+		sql`${pastesTable.expiresAt}::text IS NOT DISTINCT FROM ${paste.expiresAtVersion}`,
+		sql`${pastesTable.encrypted} IS NOT DISTINCT FROM ${paste.encrypted}`,
+		sql`${pastesTable.passwordHash} IS NOT DISTINCT FROM ${paste.passwordHash}`,
+		eq(pastesTable.visibility, paste.visibility),
+		sql`${pastesTable.userId} IS NOT DISTINCT FROM ${paste.userId}`,
+		activePasteCondition()
+	)
+}
+
+async function incrementPasteHits(paste: PasteAccessSnapshot) {
+	const [updatedPaste] = await db
+		.update(pastesTable)
+		.set({ hits: sql`${pastesTable.hits} + 1` })
+		.where(unchangedActivePasteCondition(paste))
+		.returning({ hits: pastesTable.hits })
+
+	if (!updatedPaste) throwPasteNotFound()
+	return updatedPaste.hits
+}
+
+async function consumeBurnAfterRead(paste: PasteAccessSnapshot) {
+	return db.transaction(async (tx) => {
+		await DoggoUtils.acquirePasteMutationLock(tx)
+
+		const [deletedPaste] = await tx
+			.delete(pastesTable)
+			.where(
+				and(
+					unchangedActivePasteCondition(paste),
+					sql`"pastes"."xmin"::text = ${paste.rowVersion}`,
+					eq(pastesTable.expiration, 'burn_after_read')
+				)
+			)
+			.returning({ hits: pastesTable.hits })
+
+		if (!deletedPaste) throwPasteNotFound()
+		await DoggoUtils.removeUnusedTags(tx)
+		return deletedPaste
+	})
+}
+
+async function resolveTagIds(
+	tx: PasteTransaction,
+	tagNames: string[]
+): Promise<string[]> {
+	if (tagNames.length === 0) return []
+
+	await tx
+		.insert(tagsTable)
+		.values(tagNames.map((name) => ({ name })))
+		.onConflictDoNothing({ target: tagsTable.name })
+
+	const resolvedTags = await tx
+		.select({ id: tagsTable.id, name: tagsTable.name })
+		.from(tagsTable)
+		.where(inArray(tagsTable.name, tagNames))
+	const idByName = new Map(resolvedTags.map((tag) => [tag.name, tag.id]))
+
+	return tagNames.map((name) => {
+		const id = idByName.get(name)
+		if (!id) throw new Error('Failed to resolve paste tag')
+		return id
+	})
+}
+
 export async function updateOwnedPasteById(
 	id: string,
 	userId: string,
@@ -47,7 +129,7 @@ export async function updateOwnedPasteById(
 ) {
 	const [updatedPaste] = await db
 		.update(pastesTable)
-		.set(values)
+		.set({ ...values, updatedAt: values.updatedAt ?? new Date() })
 		.where(and(eq(pastesTable.id, id), eq(pastesTable.userId, userId)))
 		.returning()
 
@@ -63,6 +145,10 @@ async function handlePasteDownload({
 		.select({
 			paste: {
 				id: pastesTable.id,
+				expiresAtVersion: sql<
+					string | null
+				>`"pastes"."expires_at"::text`,
+				rowVersion: sql<string>`"pastes"."xmin"::text`,
 				title: pastesTable.title,
 				content: pastesTable.content,
 				expiration: pastesTable.expiration,
@@ -89,14 +175,10 @@ async function handlePasteDownload({
 		password
 	})
 
-	await db
-		.update(pastesTable)
-		.set({ hits: sql`${pastesTable.hits} + 1` })
-		.where(eq(pastesTable.id, paste.id))
-
 	if (paste.expiration === 'burn_after_read') {
-		await db.delete(pastesTable).where(eq(pastesTable.id, paste.id))
-		await DoggoUtils.removeUnusedTags()
+		await consumeBurnAfterRead(paste)
+	} else {
+		await incrementPasteHits(paste)
 	}
 
 	const safeTitle = DoggoUtils.sanitizeFileName(paste.title)
@@ -168,79 +250,14 @@ const app = new Hono<Env>()
 
 		const userId = pasteAsGuest ? null : (user?.id ?? null)
 
-		// 3. Resolve folder (must already exist and belong to the user)
-		let folderId: string | null = null
-
-		if (folder !== 'none') {
-			if (userId === null) {
-				throw new GenericException({
-					statusCode: 400,
-					name: 'Bad Request',
-					message: 'Guests cannot assign a folder'
-				})
-			}
-
-			const [dbFolder] = await db
-				.select({ id: foldersTable.id })
-				.from(foldersTable)
-				.where(
-					and(
-						eq(foldersTable.id, folder),
-						eq(foldersTable.userId, userId)
-					)
-				)
-
-			if (!dbFolder) {
-				throw new GenericException({
-					statusCode: 404,
-					name: 'Not Found',
-					message: 'Folder not found or does not belong to the user'
-				})
-			}
-
-			folderId = dbFolder.id
-		}
-
-		// 4. Find syntax by name
-		const [dbSyntax] = await db
-			.select({
-				id: syntaxesTable.id,
-				name: syntaxesTable.name,
-				extension: syntaxesTable.extension,
-				color: syntaxesTable.color
-			})
-			.from(syntaxesTable)
-			.where(eq(syntaxesTable.name, syntax))
-
-		if (!dbSyntax) {
+		if (folder !== 'none' && userId === null) {
 			throw new GenericException({
 				statusCode: 400,
 				name: 'Bad Request',
-				message: `Unknown syntax "${syntax}"`
+				message: 'Guests cannot assign a folder'
 			})
 		}
 
-		// 5. Create or reuse tags
-		const tagIds: string[] = []
-		for (const tagName of tags) {
-			// try to find the tag by name
-			let [dbTag] = await db
-				.select({ id: tagsTable.id })
-				.from(tagsTable)
-				.where(eq(tagsTable.name, tagName))
-
-			// if tag does not exist, create it
-			if (!dbTag) {
-				;[dbTag] = await db
-					.insert(tagsTable)
-					.values({ name: tagName })
-					.returning({ id: tagsTable.id })
-			}
-
-			if (dbTag) tagIds.push(dbTag.id)
-		}
-
-		// 6. Create paste
 		// Password logic: hash ONLY if password is enabled but paste isn't encrypted
 		let passwordHash: string | null = null
 
@@ -262,36 +279,92 @@ const app = new Hono<Env>()
 			}
 		}
 
-		const newPasteValues = {
-			title,
-			description,
-			content,
-			category,
-			syntaxId: dbSyntax.id,
-			expiration,
-			visibility,
-			folderId,
-			userId,
-			encrypted: encrypted ?? false,
-			slug: slug.length ? slug : await DoggoUtils.generateSlug(),
-			expiresAt: await DoggoUtils.calculateExpirationDate(expiration),
-			passwordHash: passwordHash
-		}
+		const uniqueTags = [...new Set(tags)]
+		const generatedSlug = slug.length
+			? slug
+			: await DoggoUtils.generateSlug()
+		const expiresAt = await DoggoUtils.calculateExpirationDate(expiration)
 
-		const [newPaste] = await db
-			.insert(pastesTable)
-			.values(newPasteValues)
-			.returning()
+		const { newPaste, dbSyntax } = await db.transaction(async (tx) => {
+			if (uniqueTags.length > 0) {
+				await DoggoUtils.acquirePasteMutationLock(tx)
+			}
 
-		// 7. Add tags to paste
-		if (tagIds.length > 0 && newPaste) {
-			await db.insert(pasteTagsTable).values(
-				tagIds.map((tagId) => ({
-					pasteId: newPaste.id,
-					tagId
-				}))
-			)
-		}
+			let folderId: string | null = null
+
+			if (folder !== 'none') {
+				const [dbFolder] = await tx
+					.select({ id: foldersTable.id })
+					.from(foldersTable)
+					.where(
+						and(
+							eq(foldersTable.id, folder),
+							eq(foldersTable.userId, userId as string)
+						)
+					)
+
+				if (!dbFolder) {
+					throw new GenericException({
+						statusCode: 404,
+						name: 'Not Found',
+						message:
+							'Folder not found or does not belong to the user'
+					})
+				}
+				folderId = dbFolder.id
+			}
+
+			const [dbSyntax] = await tx
+				.select({
+					id: syntaxesTable.id,
+					name: syntaxesTable.name,
+					extension: syntaxesTable.extension,
+					color: syntaxesTable.color
+				})
+				.from(syntaxesTable)
+				.where(eq(syntaxesTable.name, syntax))
+
+			if (!dbSyntax) {
+				throw new GenericException({
+					statusCode: 400,
+					name: 'Bad Request',
+					message: `Unknown syntax "${syntax}"`
+				})
+			}
+
+			const [newPaste] = await tx
+				.insert(pastesTable)
+				.values({
+					title,
+					description,
+					content,
+					category,
+					syntaxId: dbSyntax.id,
+					expiration,
+					visibility,
+					folderId,
+					userId,
+					encrypted: encrypted ?? false,
+					slug: generatedSlug,
+					expiresAt,
+					passwordHash
+				})
+				.returning()
+
+			if (!newPaste) throw new Error('Failed to create paste')
+
+			if (uniqueTags.length > 0) {
+				const tagIds = await resolveTagIds(tx, uniqueTags)
+				await tx.insert(pasteTagsTable).values(
+					tagIds.map((tagId) => ({
+						pasteId: newPaste.id,
+						tagId
+					}))
+				)
+			}
+
+			return { newPaste, dbSyntax }
+		})
 
 		// 8. Return response
 		c.status(201)
@@ -300,7 +373,7 @@ const app = new Hono<Env>()
 			data: toPasteDetailsDto(
 				pasteRecordToDetailsSource(newPaste),
 				dbSyntax,
-				tags,
+				uniqueTags,
 				newPaste.passwordHash === null
 			)
 		})
@@ -370,7 +443,13 @@ const app = new Hono<Env>()
 
 		const [row] = await db
 			.select({
-				paste: pasteDetailsSelection,
+				paste: {
+					...pasteDetailsSelection,
+					expiresAtVersion: sql<
+						string | null
+					>`"pastes"."expires_at"::text`,
+					rowVersion: sql<string>`"pastes"."xmin"::text`
+				},
 				passwordHash: pastesTable.passwordHash,
 				syntax: {
 					name: syntaxesTable.name,
@@ -386,10 +465,14 @@ const app = new Hono<Env>()
 
 		const paste = row.paste
 		const syntax = row.syntax
-		const readDecision = await authorizePasteRead(
-			{ ...paste, passwordHash: row.passwordHash },
-			{ mode: 'details', reader: c.get('user') }
-		)
+		const accessSnapshot = {
+			...paste,
+			passwordHash: row.passwordHash
+		}
+		const readDecision = await authorizePasteRead(accessSnapshot, {
+			mode: 'details',
+			reader: c.get('user')
+		})
 
 		const tags = await db
 			.select({ name: tagsTable.name })
@@ -399,21 +482,16 @@ const app = new Hono<Env>()
 
 		let hits = paste.hits
 		if (readDecision.canReadContent) {
-			const [updatedPaste] = await db
-				.update(pastesTable)
-				.set({ hits: sql`${pastesTable.hits} + 1` })
-				.where(eq(pastesTable.id, paste.id))
-				.returning({ hits: pastesTable.hits })
-			hits = updatedPaste?.hits ?? paste.hits
-		}
-
-		if (
-			paste.expiration === 'burn_after_read' &&
-			!readDecision.passwordProtected &&
-			!readDecision.clientEncrypted
-		) {
-			await db.delete(pastesTable).where(eq(pastesTable.id, paste.id))
-			await DoggoUtils.removeUnusedTags()
+			if (
+				paste.expiration === 'burn_after_read' &&
+				!readDecision.passwordProtected &&
+				!readDecision.clientEncrypted
+			) {
+				const deletedPaste = await consumeBurnAfterRead(accessSnapshot)
+				hits = deletedPaste.hits + 1
+			} else {
+				hits = await incrementPasteHits(accessSnapshot)
+			}
 		}
 
 		return c.json({
@@ -432,6 +510,10 @@ const app = new Hono<Env>()
 		const [paste] = await db
 			.select({
 				id: pastesTable.id,
+				expiresAtVersion: sql<
+					string | null
+				>`"pastes"."expires_at"::text`,
+				rowVersion: sql<string>`"pastes"."xmin"::text`,
 				content: pastesTable.content,
 				passwordHash: pastesTable.passwordHash,
 				expiration: pastesTable.expiration,
@@ -457,14 +539,10 @@ const app = new Hono<Env>()
 			password
 		})
 
-		await db
-			.update(pastesTable)
-			.set({ hits: sql`${pastesTable.hits} + 1` })
-			.where(eq(pastesTable.id, paste.id))
-
 		if (paste.expiration === 'burn_after_read') {
-			await db.delete(pastesTable).where(eq(pastesTable.id, paste.id))
-			await DoggoUtils.removeUnusedTags()
+			await consumeBurnAfterRead(paste)
+		} else {
+			await incrementPasteHits(paste)
 		}
 
 		return c.json({
@@ -496,22 +574,13 @@ const app = new Hono<Env>()
 				encrypted
 			} = c.req.valid('json')
 
-			// 1. Get paste by slug
-			const [paste] = await db
-				.select()
+			const [selectedPaste] = await db
+				.select({ id: pastesTable.id, userId: pastesTable.userId })
 				.from(pastesTable)
 				.where(eq(pastesTable.slug, slug))
 
-			if (!paste) {
-				throw new GenericException({
-					statusCode: 404,
-					name: 'Not Found',
-					message: 'Paste not found'
-				})
-			}
-
-			// 2. Check if the user is the owner
-			if (paste.userId !== user.id) {
+			if (!selectedPaste) throwPasteNotFound()
+			if (selectedPaste.userId !== user.id) {
 				throw new GenericException({
 					statusCode: 403,
 					name: 'Forbidden',
@@ -519,54 +588,6 @@ const app = new Hono<Env>()
 				})
 			}
 
-			// 3. Resolve folder
-			let folderId: string | null = paste.folderId
-
-			if (folder === 'none') {
-				folderId = null
-			} else {
-				const [dbFolder] = await db
-					.select({ id: foldersTable.id })
-					.from(foldersTable)
-					.where(
-						and(
-							eq(foldersTable.id, folder),
-							eq(foldersTable.userId, user.id)
-						)
-					)
-
-				if (!dbFolder) {
-					throw new GenericException({
-						statusCode: 404,
-						name: 'Not Found',
-						message:
-							'Folder not found or does not belong to the user'
-					})
-				}
-
-				folderId = dbFolder.id
-			}
-
-			// 4. Resolve syntax
-			const [dbSyntax] = await db
-				.select({
-					id: syntaxesTable.id,
-					name: syntaxesTable.name,
-					extension: syntaxesTable.extension,
-					color: syntaxesTable.color
-				})
-				.from(syntaxesTable)
-				.where(eq(syntaxesTable.name, syntax))
-
-			if (!dbSyntax) {
-				throw new GenericException({
-					statusCode: 400,
-					name: 'Bad Request',
-					message: `Unknown syntax "${syntax}"`
-				})
-			}
-
-			// 5. Password and encryption
 			let passwordHash: string | null = null
 
 			if (passwordEnabled) {
@@ -577,70 +598,119 @@ const app = new Hono<Env>()
 				}
 			}
 
-			// 6. Update paste
-			const values = {
-				title,
-				slug: newSlug.length
-					? newSlug
-					: await DoggoUtils.generateSlug(),
-				description,
-				content,
-				category,
-				syntaxId: dbSyntax.id,
-				expiration,
-				expiresAt: await DoggoUtils.calculateExpirationDate(expiration),
-				visibility,
-				folderId,
-				updatedAt: new Date(),
-				encrypted: encrypted ?? false,
-				passwordHash: passwordHash
-			}
+			const uniqueTags = [...new Set(tags)]
+			const generatedSlug = newSlug.length
+				? newSlug
+				: await DoggoUtils.generateSlug()
+			const expiresAt =
+				await DoggoUtils.calculateExpirationDate(expiration)
 
-			const updatedPaste = await updateOwnedPasteById(
-				paste.id,
-				user.id,
-				values
-			)
+			const { updatedPaste, dbSyntax } = await db.transaction(
+				async (tx) => {
+					await DoggoUtils.acquirePasteMutationLock(tx)
 
-			if (!updatedPaste) throwPasteNotFound()
+					const [paste] = await tx
+						.select()
+						.from(pastesTable)
+						.where(eq(pastesTable.id, selectedPaste.id))
+						.for('update')
 
-			// 7. Remove old tags
-			await db
-				.delete(pasteTagsTable)
-				.where(eq(pasteTagsTable.pasteId, paste.id))
+					if (!paste) throwPasteNotFound()
 
-			// 8. Add new tags
-			const tagIds: string[] = []
-			for (const tagName of tags) {
-				const [existingTag] = await db
-					.select({ id: tagsTable.id })
-					.from(tagsTable)
-					.where(eq(tagsTable.name, tagName))
+					if (paste.userId !== user.id) {
+						throw new GenericException({
+							statusCode: 403,
+							name: 'Forbidden',
+							message: 'You are not the owner of this paste'
+						})
+					}
 
-				let tagId = existingTag?.id
+					let folderId: string | null = null
+					if (folder !== 'none') {
+						const [dbFolder] = await tx
+							.select({ id: foldersTable.id })
+							.from(foldersTable)
+							.where(
+								and(
+									eq(foldersTable.id, folder),
+									eq(foldersTable.userId, user.id)
+								)
+							)
 
-				if (!tagId) {
-					const [newTag] = await db
-						.insert(tagsTable)
-						.values({ name: tagName })
-						.returning({ id: tagsTable.id })
-					tagId = newTag.id
+						if (!dbFolder) {
+							throw new GenericException({
+								statusCode: 404,
+								name: 'Not Found',
+								message:
+									'Folder not found or does not belong to the user'
+							})
+						}
+						folderId = dbFolder.id
+					}
+
+					const [dbSyntax] = await tx
+						.select({
+							id: syntaxesTable.id,
+							name: syntaxesTable.name,
+							extension: syntaxesTable.extension,
+							color: syntaxesTable.color
+						})
+						.from(syntaxesTable)
+						.where(eq(syntaxesTable.name, syntax))
+
+					if (!dbSyntax) {
+						throw new GenericException({
+							statusCode: 400,
+							name: 'Bad Request',
+							message: `Unknown syntax "${syntax}"`
+						})
+					}
+
+					const [updatedPaste] = await tx
+						.update(pastesTable)
+						.set({
+							title,
+							slug: generatedSlug,
+							description,
+							content,
+							category,
+							syntaxId: dbSyntax.id,
+							expiration,
+							expiresAt,
+							visibility,
+							folderId,
+							updatedAt: new Date(),
+							encrypted: encrypted ?? false,
+							passwordHash
+						})
+						.where(
+							and(
+								eq(pastesTable.id, paste.id),
+								eq(pastesTable.userId, user.id)
+							)
+						)
+						.returning()
+
+					if (!updatedPaste) throwPasteNotFound()
+
+					await tx
+						.delete(pasteTagsTable)
+						.where(eq(pasteTagsTable.pasteId, paste.id))
+
+					const tagIds = await resolveTagIds(tx, uniqueTags)
+					if (tagIds.length > 0) {
+						await tx.insert(pasteTagsTable).values(
+							tagIds.map((tagId) => ({
+								pasteId: paste.id,
+								tagId
+							}))
+						)
+					}
+
+					await DoggoUtils.removeUnusedTags(tx)
+					return { updatedPaste, dbSyntax }
 				}
-
-				if (tagId) tagIds.push(tagId)
-			}
-
-			if (tagIds.length > 0) {
-				await db.insert(pasteTagsTable).values(
-					tagIds.map((tagId) => ({
-						pasteId: paste.id,
-						tagId
-					}))
-				)
-			}
-
-			// 9. Cleanup tags
-			await DoggoUtils.removeUnusedTags()
+			)
 
 			// 10. Return response
 			c.status(200)
@@ -649,7 +719,7 @@ const app = new Hono<Env>()
 				data: toPasteDetailsDto(
 					pasteRecordToDetailsSource(updatedPaste),
 					dbSyntax,
-					tags,
+					uniqueTags,
 					updatedPaste.passwordHash === null
 				)
 			})
@@ -659,34 +729,36 @@ const app = new Hono<Env>()
 		const { slug } = c.req.valid('param')
 		const user = c.get('user')
 
-		// 1. Find the paste by slug
-		const [paste] = await db
-			.select()
-			.from(pastesTable)
-			.where(eq(pastesTable.slug, slug))
+		await db.transaction(async (tx) => {
+			await DoggoUtils.acquirePasteMutationLock(tx)
 
-		if (!paste) {
-			throw new GenericException({
-				statusCode: 404,
-				name: 'Not Found',
-				message: 'Paste not found'
-			})
-		}
+			const [paste] = await tx
+				.select()
+				.from(pastesTable)
+				.where(eq(pastesTable.slug, slug))
+				.for('update')
 
-		// 2. Check if the user is the owner
-		if (paste.userId !== user.id) {
-			throw new GenericException({
-				statusCode: 403,
-				name: 'Forbidden',
-				message: 'You are not the owner of this paste'
-			})
-		}
+			if (!paste) throwPasteNotFound()
 
-		// 3. Delete the paste (cascade deletes tags via FK)
-		await db.delete(pastesTable).where(eq(pastesTable.id, paste.id))
-		await DoggoUtils.removeUnusedTags()
+			if (paste.userId !== user.id) {
+				throw new GenericException({
+					statusCode: 403,
+					name: 'Forbidden',
+					message: 'You are not the owner of this paste'
+				})
+			}
 
-		// 4. Return success
+			await tx
+				.delete(pastesTable)
+				.where(
+					and(
+						eq(pastesTable.id, paste.id),
+						eq(pastesTable.userId, user.id)
+					)
+				)
+			await DoggoUtils.removeUnusedTags(tx)
+		})
+
 		c.status(200)
 		return c.json({
 			success: true,

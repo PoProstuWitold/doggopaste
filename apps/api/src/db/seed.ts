@@ -63,14 +63,5 @@ const syntaxes = [
 ]
 
 export async function seedSyntaxes() {
-	try {
-		await Promise.all(
-			syntaxes.map((s) =>
-				db.insert(syntaxesTable).values(s).onConflictDoNothing()
-			)
-		)
-		console.info('Successfully seeded db with syntaxes')
-	} catch (err) {
-		console.error('Error seeding syntaxes to database:', err)
-	}
+	await db.insert(syntaxesTable).values(syntaxes).onConflictDoNothing()
 }

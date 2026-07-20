@@ -14,6 +14,7 @@ import { userGuard } from '../middlewares/user-guard.js'
 import type { Env } from '../types.js'
 import {
 	activePasteCondition,
+	DoggoUtils,
 	type PasteSummaryDto,
 	pasteSummarySelection,
 	toPasteSummaryDto
@@ -308,22 +309,6 @@ const app = new Hono<Env>()
 		const user = c.get('user')
 		const { id } = c.req.valid('param')
 
-		// Ensure the folder belongs to the user
-		const [folder] = await db
-			.select({ id: foldersTable.id })
-			.from(foldersTable)
-			.where(
-				and(eq(foldersTable.id, id), eq(foldersTable.userId, user.id))
-			)
-
-		if (!folder) {
-			throw new GenericException({
-				statusCode: 404,
-				name: 'Not Found',
-				message: 'Folder not found'
-			})
-		}
-
 		// Recursive CTE collects all descendant folders and deletes them in one statement.
 		// This avoids multiple round-trips and fragile manual array assembly.
 		const recursiveDelete = sql`WITH RECURSIVE folder_tree AS (
@@ -336,9 +321,32 @@ const app = new Hono<Env>()
 		)
 		DELETE FROM folders WHERE id IN (SELECT id FROM folder_tree) RETURNING id;`
 
-		const deleted = (await db.execute(recursiveDelete)) as unknown as {
-			rows?: { id: string }[]
-		}
+		const deleted = await db.transaction(async (tx) => {
+			await DoggoUtils.acquirePasteMutationLock(tx)
+
+			const [folder] = await tx
+				.select({ id: foldersTable.id })
+				.from(foldersTable)
+				.where(
+					and(
+						eq(foldersTable.id, id),
+						eq(foldersTable.userId, user.id)
+					)
+				)
+				.for('update')
+
+			if (!folder) {
+				throw new GenericException({
+					statusCode: 404,
+					name: 'Not Found',
+					message: 'Folder not found'
+				})
+			}
+
+			return (await tx.execute(recursiveDelete)) as unknown as {
+				rows?: { id: string }[]
+			}
+		})
 
 		// biome-ignore lint: no need to narrow
 		const count = Array.isArray((deleted as any)?.rows)

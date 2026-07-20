@@ -1,16 +1,18 @@
 services:
   doggopaste_db_test:
     image: postgres:17
-    container_name: doggopaste_db_test
-    restart: unless-stopped
+    restart: "no"
     environment:
       POSTGRES_USER: doggo
       POSTGRES_PASSWORD: changeme
-      POSTGRES_DB: doggopaste
+      POSTGRES_DB: doggopaste_test_control
     ports:
-      - 5432:5432
-    volumes:
-      - doggopaste_db_test_data:/var/lib/postgresql/data
-
-volumes:
-  doggopaste_db_test_data:
+      - "127.0.0.1:5433:5432"
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U doggo -d doggopaste_test_control"]
+      interval: 2s
+      timeout: 5s
+      retries: 15
+      start_period: 5s

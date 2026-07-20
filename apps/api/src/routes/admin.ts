@@ -118,33 +118,53 @@ const app = new Hono<Env>()
 			const { id } = c.req.valid('param')
 			const userId = id
 
-			await db.delete(pastesTable).where(eq(pastesTable.userId, userId))
-			await db.delete(foldersTable).where(eq(foldersTable.userId, userId))
-			await db
-				.delete(sessionsTable)
-				.where(eq(sessionsTable.userId, userId))
-			await db
-				.delete(accountsTable)
-				.where(eq(accountsTable.userId, userId))
-			await db.delete(membersTable).where(eq(membersTable.userId, userId))
-			await db
-				.delete(invitationsTable)
-				.where(eq(invitationsTable.inviterId, userId))
+			await db.transaction(async (tx) => {
+				await DoggoUtils.acquirePasteMutationLock(tx)
 
-			const [deletedUser] = await db
-				.delete(usersTable)
-				.where(eq(usersTable.id, userId))
-				.returning({ id: usersTable.id })
+				const [existingUser] = await tx
+					.select({ id: usersTable.id })
+					.from(usersTable)
+					.where(eq(usersTable.id, userId))
+					.for('update')
 
-			if (!deletedUser) {
-				throw new GenericException({
-					statusCode: 404,
-					name: 'Not Found',
-					message: 'User not found'
-				})
-			}
+				if (!existingUser) {
+					throw new GenericException({
+						statusCode: 404,
+						name: 'Not Found',
+						message: 'User not found'
+					})
+				}
 
-			await DoggoUtils.removeUnusedTags()
+				await tx
+					.delete(pastesTable)
+					.where(eq(pastesTable.userId, userId))
+				await tx
+					.delete(foldersTable)
+					.where(eq(foldersTable.userId, userId))
+				await tx
+					.delete(sessionsTable)
+					.where(eq(sessionsTable.userId, userId))
+				await tx
+					.delete(accountsTable)
+					.where(eq(accountsTable.userId, userId))
+				await tx
+					.delete(membersTable)
+					.where(eq(membersTable.userId, userId))
+				await tx
+					.delete(invitationsTable)
+					.where(eq(invitationsTable.inviterId, userId))
+
+				const [deletedUser] = await tx
+					.delete(usersTable)
+					.where(eq(usersTable.id, userId))
+					.returning({ id: usersTable.id })
+
+				if (!deletedUser) {
+					throw new Error('User disappeared during deletion')
+				}
+
+				await DoggoUtils.removeUnusedTags(tx)
+			})
 
 			return c.json({
 				success: true,
@@ -191,20 +211,23 @@ const app = new Hono<Env>()
 		validatorParamStringId,
 		async (c) => {
 			const { id } = c.req.valid('param')
-			const [deletedPaste] = await db
-				.delete(pastesTable)
-				.where(eq(pastesTable.id, id))
-				.returning({ id: pastesTable.id })
+			await db.transaction(async (tx) => {
+				await DoggoUtils.acquirePasteMutationLock(tx)
+				const [deletedPaste] = await tx
+					.delete(pastesTable)
+					.where(eq(pastesTable.id, id))
+					.returning({ id: pastesTable.id })
 
-			if (!deletedPaste) {
-				throw new GenericException({
-					statusCode: 404,
-					name: 'Not Found',
-					message: 'Paste not found'
-				})
-			}
+				if (!deletedPaste) {
+					throw new GenericException({
+						statusCode: 404,
+						name: 'Not Found',
+						message: 'Paste not found'
+					})
+				}
 
-			await DoggoUtils.removeUnusedTags()
+				await DoggoUtils.removeUnusedTags(tx)
+			})
 			return c.json({ success: true, message: 'Paste deleted' })
 		}
 	)
@@ -238,18 +261,21 @@ const app = new Hono<Env>()
 		validatorParamStringId,
 		async (c) => {
 			const { id } = c.req.valid('param')
-			const [deletedTag] = await db
-				.delete(tagsTable)
-				.where(eq(tagsTable.id, id))
-				.returning({ id: tagsTable.id })
+			await db.transaction(async (tx) => {
+				await DoggoUtils.acquirePasteMutationLock(tx)
+				const [deletedTag] = await tx
+					.delete(tagsTable)
+					.where(eq(tagsTable.id, id))
+					.returning({ id: tagsTable.id })
 
-			if (!deletedTag) {
-				throw new GenericException({
-					statusCode: 404,
-					name: 'Not Found',
-					message: 'Tag not found'
-				})
-			}
+				if (!deletedTag) {
+					throw new GenericException({
+						statusCode: 404,
+						name: 'Not Found',
+						message: 'Tag not found'
+					})
+				}
+			})
 
 			return c.json({ success: true, message: 'Tag deleted' })
 		}
