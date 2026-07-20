@@ -1,5 +1,8 @@
+import { sql } from 'drizzle-orm'
 import { generate } from 'random-words'
-import { db } from '../db/index.js'
+import type { db } from '../db/index.js'
+
+type DatabaseTransaction = Parameters<Parameters<typeof db.transaction>[0]>[0]
 
 export class DoggoUtils {
 	public static async generateSlug(): Promise<string> {
@@ -45,8 +48,17 @@ export class DoggoUtils {
 		return sanitized || 'paste'
 	}
 
-	public static async removeUnusedTags() {
-		await db.execute(`
+	/**
+	 * Serializes transactions which mutate the folder/paste/tag graph. A single
+	 * lock order prevents folder/paste deadlocks and keeps eager orphan cleanup
+	 * from racing a new tag link.
+	 */
+	public static async acquirePasteMutationLock(tx: DatabaseTransaction) {
+		await tx.execute(sql`SELECT pg_advisory_xact_lock(1146572623)`)
+	}
+
+	public static async removeUnusedTags(tx: DatabaseTransaction) {
+		await tx.execute(sql`
 			DELETE FROM tags
 			WHERE NOT EXISTS (
 				SELECT 1 FROM paste_tags WHERE tags.id = paste_tags.tag_id
