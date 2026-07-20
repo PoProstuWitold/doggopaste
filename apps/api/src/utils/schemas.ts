@@ -35,6 +35,42 @@ export const validatorParamStringSlug = zValidator(
 	}
 )
 
+export const realtimeSlugSchema = z
+	.string({
+		error: 'Realtime slug must be a string'
+	})
+	.min(1, 'Realtime slug cannot be empty')
+	.max(64, 'Realtime slug is too long')
+	.regex(
+		/^[A-Za-z0-9-]+$/,
+		'Realtime slug can only contain letters, numbers, and hyphens'
+	)
+
+export const isValidRealtimeSlug = (value: unknown): value is string =>
+	realtimeSlugSchema.safeParse(value).success
+
+const paramRealtimeSlug = z.object({
+	slug: realtimeSlugSchema
+})
+
+export const validatorParamRealtimeSlug = zValidator(
+	'param',
+	paramRealtimeSlug,
+	async (result, _c) => {
+		if (result.success === false) {
+			throw new GenericException({
+				statusCode: 400,
+				name: 'Bad Request',
+				message: 'Invalid realtime slug',
+				details: result.error.issues.map((issue) => ({
+					slug: issue.message,
+					value: String(result.data?.slug ?? '')
+				}))
+			})
+		}
+	}
+)
+
 const paramStringId = z.object({
 	id: z.uuid('Id must be a valid UUID')
 })
@@ -94,6 +130,27 @@ export const validatorPaginationQuery = zValidator(
 				statusCode: 400,
 				name: 'Bad Request',
 				message: 'Invalid pagination parameters',
+				details: result.error.issues.map((issue) => ({
+					[issue.path.join('.')]: issue.message
+				}))
+			})
+		}
+	}
+)
+
+export const userPastesQuerySchema = paginationQuerySchema.extend({
+	userId: z.uuid('User id must be a valid UUID').optional()
+})
+
+export const validatorUserPastesQuery = zValidator(
+	'query',
+	userPastesQuerySchema,
+	async (result, _c) => {
+		if (result.success === false) {
+			throw new GenericException({
+				statusCode: 400,
+				name: 'Bad Request',
+				message: 'Invalid user paste query parameters',
 				details: result.error.issues.map((issue) => ({
 					[issue.path.join('.')]: issue.message
 				}))

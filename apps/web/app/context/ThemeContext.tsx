@@ -13,7 +13,7 @@ import {
 	xcodeDark
 } from '@uiw/codemirror-themes-all'
 import type { Extension } from '@uiw/react-codemirror'
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useLayoutEffect, useState } from 'react'
 
 const themes = [
 	'system',
@@ -76,9 +76,9 @@ export const ThemeProvider = ({
 	defaultTheme?: Theme
 }) => {
 	const [theme, setTheme] = useState<Theme>(defaultTheme)
-	const [systemTheme, setSystemTheme] = useState<SystemTheme>('light')
+	const [systemTheme, setSystemTheme] = useState<SystemTheme | null>(null)
 
-	useEffect(() => {
+	useLayoutEffect(() => {
 		const storedTheme = localStorage.getItem('theme')
 		const savedTheme = isTheme(storedTheme) ? storedTheme : defaultTheme
 
@@ -87,7 +87,7 @@ export const ThemeProvider = ({
 			localStorage.setItem('theme', savedTheme)
 	}, [defaultTheme])
 
-	useEffect(() => {
+	useLayoutEffect(() => {
 		const root = document.documentElement
 		const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
 		const applyTheme = () => {
@@ -112,7 +112,12 @@ export const ThemeProvider = ({
 		localStorage.setItem('theme', newTheme)
 	}
 
-	const cmTheme = theme === 'system' ? cmThemes[systemTheme] : cmThemes[theme]
+	const cmTheme =
+		theme === 'system'
+			? systemTheme
+				? cmThemes[systemTheme]
+				: cmThemes.system
+			: cmThemes[theme]
 
 	return (
 		<ThemeContext.Provider

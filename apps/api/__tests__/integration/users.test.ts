@@ -13,6 +13,14 @@ test(
 		const app = getTestApp()
 
 		await t.test('GET /api/user/pastes?userId=:userId', async (t) => {
+			await t.test('rejects an invalid owner id', async () => {
+				const res = await app.request(
+					'/api/user/pastes?userId=not-a-uuid'
+				)
+
+				strictEqual(res.status, 400)
+			})
+
 			await t.test('returns an empty paste list for unknown owner', async () => {
 				const userId = '00000000-0000-4000-8000-000000000000'
 				const res = await app.request(

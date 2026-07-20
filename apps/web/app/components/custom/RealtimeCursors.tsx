@@ -15,6 +15,14 @@ type CursorData = {
 	x: number
 	y: number
 	name?: string
+	viewportWidth?: number
+	viewportHeight?: number
+}
+
+type CursorPosition = {
+	x: number
+	y: number
+	name: string
 }
 
 export const RealtimeCursors = ({
@@ -26,9 +34,7 @@ export const RealtimeCursors = ({
 	name?: string
 	socket: Socket | null
 }) => {
-	const [cursors, setCursors] = useState<
-		Record<string, { x: number; y: number; name: string }>
-	>({})
+	const [cursors, setCursors] = useState<Record<string, CursorPosition>>({})
 	const colorsRef = useRef<Record<string, string>>({})
 	const actualNameRef = useRef(
 		name || `Anon${Math.floor(1000 + Math.random() * 9000)}`
@@ -45,7 +51,9 @@ export const RealtimeCursors = ({
 					slug,
 					x: e.clientX,
 					y: e.clientY,
-					name: actualNameRef.current
+					name: actualNameRef.current,
+					viewportWidth: window.innerWidth,
+					viewportHeight: window.innerHeight
 				})
 				animationFrameId = null
 			})
@@ -59,14 +67,34 @@ export const RealtimeCursors = ({
 	}, [slug, socket])
 
 	useEffect(() => {
-		const handleCursor = ({ id, x, y, name }: CursorData) => {
+		const handleCursor = ({
+			id,
+			x,
+			y,
+			name,
+			viewportWidth,
+			viewportHeight
+		}: CursorData) => {
 			if (!colorsRef.current[id]) {
 				colorsRef.current[id] = generateRandomColor()
 			}
 
+			const relativeX =
+				typeof viewportWidth === 'number' && viewportWidth > 0
+					? (x / viewportWidth) * window.innerWidth
+					: x
+			const relativeY =
+				typeof viewportHeight === 'number' && viewportHeight > 0
+					? (y / viewportHeight) * window.innerHeight
+					: y
+
 			setCursors((prev) => ({
 				...prev,
-				[id]: { x, y, name: name || 'Guest' }
+				[id]: {
+					x: relativeX,
+					y: relativeY,
+					name: name || 'Guest'
+				}
 			}))
 		}
 

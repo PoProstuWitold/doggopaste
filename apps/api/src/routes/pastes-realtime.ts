@@ -6,7 +6,7 @@ import { GenericException } from '../exceptions/generic-exception.js'
 import type { Env, Session } from '../types.js'
 import { auth } from '../utils/auth.js'
 import { DoggoUtils } from '../utils/doggo-utils.js'
-import { validatorParamStringSlug } from '../utils/schemas.js'
+import { validatorParamRealtimeSlug } from '../utils/schemas.js'
 
 type NullableRealtimeSyntax = {
 	name: string | null
@@ -31,7 +31,7 @@ function toRealtimeSyntax(syntax: NullableRealtimeSyntax) {
 }
 
 const app = new Hono<Env>()
-	.post('/:slug', validatorParamStringSlug, async (c) => {
+	.post('/:slug', validatorParamRealtimeSlug, async (c) => {
 		const { slug } = c.req.valid('param')
 
 		let session = null
@@ -79,21 +79,35 @@ const app = new Hono<Env>()
 
 			const syntaxId = defaultSyntax?.id ?? null
 
-			// Insert new realtime paste
-			await db.insert(realTimePastesTable).values({
-				slug,
-				title: slug,
-				content: '',
-				syntaxId,
-				visibility: 'public'
-			})
+			// A concurrent request may create the same slug after the initial SELECT.
+			const [insertedPaste] = await db
+				.insert(realTimePastesTable)
+				.values({
+					slug,
+					title: slug,
+					content: '',
+					syntaxId,
+					visibility: 'public'
+				})
+				.onConflictDoNothing({ target: realTimePastesTable.slug })
+				.returning()
 
-			const [newPaste] = await db
-				.select()
-				.from(realTimePastesTable)
-				.where(eq(realTimePastesTable.slug, slug))
+			if (insertedPaste) {
+				paste = insertedPaste
+			} else {
+				const [concurrentlyCreatedPaste] = await db
+					.select()
+					.from(realTimePastesTable)
+					.where(eq(realTimePastesTable.slug, slug))
 
-			paste = newPaste
+				paste = concurrentlyCreatedPaste
+			}
+		}
+
+		if (!paste) {
+			throw new Error(
+				'Failed to resolve realtime paste after insert conflict'
+			)
 		}
 
 		// Populate syntax details
@@ -119,7 +133,7 @@ const app = new Hono<Env>()
 			session
 		})
 	})
-	.get('/:slug/download', validatorParamStringSlug, async (c) => {
+	.get('/:slug/download', validatorParamRealtimeSlug, async (c) => {
 		const { slug } = c.req.valid('param')
 
 		// 1. Get realtime paste with syntax extension
@@ -157,7 +171,7 @@ const app = new Hono<Env>()
 		c.header('Content-Disposition', `attachment; filename="${fileName}"`)
 		return c.body(paste.content)
 	})
-	.get('/:slug', validatorParamStringSlug, async (c) => {
+	.get('/:slug', validatorParamRealtimeSlug, async (c) => {
 		const { slug } = c.req.valid('param')
 
 		const [row] = await db

@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
+import toast from 'react-hot-toast'
 import { BsFiletypeRaw } from 'react-icons/bs'
 import { FaCheck, FaShare } from 'react-icons/fa'
 import { FaCodeFork } from 'react-icons/fa6'
@@ -29,9 +30,11 @@ export const RealtimePasteButtons = ({
 			await navigator.clipboard.writeText(
 				`${window.location.origin}/r/${realtimePaste.slug}`
 			)
-		} catch {}
-		setShareLinkCopied(true)
-		setTimeout(() => setShareLinkCopied(false), 2000)
+			setShareLinkCopied(true)
+			setTimeout(() => setShareLinkCopied(false), 2000)
+		} catch {
+			toast.error('Failed to copy link')
+		}
 	}
 
 	return (

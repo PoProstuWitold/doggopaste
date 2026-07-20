@@ -5,6 +5,7 @@ import { Server as WebSocketsServer } from 'socket.io'
 import { db } from '../db/index.js'
 import { realTimePastesTable, syntaxesTable } from '../db/schema.js'
 import { origins } from '../utils/contants.js'
+import { isValidRealtimeSlug } from '../utils/schemas.js'
 
 let io: WebSocketsServer | null
 
@@ -29,7 +30,9 @@ export function initWebSockets(server: ServerType) {
 		})
 
 		// PROJECT SPECIFIC EVENTS
-		socket.on('join-room', (slug: string) => {
+		socket.on('join-room', (slug: unknown) => {
+			if (!isValidRealtimeSlug(slug)) return
+
 			console.info(`Socket ${socket.id} joined room ${slug}`)
 			socket.join(slug)
 			socket.data.slug = slug
@@ -97,17 +100,22 @@ export function initWebSockets(server: ServerType) {
 			}
 		})
 
-		socket.on('cursor-move', ({ x, y, name }) => {
-			const slug = socket.data.slug
-			if (!slug) return
+		socket.on(
+			'cursor-move',
+			({ x, y, name, viewportWidth, viewportHeight }) => {
+				const slug = socket.data.slug
+				if (!slug) return
 
-			socket.to(slug).emit('cursor-move', {
-				id: socket.id,
-				x,
-				y,
-				name: name || 'Anon'
-			})
-		})
+				socket.to(slug).emit('cursor-move', {
+					id: socket.id,
+					x,
+					y,
+					name: name || 'Anon',
+					viewportWidth,
+					viewportHeight
+				})
+			}
+		)
 
 		socket.on('disconnect', () => {
 			const slug = socket.data.slug
