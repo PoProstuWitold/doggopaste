@@ -117,10 +117,6 @@ export const visibilityEnum = pgEnum('visibility', [
 	'unlisted',
 	'organization'
 ])
-export const realTimePasteVisibilityEnum = pgEnum('visibility', [
-	'public',
-	'organization'
-])
 export const expirationEnum = pgEnum('expiration', [
 	'never',
 	'burn_after_read',
@@ -270,7 +266,7 @@ export const realTimePastesTable = pgTable('realtime_pastes', {
 	syntaxId: uuid('syntax_id').references(() => syntaxesTable.id, {
 		onDelete: 'set null'
 	}),
-	visibility: realTimePasteVisibilityEnum('visibility')
+	visibility: visibilityEnum('visibility')
 		.notNull()
 		.default('public'),
 	organizationId: uuid('organization_id').references(
