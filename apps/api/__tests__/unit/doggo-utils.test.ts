@@ -31,5 +31,15 @@ test(
 			const sanitized = await DoggoUtils.sanitizeFileName(unsanitized)
 			strictEqual(sanitized, 'My_Awesome_File_Name.txt')
 		})
+
+		await t.test('sanitizeFileName() uses a safe fallback', () => {
+			strictEqual(DoggoUtils.sanitizeFileName('...'), 'paste')
+			strictEqual(DoggoUtils.sanitizeFileName(''), 'paste')
+			strictEqual(DoggoUtils.sanitizeFileName('żółć'), 'paste')
+		})
+
+		await t.test('sanitizeFileName() limits the filename length', () => {
+			strictEqual(DoggoUtils.sanitizeFileName('a'.repeat(101)).length, 100)
+		})
 	}
 )

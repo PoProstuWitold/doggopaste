@@ -72,7 +72,6 @@ export const getBaseApiUrl = (): string => {
 		basicUrl = process.env.DOCKER
 			? 'http://doggopaste:3002'
 			: 'http://localhost:3002'
-		console.log('[server] using app internal/container url: ', basicUrl)
 		return basicUrl
 	}
 
@@ -83,13 +82,10 @@ export const getBaseApiUrl = (): string => {
 
 	if (isHttps) {
 		basicUrl = `${protocol}//${hostname}`
-		console.log('[https] using HTTPS domain-based API:', basicUrl)
 	} else if (actualPort === '3002') {
 		basicUrl = `${protocol}//${hostname}:${actualPort}`
-		console.log('[proxy] using shared proxy at port 3002:', basicUrl)
 	} else {
 		basicUrl = `${protocol}//${hostname}:3001`
-		console.log('[local dev] using separate API on port 3001:', basicUrl)
 	}
 
 	return basicUrl
@@ -98,7 +94,9 @@ export const getBaseApiUrl = (): string => {
 export const setThemeScript = `
 (function() {
 	try {
-		const theme = localStorage.getItem('theme') || 'system';
+		const savedTheme = localStorage.getItem('theme');
+		const allowedThemes = ['system', 'light', 'dark', 'emerald', 'retro', 'cyberpunk', 'valentine', 'halloween', 'winter', 'business', 'nord'];
+		const theme = allowedThemes.includes(savedTheme) ? savedTheme : 'system';
 		const root = document.documentElement;
 		if (theme === 'system') {
 			const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';

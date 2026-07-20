@@ -53,11 +53,13 @@ export const PasteButtons = ({
 
 	const handleDownload = () => {
 		const extension = paste.syntax?.extension || 'txt'
-		const safeTitle =
-			paste.title
-				.replace(/[^\w\s.-]/g, '')
-				.replace(/\s+/g, '_')
-				.slice(0, 100) || 'paste'
+		const sanitizedTitle = paste.title
+			.replace(/[^\w\s.-]/g, '')
+			.trim()
+			.replace(/\s+/g, '_')
+			.slice(0, 100)
+			.replace(/^\.+|\.+$/g, '')
+		const safeTitle = sanitizedTitle || 'paste'
 		const fileName = `${safeTitle}.${extension}`
 
 		if (usesLocalContent) {

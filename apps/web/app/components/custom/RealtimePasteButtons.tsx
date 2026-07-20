@@ -17,18 +17,17 @@ export const RealtimePasteButtons = ({
 	realtimePaste: RealtimePaste
 	content: string
 }) => {
-	const [clientBaseUrl, setClientBaseUrl] = useState<string | null>(null)
+	const [apiBaseUrl, setApiBaseUrl] = useState<string | null>(null)
 	const [shareLinkCopied, setShareLinkCopied] = useState(false)
 
 	useEffect(() => {
-		setClientBaseUrl(getBaseApiUrl())
+		setApiBaseUrl(getBaseApiUrl())
 	}, [])
 
 	const copy = async () => {
-		if (!clientBaseUrl) return
 		try {
 			await navigator.clipboard.writeText(
-				`${clientBaseUrl}/r/${realtimePaste.slug}`
+				`${window.location.origin}/r/${realtimePaste.slug}`
 			)
 		} catch {}
 		setShareLinkCopied(true)
@@ -38,25 +37,15 @@ export const RealtimePasteButtons = ({
 	return (
 		<div className='flex flex-wrap gap-2 justify-center'>
 			<CopyButton text={content} />
-			{clientBaseUrl ? (
-				<button
-					type='button'
-					onClick={copy}
-					className='btn btn-sm btn-ghost btn-outline'
-					title='Share Link'
-				>
-					Share
-					{shareLinkCopied ? <FaCheck /> : <FaShare />}
-				</button>
-			) : (
-				<button
-					type='button'
-					className='btn btn-sm btn-ghost btn-outline'
-					title='Share Link'
-				>
-					Share <FaShare />
-				</button>
-			)}
+			<button
+				type='button'
+				onClick={copy}
+				className='btn btn-sm btn-ghost btn-outline'
+				title='Share Link'
+			>
+				Share
+				{shareLinkCopied ? <FaCheck /> : <FaShare />}
+			</button>
 			<Link
 				href={`/r/${realtimePaste.slug}/raw`}
 				className='btn btn-sm btn-warning'
@@ -65,9 +54,9 @@ export const RealtimePasteButtons = ({
 					Raw <BsFiletypeRaw />
 				</div>
 			</Link>
-			{clientBaseUrl ? (
+			{apiBaseUrl ? (
 				<a
-					href={`${clientBaseUrl}/api/pastes-realtime/${realtimePaste.slug}/download`}
+					href={`${apiBaseUrl}/api/pastes-realtime/${realtimePaste.slug}/download`}
 					className='btn btn-sm btn-success'
 				>
 					<div className='flex items-center gap-1 font-extrabold'>

@@ -4,9 +4,12 @@ import { z } from 'zod'
 import { GenericException } from '../exceptions/index.js'
 
 const paramStringSlug = z.object({
-	slug: z.string({
-		error: 'Id must be a string'
-	})
+	slug: z
+		.string({
+			error: 'Id must be a string'
+		})
+		.min(1, 'Id cannot be empty')
+		.max(64, 'Id is too long')
 })
 
 export const validatorParamStringSlug = zValidator(
@@ -24,7 +27,7 @@ export const validatorParamStringSlug = zValidator(
 							result.success === false
 								? result.error.issues[0].message
 								: 'Invalid id',
-						value: String(result.data.slug)
+						value: String(result.data?.slug ?? '')
 					}
 				]
 			})
@@ -33,9 +36,7 @@ export const validatorParamStringSlug = zValidator(
 )
 
 const paramStringId = z.object({
-	id: z.string({
-		error: 'Id must be a string'
-	})
+	id: z.uuid('Id must be a valid UUID')
 })
 
 export const validatorParamStringId = zValidator(
@@ -53,9 +54,49 @@ export const validatorParamStringId = zValidator(
 							result.success === false
 								? result.error.issues[0].message
 								: 'Invalid id',
-						value: String(result.data.id)
+						value: String(result.data?.id ?? '')
 					}
 				]
+			})
+		}
+	}
+)
+
+function paginationInteger(defaultValue: number) {
+	return z.preprocess(
+		(value) => (value === undefined ? String(defaultValue) : value),
+		z
+			.string()
+			.regex(/^\d+$/, 'Must be an integer')
+			.transform(Number)
+			.pipe(z.number().int('Must be an integer'))
+	)
+}
+
+export const paginationQuerySchema = z.object({
+	limit: paginationInteger(10).pipe(
+		z
+			.number()
+			.min(1, 'Limit must be at least 1')
+			.max(100, 'Limit cannot exceed 100')
+	),
+	offset: paginationInteger(0).pipe(
+		z.number().min(0, 'Offset cannot be negative')
+	)
+})
+
+export const validatorPaginationQuery = zValidator(
+	'query',
+	paginationQuerySchema,
+	async (result, _c) => {
+		if (result.success === false) {
+			throw new GenericException({
+				statusCode: 400,
+				name: 'Bad Request',
+				message: 'Invalid pagination parameters',
+				details: result.error.issues.map((issue) => ({
+					[issue.path.join('.')]: issue.message
+				}))
 			})
 		}
 	}
@@ -129,7 +170,10 @@ const createPasteSchema = z
 				error: 'Invalid visibility option'
 			})
 			.default('public'),
-		folder: z.string().optional().default('none'),
+		folder: z
+			.union([z.literal('none'), z.uuid('Invalid folder id')])
+			.optional()
+			.default('none'),
 		pasteAsGuest: z.boolean().default(false),
 		passwordEnabled: z.boolean().default(false),
 		password: z.string().nullish(),

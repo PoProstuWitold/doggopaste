@@ -111,7 +111,18 @@ const app = new Hono<Env>()
 				.delete(invitationsTable)
 				.where(eq(invitationsTable.inviterId, userId))
 
-			await db.delete(usersTable).where(eq(usersTable.id, userId))
+			const [deletedUser] = await db
+				.delete(usersTable)
+				.where(eq(usersTable.id, userId))
+				.returning({ id: usersTable.id })
+
+			if (!deletedUser) {
+				throw new GenericException({
+					statusCode: 404,
+					name: 'Not Found',
+					message: 'User not found'
+				})
+			}
 
 			await DoggoUtils.removeUnusedTags()
 
@@ -160,7 +171,19 @@ const app = new Hono<Env>()
 		validatorParamStringId,
 		async (c) => {
 			const { id } = c.req.valid('param')
-			await db.delete(pastesTable).where(eq(pastesTable.id, id))
+			const [deletedPaste] = await db
+				.delete(pastesTable)
+				.where(eq(pastesTable.id, id))
+				.returning({ id: pastesTable.id })
+
+			if (!deletedPaste) {
+				throw new GenericException({
+					statusCode: 404,
+					name: 'Not Found',
+					message: 'Paste not found'
+				})
+			}
+
 			await DoggoUtils.removeUnusedTags()
 			return c.json({ success: true, message: 'Paste deleted' })
 		}
@@ -172,9 +195,19 @@ const app = new Hono<Env>()
 		validatorParamStringId,
 		async (c) => {
 			const { id } = c.req.valid('param')
-			await db
+			const [deletedPaste] = await db
 				.delete(realTimePastesTable)
 				.where(eq(realTimePastesTable.id, id))
+				.returning({ id: realTimePastesTable.id })
+
+			if (!deletedPaste) {
+				throw new GenericException({
+					statusCode: 404,
+					name: 'Not Found',
+					message: 'Realtime paste not found'
+				})
+			}
+
 			return c.json({ success: true, message: 'Realtime paste deleted' })
 		}
 	)
@@ -185,7 +218,19 @@ const app = new Hono<Env>()
 		validatorParamStringId,
 		async (c) => {
 			const { id } = c.req.valid('param')
-			await db.delete(tagsTable).where(eq(tagsTable.id, id))
+			const [deletedTag] = await db
+				.delete(tagsTable)
+				.where(eq(tagsTable.id, id))
+				.returning({ id: tagsTable.id })
+
+			if (!deletedTag) {
+				throw new GenericException({
+					statusCode: 404,
+					name: 'Not Found',
+					message: 'Tag not found'
+				})
+			}
+
 			return c.json({ success: true, message: 'Tag deleted' })
 		}
 	)

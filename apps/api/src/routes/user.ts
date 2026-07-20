@@ -13,21 +13,14 @@ import {
 	activePasteCondition,
 	type PasteSummaryDto,
 	pasteSummarySelection,
-	toPasteSummaryDto
+	toPasteSummaryDto,
+	validatorPaginationQuery
 } from '../utils/index.js'
 
 const app = new Hono<Env>()
-	.get('/pastes', async (c) => {
+	.get('/pastes', validatorPaginationQuery, async (c) => {
 		const user = c.get('user')
-
-		const limit = Math.max(
-			0,
-			Number.parseInt(c.req.query('limit') || '10', 10)
-		)
-		const offset = Math.max(
-			0,
-			Number.parseInt(c.req.query('offset') || '0', 10)
-		)
+		const { limit, offset } = c.req.valid('query')
 
 		const ownerId = c.req.query('userId') ?? user?.id
 		if (!ownerId) {
@@ -52,9 +45,10 @@ const app = new Hono<Env>()
 				)
 
 		const [total] = await db
-			.select({ count: sql<number>`COUNT(*)` })
+			.select({ count: sql<string>`COUNT(*)` })
 			.from(pastesTable)
 			.where(whereClause)
+		const totalCount = Number(total?.count ?? 0)
 
 		const pastes = await db
 			.select({
@@ -68,12 +62,12 @@ const app = new Hono<Env>()
 			.from(pastesTable)
 			.leftJoin(syntaxesTable, eq(pastesTable.syntaxId, syntaxesTable.id))
 			.where(whereClause)
-			.orderBy(desc(pastesTable.updatedAt))
+			.orderBy(desc(pastesTable.updatedAt), desc(pastesTable.id))
 			.limit(limit)
 			.offset(offset)
 
 		if (pastes.length === 0) {
-			return c.json({ success: true, data: [], total: 0 })
+			return c.json({ success: true, data: [], total: totalCount })
 		}
 
 		const pasteIds = pastes.map((p) => p.paste.id)
@@ -99,7 +93,7 @@ const app = new Hono<Env>()
 
 		return c.json({
 			success: true,
-			total: total.count,
+			total: totalCount,
 			data: enrichedPastes
 		})
 	})

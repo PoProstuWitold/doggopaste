@@ -259,13 +259,18 @@ export function PasteForm({
 			>
 				<form onSubmit={handleUnlock} className='flex flex-col gap-4'>
 					<div className='form-control w-full'>
-						<label className='label' htmlFor='password'>
+						<label
+							className='label'
+							htmlFor='paste-form-unlock-password'
+						>
 							<span className='label-text font-bold'>
 								Password
 							</span>
 						</label>
 						<input
+							id='paste-form-unlock-password'
 							type='password'
+							autoComplete='current-password'
 							className='input input-bordered w-full'
 							placeholder='Enter password...'
 							value={unlockPassword}

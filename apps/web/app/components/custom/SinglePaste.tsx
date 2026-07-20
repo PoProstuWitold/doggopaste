@@ -258,7 +258,10 @@ export default function SinglePaste({
 												? 'Server Password Protected'
 												: 'Client Encrypted Content'}
 										</h3>
-										<p className='text-sm opacity-70'>
+										<p
+											id='paste-unlock-description'
+											className='text-sm opacity-70'
+										>
 											{isServerLocked
 												? 'This paste is protected by a server-side password.'
 												: 'This paste is encrypted locally.'}
@@ -269,8 +272,17 @@ export default function SinglePaste({
 										onSubmit={handleUnlock}
 										className='flex gap-2 items-center mt-2'
 									>
+										<label
+											htmlFor='paste-unlock-password'
+											className='sr-only'
+										>
+											Password
+										</label>
 										<input
+											id='paste-unlock-password'
 											type='password'
+											autoComplete='current-password'
+											aria-describedby='paste-unlock-description'
 											placeholder={
 												isServerLocked
 													? 'Enter server password...'

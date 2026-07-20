@@ -42,7 +42,11 @@ export const RealtimeEditor = ({
 	const [title, setTitle] = useState(realtimePaste.title || '')
 	const [content, setContent] = useState(realtimePaste.content || '')
 	const [selectedSyntax, setSelectedSyntax] = useState(
-		realtimePaste.syntax ?? { name: 'Plaintext' }
+		realtimePaste.syntax ?? {
+			name: 'Plaintext',
+			extension: 'txt',
+			color: '#808080'
+		}
 	)
 	const [debouncedContent, setDebouncedContent] = useState(content)
 
@@ -61,6 +65,7 @@ export const RealtimeEditor = ({
 	const editorRef = useRef<HTMLDivElement>(null)
 	const viewRef = useRef<EditorView | null>(null)
 	const socket = useRef<Socket | null>(null)
+	const [activeSocket, setActiveSocket] = useState<Socket | null>(null)
 	const socketId = useRef<string | null>(null)
 	const isRemoteChange = useRef(false)
 
@@ -113,6 +118,7 @@ export const RealtimeEditor = ({
 	useEffect(() => {
 		const s = io(getBaseApiUrl(), { path: '/ws', withCredentials: true })
 		socket.current = s
+		setActiveSocket(s)
 
 		s.on('connect', () => {
 			socketId.current = s.id as string
@@ -136,6 +142,7 @@ export const RealtimeEditor = ({
 				content: viewRef.current?.state.doc.toString()
 			})
 			s.disconnect()
+			if (socket.current === s) socket.current = null
 		}
 	}, [slug])
 
@@ -167,7 +174,7 @@ export const RealtimeEditor = ({
 			socket.current?.emit('meta-sync', {
 				slug,
 				title,
-				syntax: selectedSyntax
+				syntaxName: selectedSyntax.name
 			})
 		}, 5000)
 		return () => clearInterval(interval)
@@ -293,7 +300,7 @@ export const RealtimeEditor = ({
 			<RealtimeCursors
 				slug={slug}
 				name={session?.user.name}
-				socket={socket.current}
+				socket={activeSocket}
 			/>
 			<div className='relative'>
 				<div className='absolute top-0 right-0 text-sm text-base-content/70'>

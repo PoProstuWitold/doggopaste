@@ -8,6 +8,28 @@ import { auth } from '../utils/auth.js'
 import { DoggoUtils } from '../utils/doggo-utils.js'
 import { validatorParamStringSlug } from '../utils/schemas.js'
 
+type NullableRealtimeSyntax = {
+	name: string | null
+	extension: string | null
+	color: string | null
+} | null
+
+const plaintextSyntax = {
+	name: 'Plaintext',
+	extension: 'txt',
+	color: '#808080'
+}
+
+function toRealtimeSyntax(syntax: NullableRealtimeSyntax) {
+	if (!syntax?.name || !syntax.color) return plaintextSyntax
+
+	return {
+		name: syntax.name,
+		extension: syntax.extension,
+		color: syntax.color
+	}
+}
+
 const app = new Hono<Env>()
 	.post('/:slug', validatorParamStringSlug, async (c) => {
 		const { slug } = c.req.valid('param')
@@ -75,10 +97,14 @@ const app = new Hono<Env>()
 		}
 
 		// Populate syntax details
-		let syntax = null
+		let syntax: NullableRealtimeSyntax = null
 		if (paste.syntaxId) {
 			const [foundSyntax] = await db
-				.select()
+				.select({
+					name: syntaxesTable.name,
+					extension: syntaxesTable.extension,
+					color: syntaxesTable.color
+				})
 				.from(syntaxesTable)
 				.where(eq(syntaxesTable.id, paste.syntaxId))
 			syntax = foundSyntax ?? null
@@ -88,7 +114,7 @@ const app = new Hono<Env>()
 			success: true,
 			realtimePaste: {
 				...paste,
-				syntax
+				syntax: toRealtimeSyntax(syntax)
 			},
 			session
 		})
@@ -120,7 +146,7 @@ const app = new Hono<Env>()
 		}
 
 		const paste = row.paste
-		const extension = row.syntax.extension
+		const extension = row.syntax?.extension || 'txt'
 
 		// 2. Filename
 		const safeTitle = DoggoUtils.sanitizeFileName(paste.title)
@@ -159,7 +185,7 @@ const app = new Hono<Env>()
 		}
 
 		const paste = row.paste
-		const syntax = row.syntax
+		const syntax = toRealtimeSyntax(row.syntax)
 
 		const enrichedPaste = {
 			...paste,

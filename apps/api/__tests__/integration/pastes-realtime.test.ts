@@ -1,6 +1,12 @@
 // biome-ignore-all lint: test files
-import { ok, strictEqual } from 'node:assert'
+import { deepStrictEqual, ok, strictEqual } from 'node:assert'
 import test from 'node:test'
+import { eq } from 'drizzle-orm'
+import { db } from '../../src/db/index.js'
+import {
+	realTimePastesTable,
+	syntaxesTable
+} from '../../src/db/schema.js'
 import { getTestApp, prepareDb } from '../test-utils.js'
 
 test(
@@ -88,6 +94,95 @@ test(
 				}
 			)
 		})
+
+		await t.test(
+			'normalizes a missing syntax to Plaintext',
+			async () => {
+				await db
+					.update(realTimePastesTable)
+					.set({ syntaxId: null })
+					.where(eq(realTimePastesTable.slug, slug))
+
+				const createOrGetRes = await app.request(
+					`/api/pastes-realtime/${slug}`,
+					{
+						method: 'POST',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify({})
+					}
+				)
+				strictEqual(createOrGetRes.status, 200)
+
+				const createOrGetJson: any = await createOrGetRes.json()
+				deepStrictEqual(createOrGetJson.realtimePaste.syntax, {
+					name: 'Plaintext',
+					extension: 'txt',
+					color: '#808080'
+				})
+
+				const detailsRes = await app.request(
+					`/api/pastes-realtime/${slug}`
+				)
+				strictEqual(detailsRes.status, 200)
+
+				const detailsJson: any = await detailsRes.json()
+				deepStrictEqual(detailsJson.data.syntax, {
+					name: 'Plaintext',
+					extension: 'txt',
+					color: '#808080'
+				})
+
+				const downloadRes = await app.request(
+					`/api/pastes-realtime/${slug}/download`
+				)
+				strictEqual(downloadRes.status, 200)
+				ok(
+					downloadRes.headers
+						.get('content-disposition')
+						?.includes(`${slug}.txt`)
+				)
+			}
+		)
+
+		await t.test(
+			'uses txt when the syntax extension is empty',
+			async () => {
+				const [syntax] = await db
+					.insert(syntaxesTable)
+					.values({
+						name: `Empty extension ${Date.now()}`,
+						extension: '',
+						color: '#808080'
+					})
+					.returning({ id: syntaxesTable.id })
+
+				try {
+					await db
+						.update(realTimePastesTable)
+						.set({ syntaxId: syntax.id })
+						.where(eq(realTimePastesTable.slug, slug))
+
+					const res = await app.request(
+						`/api/pastes-realtime/${slug}/download`
+					)
+
+					strictEqual(res.status, 200)
+					ok(
+						res.headers
+							.get('content-disposition')
+							?.includes(`${slug}.txt`)
+					)
+				} finally {
+					await db
+						.update(realTimePastesTable)
+						.set({ syntaxId: null })
+						.where(eq(realTimePastesTable.slug, slug))
+					await db
+						.delete(syntaxesTable)
+						.where(eq(syntaxesTable.id, syntax.id))
+				}
+			}
+		)
 
 		await t.test('GET /:slug/download', async (t) => {
 			await t.test('returns 404 for non-existing paste', async () => {
