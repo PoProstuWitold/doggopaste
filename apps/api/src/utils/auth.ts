@@ -34,7 +34,6 @@ export const auth = betterAuth({
 	secret: authEnvironment.BETTER_AUTH_SECRET,
 	trustedOrigins: origins,
 	ipAddress: {
-		ipAddressHeaders: ['x-client-ip', 'x-forwarded-for'],
 		disableIpTracking: false
 	},
 	plugins: [
