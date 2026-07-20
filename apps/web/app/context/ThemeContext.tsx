@@ -1,7 +1,6 @@
 'use client'
 
 import {
-	andromeda,
 	dracula,
 	duotoneDark,
 	duotoneLight,
@@ -32,8 +31,13 @@ const themes = [
 
 export type Theme = (typeof themes)[number]
 
+type SystemTheme = 'light' | 'dark'
+
+const isTheme = (value: string | null): value is Theme =>
+	value !== null && themes.includes(value as Theme)
+
 const cmThemes: Record<Theme, Extension> = {
-	system: andromeda,
+	system: [],
 	light: vscodeLightInit({
 		settings: {
 			caret: '#000000',
@@ -72,36 +76,47 @@ export const ThemeProvider = ({
 	defaultTheme?: Theme
 }) => {
 	const [theme, setTheme] = useState<Theme>(defaultTheme)
+	const [systemTheme, setSystemTheme] = useState<SystemTheme>('light')
 
-	// biome-ignore lint: Can't add applyTheme to dependencies
 	useEffect(() => {
-		const savedTheme =
-			(localStorage.getItem('theme') as Theme) || defaultTheme
+		const storedTheme = localStorage.getItem('theme')
+		const savedTheme = isTheme(storedTheme) ? storedTheme : defaultTheme
+
 		setTheme(savedTheme)
-		applyTheme(savedTheme)
+		if (storedTheme !== savedTheme)
+			localStorage.setItem('theme', savedTheme)
 	}, [defaultTheme])
 
-	const applyTheme = (newTheme: Theme) => {
+	useEffect(() => {
 		const root = document.documentElement
-		const actualTheme =
-			newTheme === 'system'
-				? window.matchMedia('(prefers-color-scheme: dark)').matches
-					? 'dark'
-					: 'light'
-				: newTheme
+		const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+		const applyTheme = () => {
+			const preferredTheme: SystemTheme = mediaQuery.matches
+				? 'dark'
+				: 'light'
+			setSystemTheme(preferredTheme)
+			root.setAttribute(
+				'data-theme',
+				theme === 'system' ? preferredTheme : theme
+			)
+		}
 
-		root.setAttribute('data-theme', actualTheme)
-		localStorage.setItem('theme', newTheme)
-	}
+		applyTheme()
+		mediaQuery.addEventListener('change', applyTheme)
+
+		return () => mediaQuery.removeEventListener('change', applyTheme)
+	}, [theme])
 
 	const changeTheme = (newTheme: Theme) => {
 		setTheme(newTheme)
-		applyTheme(newTheme)
+		localStorage.setItem('theme', newTheme)
 	}
+
+	const cmTheme = theme === 'system' ? cmThemes[systemTheme] : cmThemes[theme]
 
 	return (
 		<ThemeContext.Provider
-			value={{ theme, setTheme: changeTheme, cmTheme: cmThemes[theme] }}
+			value={{ theme, setTheme: changeTheme, cmTheme }}
 		>
 			{children}
 		</ThemeContext.Provider>

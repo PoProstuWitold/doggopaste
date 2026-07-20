@@ -35,10 +35,14 @@ export class DoggoUtils {
 	}
 
 	public static sanitizeFileName(title: string): string {
-		return title
+		const sanitized = title
 			.replace(/[^\w\s.-]/g, '')
+			.trim()
 			.replace(/\s+/g, '_')
 			.slice(0, 100)
+			.replace(/^\.+|\.+$/g, '')
+
+		return sanitized || 'paste'
 	}
 
 	public static async removeUnusedTags() {

@@ -21,6 +21,41 @@ test(
 			strictEqual(res.status, 200)
 			strictEqual(json.success, true)
 			strictEqual(Array.isArray(json.data), true)
+			strictEqual(typeof json.total, 'number')
+		})
+
+		await t.test('GET / rejects invalid pagination', async () => {
+			for (const query of [
+				'limit=0',
+				'limit=101',
+				'limit=1.5',
+				'limit=10items',
+				'offset=-1',
+				'offset=1.5'
+			]) {
+				const res = await app.request(`/api/pastes?${query}`)
+				strictEqual(res.status, 400, query)
+			}
+		})
+
+		await t.test('POST / rejects a malformed folder id', async () => {
+			const res = await app.request('/api/pastes', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					title: 'Invalid folder paste',
+					slug: '',
+					content: 'test',
+					syntax: 'Plaintext',
+					category: 'none',
+					expiration: 'never',
+					visibility: 'public',
+					folder: 'not-a-uuid',
+					pasteAsGuest: true
+				})
+			})
+
+			strictEqual(res.status, 400)
 		})
 
 		await t.test('POST / (guest paste)', async () => {
@@ -60,6 +95,23 @@ test(
 			strictEqual(json.data.visibility, 'public')
 
 			createdSlug = json.data.slug
+		})
+
+		await t.test('GET / preserves total for an empty page', async () => {
+			const emptyPageResponse = await app.request(
+				'/api/pastes?limit=1&offset=1000000'
+			)
+			const emptyPage: any = await emptyPageResponse.json()
+
+			strictEqual(emptyPageResponse.status, 200)
+			strictEqual(typeof emptyPage.total, 'number')
+			strictEqual(emptyPage.total >= 1, true)
+			strictEqual(emptyPage.data.length, 0)
+		})
+
+		await t.test('GET /:slug rejects an overlong slug', async () => {
+			const res = await app.request(`/api/pastes/${'a'.repeat(65)}`)
+			strictEqual(res.status, 400)
 		})
 
 		await t.test('GET /:slug', async (t) => {

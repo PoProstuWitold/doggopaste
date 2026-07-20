@@ -22,9 +22,20 @@ test(
 
 				strictEqual(res.status, 200)
 				strictEqual(json.success, true)
-				strictEqual(Number(json.total), 0)
+				strictEqual(typeof json.total, 'number')
+				strictEqual(json.total, 0)
 				strictEqual(Array.isArray(json.data), true)
 				strictEqual(json.data.length, 0)
+			})
+
+			await t.test('rejects invalid pagination', async () => {
+				const userId = '00000000-0000-4000-8000-000000000000'
+				for (const query of ['limit=0', 'limit=101', 'offset=-1']) {
+					const res = await app.request(
+						`/api/user/pastes?userId=${userId}&${query}`
+					)
+					strictEqual(res.status, 400, query)
+				}
 			})
 		})
 

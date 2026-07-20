@@ -54,14 +54,15 @@ export const CustomDialog: React.FC<CustomDialogProps> = ({
 				transition
 			>
 				<DialogBackdrop className='fixed inset-0 bg-black/30' />
-				<div className='fixed inset-0 flex w-screen items-center justify-center'>
-					<DialogPanel className='p-5 rounded-xl bg-base-200 w-sm md:w-lg'>
+				<div className='fixed inset-0 flex w-screen items-center justify-center p-4'>
+					<DialogPanel className='p-5 rounded-xl bg-base-200 w-full max-w-sm md:max-w-lg'>
 						<DialogTitle className='font-bold text-xl flex justify-between items-center'>
 							<p>{title}</p>
 							<button
 								className='btn btn-error btn-soft'
 								type='button'
 								onClick={close}
+								aria-label='Close dialog'
 							>
 								<FaXmark className='text-2xl' />
 							</button>

@@ -3,6 +3,7 @@ import { strictEqual } from 'node:assert'
 import test from 'node:test'
 import { Hono } from 'hono'
 import { errorHandler } from '../../src/middlewares/error-handler.js'
+import { createHealthHandler } from '../../src/utils/health.js'
 import { getTestApp, prepareDb } from '../test-utils.js'
 
 test(
@@ -29,6 +30,42 @@ test(
 			strictEqual(json.status, 'ok')
 			strictEqual(res.status, 200)
 		})
+
+		await t.test(
+			'GET /health hides database error details when degraded',
+			async () => {
+				const isolatedApp = new Hono()
+				const databaseError = new Error(
+					'connection to postgres.internal.example failed'
+				)
+				const logged: unknown[][] = []
+				isolatedApp.get(
+					'/health',
+					createHealthHandler(
+						async () => {
+							throw databaseError
+						},
+						(...args: unknown[]) => logged.push(args)
+					)
+				)
+
+				const res = await isolatedApp.request('/health')
+				const json: any = await res.json()
+
+				strictEqual(res.status, 503)
+				strictEqual(json.status, 'degraded')
+				strictEqual(json.services.postgres.connected, false)
+				strictEqual(json.services.postgres.error, 'unavailable')
+				strictEqual(
+					JSON.stringify(json).includes('postgres.internal.example'),
+					false
+				)
+				strictEqual(
+					logged.some((args) => args.includes(databaseError)),
+					true
+				)
+			}
+		)
 
 		await t.test(
 			'unknown server errors are logged without exposing details',

@@ -86,7 +86,7 @@ export const RealtimeCursors = ({
 			socket?.off('cursor-move', handleCursor)
 			socket?.off('cursor-leave', handleCursorLeave)
 		}
-	}, [socket?.on, socket?.off])
+	}, [socket])
 
 	return (
 		<>

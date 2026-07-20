@@ -67,6 +67,7 @@ export function initWebSockets(server: ServerType) {
 			if (!slug || !syntaxName) return
 
 			try {
+				const resolvedTitle = title || slug
 				const [syntax] = await db
 					.select()
 					.from(syntaxesTable)
@@ -80,14 +81,17 @@ export function initWebSockets(server: ServerType) {
 				await db
 					.update(realTimePastesTable)
 					.set({
-						title: title || slug,
+						title: resolvedTitle,
 						syntaxId: syntax.id,
 						updatedAt: new Date()
 					})
 					.where(eq(realTimePastesTable.slug, slug))
 
 				// Notify ALL clients. Including the one that sent the event
-				io.to(slug).emit('meta-change', { title, syntax })
+				io.to(slug).emit('meta-change', {
+					title: resolvedTitle,
+					syntax
+				})
 			} catch {
 				console.error(`[WS] Failed to sync metadata for ${slug}`)
 			}
