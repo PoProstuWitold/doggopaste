@@ -1,6 +1,7 @@
 // built-in or npm
 import { Scalar } from '@scalar/hono-api-reference'
 import { Hono } from 'hono'
+import { bodyLimit } from 'hono/body-limit'
 import { compress } from 'hono/compress'
 import { cors } from 'hono/cors'
 import { logger } from 'hono/logger'
@@ -26,6 +27,7 @@ import type { Env } from './types'
 import { origins } from './utils/contants.js'
 import { health } from './utils/health.js'
 import { auth, openApiSpec } from './utils/index.js'
+import { REQUEST_LIMITS } from './utils/request-limits.js'
 
 export function createApp() {
 	const app = new Hono<Env>().basePath('/api')
@@ -47,9 +49,24 @@ export function createApp() {
 				'HEAD'
 			],
 			allowHeaders: ['Content-Type', 'Authorization'],
-			exposeHeaders: ['Content-Type'],
+			exposeHeaders: ['Content-Type', 'Retry-After'],
 			credentials: true,
 			maxAge: 6000
+		})
+	)
+	app.use(
+		'*',
+		bodyLimit({
+			maxSize: REQUEST_LIMITS.jsonBodyBytes,
+			onError: (c) =>
+				c.json(
+					{
+						statusCode: 413,
+						name: 'Payload Too Large',
+						message: 'Request body is too large'
+					},
+					413
+				)
 		})
 	)
 	app.use(
@@ -119,6 +136,12 @@ export function createApp() {
 
 	// Better Auth
 	app.use('*', async (c, next) => {
+		if (c.req.path.startsWith('/api/auth/')) {
+			c.set('user', null)
+			c.set('session', null)
+			return next()
+		}
+
 		const session = await auth.api.getSession({
 			headers: c.req.raw.headers
 		})

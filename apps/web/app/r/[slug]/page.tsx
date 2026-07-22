@@ -2,8 +2,9 @@ import type { Metadata } from 'next'
 import { headers } from 'next/headers'
 import { notFound } from 'next/navigation'
 import { RealtimeEditor } from '@/app/components/custom/RealtimeEditor'
+import type { RealtimePasteCreateResponse } from '@/app/types'
+import { apiRequest } from '@/app/utils/api'
 import { createDynamicAuthClient } from '@/app/utils/auth-client'
-import { getBaseApiUrl } from '@/app/utils/functions'
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
 	const { slug } = await params
@@ -33,23 +34,22 @@ export default async function SinglePastePage({
 		}
 	})
 
-	const res = await fetch(`${getBaseApiUrl()}/api/pastes-realtime/${slug}`, {
-		method: 'POST',
-		credentials: 'include',
-		headers: {
-			'Content-Type': 'application/json'
-		},
-		body: JSON.stringify({
-			token: tokenResponse.data?.token ?? null
-		})
-	})
+	const result = await apiRequest<RealtimePasteCreateResponse>(
+		`/api/pastes-realtime/${slug}`,
+		{
+			method: 'POST',
+			json: {
+				token: tokenResponse.data?.token ?? null
+			}
+		}
+	)
 
-	if (res.status === 400 || res.status === 404) notFound()
-	if (!res.ok) {
-		throw new Error(`Failed to load realtime paste (${res.status})`)
+	if (result.status === 400 || result.status === 404) notFound()
+	if (!result.ok) {
+		throw new Error(`Failed to load realtime paste (${result.status})`)
 	}
 
-	const json = await res.json().catch(() => null)
+	const json = result.data
 	if (!json?.realtimePaste || json.realtimePaste.slug !== slug) {
 		throw new Error('Invalid realtime paste response')
 	}
@@ -58,7 +58,7 @@ export default async function SinglePastePage({
 		<RealtimeEditor
 			slug={slug}
 			realtimePaste={json.realtimePaste}
-			session={json.session}
+			viewer={json.viewer}
 		/>
 	)
 }

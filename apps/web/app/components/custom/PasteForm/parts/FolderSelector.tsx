@@ -3,9 +3,26 @@
 import { useEffect, useState } from 'react'
 import { useController, useFormContext } from 'react-hook-form'
 import toast from 'react-hot-toast'
-import type { Folder, PasteForm as PasteFormType } from '@/app/types'
+import type {
+	ApiDataResponse,
+	Folder,
+	FolderDto,
+	PasteForm as PasteFormType
+} from '@/app/types'
+import { apiRequest, getApiErrorMessage } from '@/app/utils/api'
 import { buildFolderTree, flattenWithIndent } from '@/app/utils/folderHelpers'
-import { getBaseApiUrl } from '@/app/utils/functions'
+
+function withFolderCounts(folder: FolderDto): Folder {
+	const counts = folder as Partial<
+		Pick<Folder, 'subfoldersCount' | 'pastesCount'>
+	>
+
+	return {
+		...folder,
+		subfoldersCount: counts.subfoldersCount ?? 0,
+		pastesCount: counts.pastesCount ?? 0
+	}
+}
 
 export function FolderSelector() {
 	const { control, setValue } = useFormContext<PasteFormType>()
@@ -30,16 +47,19 @@ export function FolderSelector() {
 			setFoldersLoading(true)
 			setFoldersError(null)
 			try {
-				const res = await fetch(`${getBaseApiUrl()}/api/folders/all`, {
-					credentials: 'include'
-				})
-				if (!res.ok)
-					throw new Error(`Failed to load folders (${res.status})`)
-				const json = (await res.json()) as {
-					success: boolean
-					data: Folder[]
+				const result =
+					await apiRequest<ApiDataResponse<Folder[]>>(
+						'/api/folders/all'
+					)
+				if (!result.ok) {
+					throw new Error(
+						getApiErrorMessage(
+							result.data,
+							`Failed to load folders (${result.status})`
+						)
+					)
 				}
-				if (alive) setFolders(json.data ?? [])
+				if (alive) setFolders(result.data?.data ?? [])
 				// biome-ignore lint: no need to narrow
 			} catch (e: any) {
 				if (alive)
@@ -74,36 +94,25 @@ export function FolderSelector() {
 					? selectedFolderId
 					: null
 
-			const res = await fetch(`${getBaseApiUrl()}/api/folders`, {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				credentials: 'include',
-				body: JSON.stringify({ name, parentId })
-			})
+			const result = await apiRequest<ApiDataResponse<FolderDto>>(
+				'/api/folders',
+				{
+					method: 'POST',
+					json: { name, parentId }
+				}
+			)
 
-			const json = (await res.json()) as {
-				success: boolean
-				message?: string
-				data: Folder
-			}
-			console.debug('[FolderSelector] create folder response:', json)
-			if (!res.ok) {
-				toast.error(json?.message || 'Failed to create folder')
+			console.debug(
+				'[FolderSelector] create folder response:',
+				result.data
+			)
+			if (!result.ok || !result.data?.data) {
+				toast.error(
+					getApiErrorMessage(result.data, 'Failed to create folder')
+				)
 				return
 			}
-			const createdRaw = json.data
-			// Normalize to Folder shape.
-			const created: Folder = {
-				id: createdRaw.id,
-				name: createdRaw.name,
-				parentFolderId: createdRaw.parentFolderId ?? null,
-				createdAt: createdRaw.createdAt,
-				updatedAt: createdRaw.updatedAt,
-				userId: createdRaw.userId,
-				// Provide fallback counts if backend doesn't include them.
-				subfoldersCount: createdRaw.subfoldersCount ?? 0,
-				pastesCount: createdRaw.pastesCount ?? 0
-			}
+			const created = withFolderCounts(result.data.data)
 			if (!created.id) {
 				toast.error('API did not return folder id')
 				return
@@ -119,26 +128,14 @@ export function FolderSelector() {
 			// Refresh full list (not blocking selection).
 			;(async () => {
 				try {
-					const resAll = await fetch(
-						`${getBaseApiUrl()}/api/folders/all`,
-						{
-							credentials: 'include'
-						}
-					)
-					if (resAll.ok) {
-						const j = await resAll.json()
-						const listRaw = Array.isArray(j.data) ? j.data : []
-						// biome-ignore lint: no need to narrow
-						const normalized: Folder[] = listRaw.map((r: any) => ({
-							id: r.id,
-							name: r.name,
-							parentFolderId: r.parentFolderId ?? null,
-							createdAt: r.createdAt,
-							updatedAt: r.updatedAt,
-							userId: r.userId,
-							subfoldersCount: r.subfoldersCount ?? 0,
-							pastesCount: r.pastesCount ?? 0
-						}))
+					const allResult =
+						await apiRequest<ApiDataResponse<FolderDto[]>>(
+							'/api/folders/all'
+						)
+					if (allResult.ok) {
+						const normalized = (allResult.data?.data ?? []).map(
+							withFolderCounts
+						)
 						console.debug(
 							'[FolderSelector] refreshed folders:',
 							normalized.length

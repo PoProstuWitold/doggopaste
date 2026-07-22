@@ -5,8 +5,15 @@ import { useEffect, useState } from 'react'
 import { FormProvider, useForm } from 'react-hook-form'
 import toast from 'react-hot-toast'
 import { FaUnlock } from 'react-icons/fa'
-import type { Paste, PasteForm as PasteFormType } from '@/app/types'
-import { getBaseApiUrl, wait } from '@/app/utils/functions'
+import type {
+	ApiErrorDto,
+	Paste,
+	PasteForm as PasteFormType,
+	PasteResponse,
+	VerifyPasteResponse
+} from '@/app/types'
+import { apiRequest, getApiErrorMessage } from '@/app/utils/api'
+import { wait } from '@/app/utils/functions'
 import { useSensitiveContentChecker } from '@/app/utils/useSensitiveContentChecker'
 import { decryptWithPassword, encryptWithPassword } from '@/app/utils/webCrypto'
 import { CustomDialog } from '../../core/CustomDialog'
@@ -21,12 +28,14 @@ export function PasteForm({
 	mode,
 	slug,
 	paste,
-	type
+	type,
+	isAuthenticated
 }: {
 	mode: 'create' | 'edit' | 'fork'
 	slug?: string
 	paste?: Paste
 	type?: 'realtime' | 'static'
+	isAuthenticated: boolean
 }) {
 	const [isSubmitting, setIsSubmitting] = useState(false)
 	const router = useRouter()
@@ -111,23 +120,26 @@ export function PasteForm({
 			let contentToProcess = paste.content
 
 			if (hasServerLock) {
-				const res = await fetch(
-					`${getBaseApiUrl()}/api/pastes/${slug || paste.slug}/verify`,
+				const result = await apiRequest<
+					VerifyPasteResponse | ApiErrorDto
+				>(
+					`/api/pastes/${encodeURIComponent(slug || paste.slug)}/verify`,
 					{
 						method: 'POST',
-						credentials: 'include',
-						headers: { 'Content-Type': 'application/json' },
-						body: JSON.stringify({ password: unlockPassword })
+						json: { password: unlockPassword }
 					}
 				)
 
-				const json = await res.json()
-
-				if (!res.ok) {
-					throw new Error(json.message || 'Invalid server password')
+				if (!result.ok || !result.data || !('content' in result.data)) {
+					throw new Error(
+						getApiErrorMessage(
+							result.data,
+							'Invalid server password'
+						)
+					)
 				}
 
-				contentToProcess = json.content
+				contentToProcess = result.data.content
 				toast.success('Server password verified!')
 			}
 
@@ -180,20 +192,21 @@ export function PasteForm({
 
 			const isCreateLike = mode === 'create' || mode === 'fork'
 			const endpoint = isCreateLike
-				? `${getBaseApiUrl()}/api/pastes`
-				: `${getBaseApiUrl()}/api/pastes/${slug}`
+				? '/api/pastes'
+				: `/api/pastes/${encodeURIComponent(slug ?? '')}`
 			const method = isCreateLike ? 'POST' : 'PUT'
 
-			const res = await fetch(endpoint, {
-				method,
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify(payload),
-				credentials: 'include'
-			})
+			const result = await apiRequest<PasteResponse | ApiErrorDto>(
+				endpoint,
+				{
+					method,
+					json: payload
+				}
+			)
 
-			const json = await res.json()
+			const json = result.data
 
-			if (res.ok) {
+			if (result.ok && json && 'data' in json) {
 				const successMsg =
 					mode === 'edit'
 						? 'Paste edited successfully!'
@@ -214,9 +227,11 @@ export function PasteForm({
 					router.push('/')
 				}
 			} else {
-				toast.error(json.message)
-				if (json.details && Array.isArray(json.details)) {
-					for (const fieldError of json.details) {
+				toast.error(getApiErrorMessage(json, 'Paste request failed'))
+				const details =
+					json && 'details' in json ? json.details : undefined
+				if (details && Array.isArray(details)) {
+					for (const fieldError of details) {
 						for (const key in fieldError) {
 							const message = fieldError[key]
 							// @ts-expect-error dynamic key access
@@ -326,7 +341,7 @@ export function PasteForm({
 				<DescriptionField />
 
 				<div className='flex flex-col lg:flex-row gap-4'>
-					<LeftColumn mode={mode} />
+					<LeftColumn mode={mode} isAuthenticated={isAuthenticated} />
 
 					<div className='divider lg:divider-horizontal' />
 

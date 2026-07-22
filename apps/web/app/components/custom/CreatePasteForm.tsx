@@ -1,5 +1,9 @@
 import { PasteForm } from './PasteForm/PasteForm'
 
-export default function CreatePasteForm() {
-	return <PasteForm mode='create' />
+export default function CreatePasteForm({
+	isAuthenticated
+}: {
+	isAuthenticated: boolean
+}) {
+	return <PasteForm mode='create' isAuthenticated={isAuthenticated} />
 }

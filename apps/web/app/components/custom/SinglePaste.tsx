@@ -24,11 +24,16 @@ import { FaRegHourglassHalf, FaXmark } from 'react-icons/fa6'
 import { FiHash } from 'react-icons/fi'
 import { MdEnhancedEncryption } from 'react-icons/md'
 import { useTheme } from '../../context/ThemeContext'
-import type { Paste, User } from '../../types'
+import type {
+	ApiErrorDto,
+	Paste,
+	VerifyPasteResponse,
+	ViewerDto
+} from '../../types'
+import { apiRequest, getApiErrorMessage } from '../../utils/api'
 import {
 	extensions,
 	firstLetterUppercase,
-	getBaseApiUrl,
 	getCategoryLabel,
 	getContrastTextColor,
 	getExpirationLabel
@@ -40,11 +45,11 @@ import { PasteButtons } from './PasteButtons'
 export default function SinglePaste({
 	slug,
 	paste,
-	user
+	viewer
 }: {
 	slug: string
 	paste: Paste
-	user: User | null
+	viewer: ViewerDto | null
 }) {
 	const bgColor = paste.syntax.color
 	const { cmTheme } = useTheme()
@@ -71,23 +76,23 @@ export default function SinglePaste({
 
 		try {
 			if (isServerLocked) {
-				const res = await fetch(
-					`${getBaseApiUrl()}/api/pastes/${slug}/verify`,
-					{
-						method: 'POST',
-						credentials: 'include',
-						headers: { 'Content-Type': 'application/json' },
-						body: JSON.stringify({ password: passwordInput })
-					}
-				)
+				const result = await apiRequest<
+					VerifyPasteResponse | ApiErrorDto
+				>(`/api/pastes/${encodeURIComponent(slug)}/verify`, {
+					method: 'POST',
+					json: { password: passwordInput }
+				})
 
-				const json = await res.json()
-
-				if (!res.ok) {
-					throw new Error(json.message || 'Invalid server password')
+				if (!result.ok || !result.data || !('content' in result.data)) {
+					throw new Error(
+						getApiErrorMessage(
+							result.data,
+							'Invalid server password'
+						)
+					)
 				}
 
-				const realContent = json.content
+				const realContent = result.data.content
 				setFetchedContent(realContent)
 				setIsServerLocked(false)
 				toast.success('Server password verified!')
@@ -134,6 +139,8 @@ export default function SinglePaste({
 	const contentToDisplay = paste.encrypted
 		? decryptedContent || ''
 		: fetchedContent
+	const syntaxExtension =
+		extensions[paste.syntax.name as keyof typeof extensions] ?? []
 
 	const isMarkdown = paste.syntax.name === 'Markdown'
 
@@ -197,7 +204,7 @@ export default function SinglePaste({
 					<div className='divider lg:divider-horizontal' />
 					<PasteButtons
 						paste={paste}
-						user={user}
+						viewer={viewer}
 						isLocked={isServerLocked || isClientLocked}
 						content={contentToDisplay}
 					/>
@@ -319,11 +326,7 @@ export default function SinglePaste({
 										>
 											<CodeMirror
 												value={contentToDisplay}
-												extensions={[
-													extensions[
-														paste.syntax.name
-													] ?? []
-												]}
+												extensions={[syntaxExtension]}
 												readOnly={true}
 												onChange={() => {}}
 												basicSetup={{
@@ -343,11 +346,7 @@ export default function SinglePaste({
 										<div className='rounded-lg bg-base-300/80 overflow-auto max-h-162.5'>
 											<CodeMirror
 												value={contentToDisplay}
-												extensions={[
-													extensions[
-														paste.syntax.name
-													] ?? []
-												]}
+												extensions={[syntaxExtension]}
 												readOnly={true}
 												onChange={() => {}}
 												basicSetup={{

@@ -14,31 +14,23 @@ import {
 	FaUser,
 	FaUserSlash
 } from 'react-icons/fa'
-import { getBaseApiUrl, getContrastTextColor } from '@/app/utils/functions'
+import type { AdminPasteDto, AdminPastesResponse } from '@/app/types'
+import { apiRequest, getApiErrorMessage } from '@/app/utils/api'
+import { getContrastTextColor } from '@/app/utils/functions'
 
-interface AdminPaste {
-	paste: {
-		id: string
-		title: string
-		slug: string
-		visibility: 'public' | 'private' | 'unlisted'
-		createdAt: Date
-		updatedAt: Date
+async function getAdminPastes(): Promise<AdminPasteDto[]> {
+	const result = await apiRequest<AdminPastesResponse>('/api/admin/pastes')
+	if (!result.ok) {
+		throw new Error(
+			getApiErrorMessage(result.data, `Failed ${result.status}`)
+		)
 	}
-	user: {
-		id: string
-		name: string
-	}
-	syntax: {
-		id: string
-		name: string
-		extension: string
-		color: string
-	}
+
+	return result.data?.data.pastes ?? []
 }
 
 export const AdminPastes: React.FC = () => {
-	const [data, setData] = useState<AdminPaste[]>([])
+	const [data, setData] = useState<AdminPasteDto[]>([])
 	const [total, setTotal] = useState<number>(0)
 	const [loading, setLoading] = useState(true)
 	const [error, setError] = useState<string | null>(null)
@@ -48,16 +40,10 @@ export const AdminPastes: React.FC = () => {
 		;(async () => {
 			setLoading(true)
 			try {
-				const res = await fetch(`${getBaseApiUrl()}/api/admin/pastes`, {
-					credentials: 'include'
-				})
-				const json = await res.json()
-				if (!res.ok) {
-					throw new Error(json.error || `Failed ${res.status}`)
-				}
+				const pastes = await getAdminPastes()
 				if (!cancelled) {
-					setData(json.data?.pastes || [])
-					setTotal(json.data?.total || json.data?.pastes.length || 0)
+					setData(pastes)
+					setTotal(pastes.length)
 				}
 			} catch (e) {
 				if (!cancelled)
@@ -71,18 +57,18 @@ export const AdminPastes: React.FC = () => {
 		}
 	}, [])
 
-	function reload() {
+	async function reload() {
 		setLoading(true)
 		setError(null)
-		fetch(`${getBaseApiUrl()}/api/admin/pastes`, { credentials: 'include' })
-			.then(async (r) => {
-				const j = await r.json()
-				if (!r.ok) throw new Error(j.error || `Failed ${r.status}`)
-				setData(j.data?.pastes || [])
-				setTotal(j.data?.total || j.data?.pastes.length || 0)
-			})
-			.catch((e) => setError(e.message || 'Failed to reload pastes'))
-			.finally(() => setLoading(false))
+		try {
+			const pastes = await getAdminPastes()
+			setData(pastes)
+			setTotal(pastes.length)
+		} catch (e) {
+			setError((e as Error).message || 'Failed to reload pastes')
+		} finally {
+			setLoading(false)
+		}
 	}
 
 	return (
@@ -180,26 +166,29 @@ export const AdminPastes: React.FC = () => {
 }
 
 interface PasteRowProps {
-	staticPaste: AdminPaste
+	staticPaste: AdminPasteDto
 	onAction?: () => void
 }
 
 const PasteRow: React.FC<PasteRowProps> = ({ staticPaste, onAction }) => {
 	const { paste, syntax, user } = staticPaste
+	const syntaxColor = syntax?.color ?? '#808080'
+	const syntaxName = syntax?.name ?? 'Plaintext'
 	const [working, setWorking] = useState(false)
 
 	async function deletePaste() {
 		if (!confirm('Delete this paste?')) return
 		setWorking(true)
 		try {
-			const res = await fetch(
-				`${getBaseApiUrl()}/api/admin/pastes/${paste.id}`,
-				{
-					method: 'DELETE',
-					credentials: 'include'
-				}
+			const result = await apiRequest(
+				`/api/admin/pastes/${encodeURIComponent(paste.id)}`,
+				{ method: 'DELETE' }
 			)
-			if (!res.ok) throw new Error(`Failed ${res.status}`)
+			if (!result.ok) {
+				throw new Error(
+					getApiErrorMessage(result.data, `Failed ${result.status}`)
+				)
+			}
 			onAction?.()
 		} catch (e) {
 			alert((e as Error).message || 'Delete failed')
@@ -213,7 +202,7 @@ const PasteRow: React.FC<PasteRowProps> = ({ staticPaste, onAction }) => {
 			<td className='font-mono truncate' title={paste.id}>
 				{paste.id}
 			</td>
-			<td className='font-mono truncate' title={paste.slug}>
+			<td className='font-mono truncate' title={paste.slug ?? undefined}>
 				{paste.slug ? (
 					<Link
 						prefetch={false}
@@ -273,11 +262,11 @@ const PasteRow: React.FC<PasteRowProps> = ({ staticPaste, onAction }) => {
 				<span
 					className='badge mt-2 md:mt-0 font-semibold'
 					style={{
-						backgroundColor: syntax.color,
-						color: getContrastTextColor(syntax.color)
+						backgroundColor: syntaxColor,
+						color: getContrastTextColor(syntaxColor)
 					}}
 				>
-					{syntax.name}
+					{syntaxName}
 				</span>
 			</td>
 			<td>

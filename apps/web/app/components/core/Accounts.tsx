@@ -5,11 +5,11 @@ import { FaFacebook, FaGithub, FaGoogle } from 'react-icons/fa6'
 import { RiLockPasswordFill } from 'react-icons/ri'
 import { createDynamicAuthClient } from '@/app/utils/auth-client'
 import { wait } from '@/app/utils/functions'
-import type { Account as AccountType } from '../../types'
+import type { AccountDto } from '../../types'
 import { Account } from './Account'
 
 interface AccountsProps {
-	accounts: AccountType[] | null
+	accounts: AccountDto[]
 	hasCredentialAccount: boolean
 }
 

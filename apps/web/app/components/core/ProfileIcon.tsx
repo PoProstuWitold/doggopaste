@@ -1,16 +1,8 @@
-import { headers } from 'next/headers'
-import { createDynamicAuthClient } from '@/app/utils/auth-client'
+import { getCurrentViewer } from '@/app/utils/session'
 import { ProfileIconClient } from './ProfileIconClient'
 
 export const ProfileIcon = async () => {
-	const authClient = createDynamicAuthClient()
-	const session = await authClient.getSession({
-		fetchOptions: {
-			headers: await headers()
-		}
-	})
+	const viewer = await getCurrentViewer()
 
-	const user = session.data?.user
-
-	return <ProfileIconClient user={user} />
+	return <ProfileIconClient viewer={viewer} />
 }

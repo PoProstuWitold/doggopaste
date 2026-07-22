@@ -17,6 +17,7 @@ import {
 	DoggoUtils,
 	type PasteSummaryDto,
 	pasteSummarySelection,
+	toFolderDto,
 	toPasteSummaryDto
 } from '../utils/index.js'
 import {
@@ -100,7 +101,7 @@ const app = new Hono<Env>()
 
 		if (existing) {
 			// already exists - return the existing folder (re-use)
-			return c.json({ success: true, data: existing }, 200)
+			return c.json({ success: true, data: toFolderDto(existing) }, 200)
 		}
 
 		// 2) Does not exist - insert a new one
@@ -116,7 +117,7 @@ const app = new Hono<Env>()
 		const inserted = insertedRows[0]
 
 		if (inserted) {
-			return c.json({ success: true, data: inserted }, 201)
+			return c.json({ success: true, data: toFolderDto(inserted) }, 201)
 		}
 
 		// 3) Race condition (someone inserted between select and insert) - fetch and return the existing one
@@ -141,7 +142,7 @@ const app = new Hono<Env>()
 			})
 		}
 
-		return c.json({ success: true, data: raced }, 200)
+		return c.json({ success: true, data: toFolderDto(raced) }, 200)
 	})
 	/**
 	 * List folders for the authenticated user.
@@ -171,7 +172,7 @@ const app = new Hono<Env>()
 			.from(foldersTable)
 			.where(where)
 			.orderBy(foldersTable.name)
-		return c.json({ success: true, data: rows })
+		return c.json({ success: true, data: rows.map(toFolderDto) })
 	})
 	/**
 	 * List all folders (flat) for the authenticated user.
@@ -252,7 +253,7 @@ const app = new Hono<Env>()
 			}
 
 			if (Object.keys(updates).length === 0) {
-				return c.json({ success: true, data: folder }) // nothing to change
+				return c.json({ success: true, data: toFolderDto(folder) }) // nothing to change
 			}
 
 			// Enforce sibling uniqueness for name changes
@@ -296,7 +297,7 @@ const app = new Hono<Env>()
 				.returning()
 
 			// Unique sibling name violation will bubble from DB
-			return c.json({ success: true, data: updated })
+			return c.json({ success: true, data: toFolderDto(updated) })
 		}
 	)
 	/**

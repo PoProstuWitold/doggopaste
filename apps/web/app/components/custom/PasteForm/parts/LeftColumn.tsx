@@ -1,9 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { useFormContext } from 'react-hook-form'
-import type { PasteForm as PasteFormType, User } from '@/app/types'
-import { createDynamicAuthClient } from '@/app/utils/auth-client'
+import type { PasteForm as PasteFormType } from '@/app/types'
 import { categories } from '@/app/utils/functions'
 import { ExpirationSelect } from './ExpirationSelect'
 import { FolderSelector } from './FolderSelector'
@@ -12,14 +11,19 @@ import { SyntaxSelect } from './SyntaxSelect'
 import { TagsInput } from './TagsInput'
 import { VisibilitySelect } from './VisibilitySelect'
 
-export function LeftColumn({ mode }: { mode: 'create' | 'edit' | 'fork' }) {
+export function LeftColumn({
+	mode,
+	isAuthenticated
+}: {
+	mode: 'create' | 'edit' | 'fork'
+	isAuthenticated: boolean
+}) {
 	const {
 		register,
 		setValue,
 		watch,
 		formState: { errors }
 	} = useFormContext<PasteFormType>()
-	const [user, setUser] = useState<User | null>(null)
 	const visibility = watch('visibility')
 
 	useEffect(() => {
@@ -27,29 +31,6 @@ export function LeftColumn({ mode }: { mode: 'create' | 'edit' | 'fork' }) {
 			setValue('pasteAsGuest', false)
 		}
 	}, [setValue, visibility])
-
-	useEffect(() => {
-		let ignore = false
-
-		async function fetchUser() {
-			const authClient = createDynamicAuthClient()
-			const { data, error } = await authClient.getSession()
-
-			if (error) {
-				console.error('Failed to fetch current session')
-				if (!ignore) setUser(null)
-				return
-			}
-
-			const nextUser = data?.user ?? null
-			if (!ignore) setUser(nextUser)
-		}
-		fetchUser()
-
-		return () => {
-			ignore = true
-		}
-	}, [])
 
 	return (
 		<div className='w-full lg:w-1/5 flex flex-col gap-4'>
@@ -130,7 +111,7 @@ export function LeftColumn({ mode }: { mode: 'create' | 'edit' | 'fork' }) {
 			<PasswordSection />
 
 			{/* Folder + inline create */}
-			{(user || mode === 'edit') && (
+			{(isAuthenticated || mode === 'edit') && (
 				<>
 					<div className='divider m-0 p-0'>Folders</div>
 					<FolderSelector />
@@ -139,7 +120,7 @@ export function LeftColumn({ mode }: { mode: 'create' | 'edit' | 'fork' }) {
 
 			{/* Guest toggle */}
 			{/* Show only when user is logged and not in edit mode */}
-			{user && mode !== 'edit' && (
+			{isAuthenticated && mode !== 'edit' && (
 				<>
 					<div className='divider m-0 p-0'>Anonymous</div>
 					<label className='flex items-center gap-2 text-sm'>
@@ -156,7 +137,7 @@ export function LeftColumn({ mode }: { mode: 'create' | 'edit' | 'fork' }) {
 			)}
 
 			{/* Notify about more options */}
-			{!user && mode !== 'edit' && (
+			{!isAuthenticated && mode !== 'edit' && (
 				<>
 					<div className='divider' />
 					<p className='text-sm text-base-content/60'>

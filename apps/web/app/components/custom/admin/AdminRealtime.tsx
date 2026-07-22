@@ -3,26 +3,28 @@
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { FaBolt, FaDatabase, FaLink, FaSync, FaTrash } from 'react-icons/fa'
-import { getBaseApiUrl, getContrastTextColor } from '@/app/utils/functions'
+import type {
+	AdminRealtimePasteDto,
+	AdminRealtimePastesResponse
+} from '@/app/types'
+import { apiRequest, getApiErrorMessage } from '@/app/utils/api'
+import { getContrastTextColor } from '@/app/utils/functions'
 
-interface RealtimePaste {
-	paste: {
-		title: string
-		slug: string
-		content: string
-		id: string
-		createdAt: Date
-		updatedAt: Date
+async function getAdminRealtimePastes(): Promise<AdminRealtimePasteDto[]> {
+	const result = await apiRequest<AdminRealtimePastesResponse>(
+		'/api/admin/pastes-realtime'
+	)
+	if (!result.ok) {
+		throw new Error(
+			getApiErrorMessage(result.data, `Failed ${result.status}`)
+		)
 	}
-	syntax: {
-		name: string
-		extension: string
-		color: string
-	}
+
+	return result.data?.data.realtimePastes ?? []
 }
 
 export const AdminRealtime: React.FC = () => {
-	const [data, setData] = useState<RealtimePaste[]>([])
+	const [data, setData] = useState<AdminRealtimePasteDto[]>([])
 	const [total, setTotal] = useState<number>(0)
 	const [loading, setLoading] = useState(true)
 	const [error, setError] = useState<string | null>(null)
@@ -32,19 +34,10 @@ export const AdminRealtime: React.FC = () => {
 		;(async () => {
 			setLoading(true)
 			try {
-				const res = await fetch(
-					`${getBaseApiUrl()}/api/admin/pastes-realtime`,
-					{
-						credentials: 'include'
-					}
-				)
-				const json = await res.json()
-				if (!res.ok)
-					throw new Error(json.error || `Failed ${res.status}`)
+				const realtimePastes = await getAdminRealtimePastes()
 				if (!cancelled) {
-					const arr: RealtimePaste[] = json.data?.realtimePastes || []
-					setData(arr)
-					setTotal(arr.length)
+					setData(realtimePastes)
+					setTotal(realtimePastes.length)
 				}
 			} catch (e) {
 				if (!cancelled)
@@ -60,23 +53,18 @@ export const AdminRealtime: React.FC = () => {
 		}
 	}, [])
 
-	function reload() {
+	async function reload() {
 		setLoading(true)
 		setError(null)
-		fetch(`${getBaseApiUrl()}/api/admin/pastes-realtime`, {
-			credentials: 'include'
-		})
-			.then(async (r) => {
-				const j = await r.json()
-				if (!r.ok) throw new Error(j.error || `Failed ${r.status}`)
-				const arr: RealtimePaste[] = j.data?.realtimePastes || []
-				setData(arr)
-				setTotal(arr.length)
-			})
-			.catch((e) =>
-				setError(e.message || 'Failed to reload realtime pastes')
-			)
-			.finally(() => setLoading(false))
+		try {
+			const realtimePastes = await getAdminRealtimePastes()
+			setData(realtimePastes)
+			setTotal(realtimePastes.length)
+		} catch (e) {
+			setError((e as Error).message || 'Failed to reload realtime pastes')
+		} finally {
+			setLoading(false)
+		}
 	}
 
 	return (
@@ -169,7 +157,7 @@ export const AdminRealtime: React.FC = () => {
 }
 
 interface RealtimeRowProps {
-	realtimePaste: RealtimePaste
+	realtimePaste: AdminRealtimePasteDto
 	onAction?: () => void
 }
 
@@ -178,22 +166,22 @@ const RealtimeRow: React.FC<RealtimeRowProps> = ({
 	onAction
 }) => {
 	const { paste, syntax } = realtimePaste
+	const syntaxColor = syntax?.color ?? '#808080'
+	const syntaxName = syntax?.name ?? 'Plaintext'
 	const [working, setWorking] = useState(false)
 
 	async function deletePaste() {
 		if (!confirm('Delete this realtime paste?')) return
 		setWorking(true)
 		try {
-			const res = await fetch(
-				`${getBaseApiUrl()}/api/admin/pastes-realtime/${paste.id}`,
-				{
-					method: 'DELETE',
-					credentials: 'include'
-				}
+			const result = await apiRequest(
+				`/api/admin/pastes-realtime/${encodeURIComponent(paste.id)}`,
+				{ method: 'DELETE' }
 			)
-			if (!res.ok) {
-				const json = await res.json()
-				throw new Error(json.message || `Failed ${res.status}`)
+			if (!result.ok) {
+				throw new Error(
+					getApiErrorMessage(result.data, `Failed ${result.status}`)
+				)
 			}
 			onAction?.()
 		} catch (e) {
@@ -240,11 +228,11 @@ const RealtimeRow: React.FC<RealtimeRowProps> = ({
 				<span
 					className='badge mt-2 md:mt-0 font-semibold'
 					style={{
-						backgroundColor: syntax.color,
-						color: getContrastTextColor(syntax.color)
+						backgroundColor: syntaxColor,
+						color: getContrastTextColor(syntaxColor)
 					}}
 				>
-					{syntax.name}
+					{syntaxName}
 				</span>
 			</td>
 			<td title={new Date(paste.updatedAt).toLocaleString('pl-PL')}>

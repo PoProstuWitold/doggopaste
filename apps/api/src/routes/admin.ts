@@ -22,6 +22,8 @@ import type { Env } from '../types.js'
 import {
 	activePasteCondition,
 	DoggoUtils,
+	toRealtimePasteDto,
+	toSyntaxDto,
 	validatorParamStringId
 } from '../utils/index.js'
 
@@ -105,7 +107,16 @@ const app = new Hono<Env>()
 		return c.json({
 			success: true,
 			data: {
-				realtimePastes: realtimePastes
+				realtimePastes: realtimePastes.map(({ paste, syntax }) => ({
+					paste: toRealtimePasteDto(paste),
+					syntax: syntax?.name
+						? {
+								name: syntax.name,
+								extension: syntax.extension,
+								color: syntax.color ?? '#808080'
+							}
+						: null
+				}))
 			}
 		})
 	})
@@ -200,7 +211,7 @@ const app = new Hono<Env>()
 		return c.json({
 			success: true,
 			data: {
-				syntaxes: syntaxes
+				syntaxes: syntaxes.map(toSyntaxDto)
 			}
 		})
 	})

@@ -7,7 +7,7 @@ import { toast } from 'react-hot-toast'
 import { FaFileCode, FaSpinner } from 'react-icons/fa'
 import { FaPenToSquare, FaTrash } from 'react-icons/fa6'
 import { CustomDialog } from '@/app/components/core/CustomDialog'
-import { getBaseApiUrl } from '@/app/utils/functions'
+import { apiRequest, getApiErrorMessage } from '@/app/utils/api'
 
 interface FolderButtonsProps {
 	folderId: string
@@ -33,21 +33,21 @@ export const FolderButtons = ({
 		}
 		setRenameLoading(true)
 		try {
-			const res = await fetch(
-				`${getBaseApiUrl()}/api/folders/${encodeURIComponent(folderId)}`,
+			const result = await apiRequest(
+				`/api/folders/${encodeURIComponent(folderId)}`,
 				{
 					method: 'PATCH',
-					headers: { 'Content-Type': 'application/json' },
-					credentials: 'include',
-					body: JSON.stringify({ name: newName })
+					json: { name: newName }
 				}
 			)
-			const json = await res.json()
-			if (!res.ok) {
+			if (!result.ok) {
+				const json = result.data as {
+					details?: Array<Record<string, string>>
+					message?: string
+				} | null
 				const msg =
 					json?.details?.[0]?.name ||
-					json?.message ||
-					'Failed to rename folder'
+					getApiErrorMessage(json, 'Failed to rename folder')
 				toast.error(msg)
 			} else {
 				toast.success('Folder renamed')
@@ -63,17 +63,14 @@ export const FolderButtons = ({
 	async function handleDelete() {
 		setDeleteLoading(true)
 		try {
-			const res = await fetch(
-				`${getBaseApiUrl()}/api/folders/${encodeURIComponent(folderId)}`,
-				{
-					method: 'DELETE',
-					credentials: 'include'
-				}
+			const result = await apiRequest(
+				`/api/folders/${encodeURIComponent(folderId)}`,
+				{ method: 'DELETE' }
 			)
-			const json = await res.json().catch(() => null)
-			if (!res.ok) {
-				const msg = json?.message || 'Failed to delete folder'
-				toast.error(msg)
+			if (!result.ok) {
+				toast.error(
+					getApiErrorMessage(result.data, 'Failed to delete folder')
+				)
 			} else {
 				toast.success('Folder deleted')
 				router.push(`/u/${encodeURIComponent(name)}/folders`)

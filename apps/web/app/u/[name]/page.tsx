@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { cookies, headers } from 'next/headers'
+import { cookies } from 'next/headers'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { BiInfoCircle } from 'react-icons/bi'
@@ -11,29 +11,21 @@ import {
 } from 'react-icons/fa'
 import { FiEdit } from 'react-icons/fi'
 import { PasteCard } from '@/app/components/custom/PasteCard'
-import type { Folder, PasteSummary, User } from '@/app/types'
-import { createDynamicAuthClient } from '@/app/utils/auth-client'
+import type {
+	ApiDataResponse,
+	Folder,
+	PaginatedResponse,
+	PasteSummary
+} from '@/app/types'
+import { apiRequest } from '@/app/utils/api'
+import { getPublicUserByName } from '@/app/utils/api-data'
 import { buildFolderTree, renderFolderBranch } from '@/app/utils/folderHelpers'
-import { getBaseApiUrl } from '@/app/utils/functions'
+import { getCurrentViewer } from '@/app/utils/session'
 
 export const dynamic = 'force-dynamic'
 
 type Params = { name: string }
 type Search = { page?: string }
-
-async function fetchUserByName(name: string): Promise<User | null> {
-	const res = await fetch(
-		`${getBaseApiUrl()}/api/user/name/${encodeURIComponent(name)}`,
-		{
-			next: { revalidate: 0 },
-			cache: 'no-store'
-		}
-	)
-	if (res.status === 404) return null
-	if (!res.ok) throw new Error('Failed to load user')
-	const json = await res.json()
-	return json.data as User
-}
 
 export async function generateMetadata({
 	params
@@ -41,7 +33,7 @@ export async function generateMetadata({
 	params: Promise<Params>
 }): Promise<Metadata> {
 	const { name } = await params
-	const user = await fetchUserByName(name)
+	const user = await getPublicUserByName(name)
 	if (!user) {
 		return {
 			title: 'User Not Found',
@@ -62,13 +54,7 @@ export default async function UserPage({
 	params: Promise<Params>
 	searchParams?: Promise<Search>
 }) {
-	const authClient = createDynamicAuthClient()
-	const session = await authClient.getSession({
-		fetchOptions: {
-			headers: await headers()
-		}
-	})
-	const loggedUser = session.data?.user
+	const viewer = await getCurrentViewer()
 
 	const { name } = await params
 	const sp = await searchParams
@@ -76,7 +62,7 @@ export default async function UserPage({
 	const limit = 10
 	const offset = (page - 1) * limit
 
-	const user = await fetchUserByName(name)
+	const user = await getPublicUserByName(name)
 	if (!user) notFound()
 
 	const cookieHeader = await cookies()
@@ -86,45 +72,40 @@ export default async function UserPage({
 		offset: String(offset)
 	})
 
-	const res = await fetch(
-		`${getBaseApiUrl()}/api/user/pastes?${qs.toString()}`,
+	const result = await apiRequest<PaginatedResponse<PasteSummary>>(
+		`/api/user/pastes?${qs.toString()}`,
 		{
 			headers: { Cookie: cookieHeader.toString() },
-			next: { revalidate: 0 },
 			cache: 'no-store'
 		}
 	)
-	if (!res.ok) throw new Error('Failed to load pastes')
+	if (!result.ok || !result.data) throw new Error('Failed to load pastes')
 
-	const json = (await res.json()) as { data: PasteSummary[]; total: number }
-	const pastes = json.data ?? []
-	const total = json.total ?? 0
+	const pastes = result.data.data ?? []
+	const total = result.data.total ?? 0
 
 	const label = user.name || name
 	const joined = new Date(user.createdAt).toLocaleDateString('pl-PL')
 	const RoleIcon = user.role === 'admin' ? FaUserShield : FaUser
 
 	let folders: Folder[] = []
-	if (loggedUser && loggedUser.id === user.id) {
-		const cookieHeader = await cookies()
-		const foldersRes = await fetch(`${getBaseApiUrl()}/api/folders/all`, {
-			headers: { Cookie: cookieHeader.toString() },
-			next: { revalidate: 0 },
-			cache: 'no-store'
-		})
-		if (foldersRes.ok) {
-			const j = (await foldersRes.json()) as {
-				success: boolean
-				data: Folder[]
+	if (viewer?.id === user.id) {
+		const foldersResult = await apiRequest<ApiDataResponse<Folder[]>>(
+			'/api/folders/all',
+			{
+				headers: { Cookie: cookieHeader.toString() },
+				cache: 'no-store'
 			}
-			folders = j.data ?? []
+		)
+		if (foldersResult.ok) {
+			folders = foldersResult.data?.data ?? []
 		}
 	}
 
 	return (
 		<div className='max-w-5xl mx-auto px-6 py-6 flex flex-col gap-10'>
 			{/* Check if logged matches fetched user */}
-			{loggedUser && loggedUser.id === user.id && (
+			{viewer?.id === user.id && (
 				<div className='alert alert-info'>
 					<BiInfoCircle className='w-10 h-10' />
 					<span>
@@ -167,7 +148,7 @@ export default async function UserPage({
 				</div>
 			</div>
 
-			{loggedUser && loggedUser.id === user.id && (
+			{viewer?.id === user.id && (
 				<div className='card bg-base-100 border border-base-300 shadow-sm'>
 					<div className='card-body p-4 md:p-6'>
 						<h2 className='text-lg md:text-xl font-semibold flex items-center gap-2'>
@@ -181,7 +162,7 @@ export default async function UserPage({
 									buildFolderTree(folders),
 									null,
 									0,
-									loggedUser.name
+									viewer.name
 								)}
 							</div>
 						) : (
@@ -191,7 +172,7 @@ export default async function UserPage({
 						)}
 						{/* Managing folders */}
 						<Link
-							href={`/u/${loggedUser.name}/folders`}
+							href={`/u/${viewer.name}/folders`}
 							className='btn btn-primary btn-ghost'
 						>
 							<FiEdit className='w-5 h-5' />

@@ -77,7 +77,7 @@ test(
 					strictEqual(json.realtimePaste.content, '')
 
 					ok('syntax' in json.realtimePaste)
-					strictEqual(json.session, null)
+					strictEqual(json.viewer, null)
 				}
 			)
 
@@ -129,8 +129,8 @@ test(
 							firstJson.realtimePaste.id,
 							secondJson.realtimePaste.id
 						)
-						strictEqual(firstJson.session, null)
-						strictEqual(secondJson.session, null)
+						strictEqual(firstJson.viewer, null)
+						strictEqual(secondJson.viewer, null)
 
 						const rows = await db
 							.select({ id: realTimePastesTable.id })

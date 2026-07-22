@@ -16,7 +16,7 @@ import {
 } from 'react-icons/fa'
 import io, { type Socket } from 'socket.io-client'
 import { useTheme } from '../../context/ThemeContext'
-import type { RealtimePaste, Session, User } from '../../types'
+import type { RealtimePaste, RealtimeViewerDto } from '../../types'
 import {
 	extensions,
 	getBaseApiUrl,
@@ -29,14 +29,11 @@ import { RealtimePasteButtons } from './RealtimePasteButtons'
 export const RealtimeEditor = ({
 	slug,
 	realtimePaste,
-	session
+	viewer
 }: {
 	slug: string
 	realtimePaste: RealtimePaste
-	session?: {
-		session: Session | null
-		user: User
-	}
+	viewer: RealtimeViewerDto | null
 }) => {
 	const { cmTheme } = useTheme()
 	const [title, setTitle] = useState(realtimePaste.title || '')
@@ -305,14 +302,14 @@ export const RealtimeEditor = ({
 		<div className='flex flex-col gap-10'>
 			<RealtimeCursors
 				slug={slug}
-				name={session?.user.name}
+				name={viewer?.name}
 				socket={activeSocket}
 			/>
 			<div className='relative'>
 				<div className='absolute top-0 right-0 text-sm text-base-content/70'>
-					{session ? (
+					{viewer ? (
 						<span className='badge badge-success'>
-							Logged in as {session.user.name}
+							Logged in as {viewer.name}
 						</span>
 					) : (
 						<span className='badge badge-warning'>
@@ -371,7 +368,6 @@ export const RealtimeEditor = ({
 
 							setSelectedSyntax({
 								...selectedSyntax,
-								// @ts-expect-error
 								name: selectedName
 							})
 

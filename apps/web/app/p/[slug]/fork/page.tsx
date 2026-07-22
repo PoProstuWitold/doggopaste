@@ -1,38 +1,22 @@
 import type { Metadata } from 'next'
-import { cookies } from 'next/headers'
 import { notFound } from 'next/navigation'
 import ForkPasteForm from '@/app/components/custom/ForkPasteForm'
-import type { Paste, PasteResponse, RealtimePasteResponse } from '@/app/types'
-import { getBaseApiUrl } from '@/app/utils/functions'
-
-async function fetchStaticPaste(slug: string): Promise<PasteResponse> {
-	const cookieHeader = await cookies()
-	const res = await fetch(`${getBaseApiUrl()}/api/pastes/${slug}`, {
-		method: 'GET',
-		headers: {
-			'Content-Type': 'application/json',
-			cookie: cookieHeader.toString()
-		}
-	})
-	if (res.status === 404) notFound()
-	if (!res.ok) throw new Error('Failed to fetch static paste')
-	const json = await res.json()
-	return json
-}
+import type { Paste, RealtimePasteResponse } from '@/app/types'
+import { apiRequest } from '@/app/utils/api'
+import { getStaticPaste } from '@/app/utils/api-data'
+import { getCurrentViewer } from '@/app/utils/session'
 
 async function fetchRealtimePaste(
 	slug: string
 ): Promise<RealtimePasteResponse> {
-	const res = await fetch(`${getBaseApiUrl()}/api/pastes-realtime/${slug}`, {
-		method: 'GET',
-		headers: {
-			'Content-Type': 'application/json'
-		}
-	})
-	if (res.status === 404) notFound()
-	if (!res.ok) throw new Error('Failed to fetch realtime paste')
-	const json = await res.json()
-	return json
+	const result = await apiRequest<RealtimePasteResponse>(
+		`/api/pastes-realtime/${encodeURIComponent(slug)}`
+	)
+	if (result.status === 404) notFound()
+	if (!result.ok || !result.data) {
+		throw new Error('Failed to fetch realtime paste')
+	}
+	return result.data
 }
 
 export async function generateMetadata({
@@ -68,6 +52,7 @@ export default async function EditPastePage({
 }) {
 	const { slug } = await params
 	const { type } = await searchParams
+	const viewer = await getCurrentViewer()
 
 	if (type === 'realtime') {
 		const { data, success } = await fetchRealtimePaste(slug)
@@ -96,14 +81,25 @@ export default async function EditPastePage({
 			hits: 0,
 			tags: []
 		}
-		return <ForkPasteForm paste={paste} type='realtime' />
+		return (
+			<ForkPasteForm
+				paste={paste}
+				type='realtime'
+				isAuthenticated={viewer !== null}
+			/>
+		)
 	}
 
-	const { data, success } = await fetchStaticPaste(slug)
+	const staticResult = await getStaticPaste(slug)
+	if (staticResult.status === 404) notFound()
+	if (!staticResult.ok || !staticResult.data) {
+		throw new Error('Failed to fetch static paste')
+	}
+	const { data, success } = staticResult.data
 
 	if (!success) {
 		throw new Error('Invalid static paste response')
 	}
 
-	return <ForkPasteForm paste={data} />
+	return <ForkPasteForm paste={data} isAuthenticated={viewer !== null} />
 }
