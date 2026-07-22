@@ -4,14 +4,17 @@ import CodeMirror from '@uiw/react-codemirror'
 import { Controller, useFormContext, useWatch } from 'react-hook-form'
 import { useTheme } from '@/app/context/ThemeContext'
 import type { PasteForm as PasteFormType } from '@/app/types'
-import { extensions } from '@/app/utils/functions'
+import { useEditorLanguage } from '@/app/utils/use-editor-language'
 
 export function ContentEditor() {
 	const { control } = useFormContext<PasteFormType>()
 	const { cmTheme } = useTheme()
 	const syntax = useWatch<PasteFormType>({
 		name: 'syntax'
-	}) as keyof typeof extensions
+	})
+	const syntaxExtension = useEditorLanguage(
+		typeof syntax === 'string' ? syntax : 'Plaintext'
+	)
 
 	return (
 		<div className='form-control w-full flex-1 min-w-0'>
@@ -34,7 +37,7 @@ export function ContentEditor() {
 							</div>
 							<CodeMirror
 								value={field.value}
-								extensions={[extensions[syntax]]}
+								extensions={[syntaxExtension]}
 								onChange={field.onChange}
 								basicSetup={{
 									lineNumbers: true,

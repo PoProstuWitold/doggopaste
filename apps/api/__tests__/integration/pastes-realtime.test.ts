@@ -75,6 +75,7 @@ test(
 					strictEqual(json.realtimePaste.slug, slug)
 					strictEqual(json.realtimePaste.title, slug)
 					strictEqual(json.realtimePaste.content, '')
+					strictEqual(json.realtimePaste.revision, 0)
 
 					ok('syntax' in json.realtimePaste)
 					strictEqual(json.viewer, null)
@@ -169,6 +170,7 @@ test(
 					strictEqual(json.success, true)
 					strictEqual(json.data.slug, slug)
 					strictEqual(json.data.title, slug)
+					strictEqual(json.data.revision, 0)
 				}
 			)
 		})

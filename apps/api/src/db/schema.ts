@@ -318,6 +318,7 @@ export const realTimePastesTable = pgTable('realtime_pastes', {
 	title: varchar({ length: 128 }).notNull(),
 	slug: varchar({ length: 64 }).unique().notNull(),
 	content: text('content').notNull(),
+	revision: integer().notNull().default(0),
 	syntaxId: uuid('syntax_id').references(() => syntaxesTable.id, {
 		onDelete: 'set null'
 	}),

@@ -3360,6 +3360,7 @@
 					"title",
 					"slug",
 					"content",
+					"revision",
 					"syntaxId",
 					"visibility",
 					"organizationId"
@@ -3387,6 +3388,10 @@
 					},
 					"content": {
 						"type": "string"
+					},
+					"revision": {
+						"type": "integer",
+						"minimum": 0
 					},
 					"syntaxId": {
 						"oneOf": [
@@ -3431,6 +3436,7 @@
 					"title",
 					"slug",
 					"content",
+					"revision",
 					"syntaxId",
 					"visibility",
 					"organizationId",
@@ -3459,6 +3465,10 @@
 					},
 					"content": {
 						"type": "string"
+					},
+					"revision": {
+						"type": "integer",
+						"minimum": 0
 					},
 					"syntaxId": {
 						"oneOf": [

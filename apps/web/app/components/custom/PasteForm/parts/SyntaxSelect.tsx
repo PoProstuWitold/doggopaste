@@ -2,7 +2,7 @@
 
 import { useFormContext } from 'react-hook-form'
 import type { PasteForm as PasteFormType } from '@/app/types'
-import { extensions } from '@/app/utils/functions'
+import { syntaxNames } from '@/app/utils/editor-language'
 
 export function SyntaxSelect() {
 	const { register } = useFormContext<PasteFormType>()
@@ -15,7 +15,7 @@ export function SyntaxSelect() {
 				{...register('syntax')}
 				className='select select-bordered w-full'
 			>
-				{Object.keys(extensions).map((lang) => (
+				{syntaxNames.map((lang) => (
 					<option key={lang} value={lang}>
 						{lang}
 					</option>
