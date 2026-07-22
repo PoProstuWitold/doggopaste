@@ -24,6 +24,7 @@ export const REALTIME_PASTE_DTO_KEYS = [
 	'title',
 	'slug',
 	'content',
+	'revision',
 	'syntaxId',
 	'visibility',
 	'organizationId'
@@ -47,6 +48,7 @@ export interface RealtimePasteDto {
 	title: string
 	slug: string
 	content: string
+	revision: number
 	syntaxId: string | null
 	visibility: RealtimePasteRecord['visibility']
 	organizationId: string | null
@@ -80,6 +82,7 @@ export function toRealtimePasteDto(
 		title: paste.title,
 		slug: paste.slug,
 		content: paste.content,
+		revision: paste.revision,
 		syntaxId: paste.syntaxId,
 		visibility: paste.visibility,
 		organizationId: paste.organizationId

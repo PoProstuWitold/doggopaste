@@ -47,6 +47,7 @@ test('realtime DTO cannot expose fields added to a database record', () => {
 		title: 'Realtime',
 		slug: 'realtime',
 		content: 'content',
+		revision: 0,
 		syntaxId: null,
 		visibility: 'public' as const,
 		organizationId: null,

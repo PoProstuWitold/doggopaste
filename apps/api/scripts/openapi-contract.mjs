@@ -315,6 +315,7 @@ const schemas = {
 				maxLength: ROUTE_SLUG_MAX_LENGTH
 			},
 			content: { type: 'string' },
+			revision: { type: 'integer', minimum: 0 },
 			syntaxId: nullable(uuid),
 			visibility: { type: 'string', enum: STATIC_VISIBILITIES },
 			organizationId: nullable(uuid)

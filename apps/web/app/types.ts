@@ -146,6 +146,7 @@ export interface RealtimePaste {
 	visibility: string
 	syntaxId: string | null
 	organizationId: string | null
+	revision: number
 }
 
 export interface RealtimePasteResponse {

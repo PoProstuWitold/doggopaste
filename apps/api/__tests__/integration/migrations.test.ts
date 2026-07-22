@@ -7,6 +7,10 @@ import { sql } from 'drizzle-orm'
 import { db } from '../../src/db/index.js'
 
 type NameRow = { name: string }
+type ColumnRow = {
+	columnDefault: string | null
+	isNullable: 'YES' | 'NO'
+}
 
 const expectedTables = [
 	'accounts',
@@ -81,7 +85,8 @@ test('committed migrations build the database from scratch', async () => {
 		tableResult,
 		enumResult,
 		constraintResult,
-		indexResult
+		indexResult,
+		revisionColumnResult
 	] = await Promise.all([
 			db.execute<{ count: number }>(sql`
 				SELECT count(*)::integer AS count
@@ -108,6 +113,16 @@ test('committed migrations build the database from scratch', async () => {
 				SELECT indexname AS name
 				FROM pg_catalog.pg_indexes
 				WHERE schemaname = 'public'
+			`),
+			db.execute<ColumnRow>(sql`
+				SELECT
+					column_default AS "columnDefault",
+					is_nullable AS "isNullable"
+				FROM information_schema.columns
+				WHERE
+					table_schema = 'public'
+					AND table_name = 'realtime_pastes'
+					AND column_name = 'revision'
 			`)
 		])
 
@@ -122,4 +137,7 @@ test('committed migrations build the database from scratch', async () => {
 		[]
 	)
 	deepStrictEqual(missingNames(expectedIndexes, indexResult.rows), [])
+	deepStrictEqual(revisionColumnResult.rows, [
+		{ columnDefault: '0', isNullable: 'NO' }
+	])
 })

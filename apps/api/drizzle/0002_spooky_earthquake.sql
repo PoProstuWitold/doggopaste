@@ -1,0 +1,1 @@
+ALTER TABLE "realtime_pastes" ADD COLUMN "revision" integer DEFAULT 0 NOT NULL;

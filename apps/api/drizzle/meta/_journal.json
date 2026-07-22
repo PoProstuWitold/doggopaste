@@ -15,6 +15,13 @@
 			"when": 1784510344242,
 			"tag": "0001_dizzy_amphibian",
 			"breakpoints": true
+		},
+		{
+			"idx": 2,
+			"version": "7",
+			"when": 1784752225676,
+			"tag": "0002_spooky_earthquake",
+			"breakpoints": true
 		}
 	]
 }

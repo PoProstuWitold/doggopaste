@@ -4,35 +4,40 @@ import { useEffect, useRef, useState } from 'react'
 import { FaMousePointer } from 'react-icons/fa'
 import type { Socket } from 'socket.io-client'
 import { getContrastTextColor } from '../../utils/functions'
+import type {
+	CursorSelection,
+	RealtimeEventAck,
+	RemoteCursorMove
+} from './realtime/socket-contract'
 
 const generateRandomColor = () =>
 	`#${Math.floor(Math.random() * 16777215)
 		.toString(16)
 		.padStart(6, '0')}`
 
-type CursorData = {
-	id: string
-	x: number
-	y: number
-	name?: string
-	viewportWidth?: number
-	viewportHeight?: number
-}
-
 type CursorPosition = {
 	x: number
 	y: number
 	name: string
+	lastSeen: number
 }
 
+const CURSOR_TTL_MS = 15_000
+const CURSOR_CLEANUP_INTERVAL_MS = 5_000
+const CURSOR_EMIT_INTERVAL_MS = 100
+
 export const RealtimeCursors = ({
-	slug,
 	name,
-	socket
+	socket,
+	enabled,
+	getSelection,
+	getRevision
 }: {
-	slug: string
 	name?: string
 	socket: Socket | null
+	enabled: boolean
+	getSelection: () => CursorSelection
+	getRevision: () => number
 }) => {
 	const [cursors, setCursors] = useState<Record<string, CursorPosition>>({})
 	const colorsRef = useRef<Record<string, string>>({})
@@ -41,20 +46,38 @@ export const RealtimeCursors = ({
 	)
 
 	useEffect(() => {
+		if (name) actualNameRef.current = name
+	}, [name])
+
+	useEffect(() => {
 		let animationFrameId: number | null = null
+		let lastEmitAt = 0
 
 		const handleMouseMove = (e: MouseEvent) => {
 			if (animationFrameId) return
+			if (Date.now() - lastEmitAt < CURSOR_EMIT_INTERVAL_MS) return
+			lastEmitAt = Date.now()
 
 			animationFrameId = requestAnimationFrame(() => {
-				socket?.emit('cursor-move', {
-					slug,
-					x: e.clientX,
-					y: e.clientY,
-					name: actualNameRef.current,
-					viewportWidth: window.innerWidth,
-					viewportHeight: window.innerHeight
-				})
+				if (!enabled || !socket?.connected) {
+					animationFrameId = null
+					return
+				}
+
+				const selection = getSelection()
+				socket.emit(
+					'cursor-move',
+					{
+						x: e.clientX,
+						y: e.clientY,
+						name: actualNameRef.current,
+						viewportWidth: window.innerWidth,
+						viewportHeight: window.innerHeight,
+						position: selection.head,
+						selection
+					},
+					(_ack: RealtimeEventAck) => undefined
+				)
 				animationFrameId = null
 			})
 		}
@@ -64,17 +87,24 @@ export const RealtimeCursors = ({
 			window.removeEventListener('mousemove', handleMouseMove)
 			if (animationFrameId) cancelAnimationFrame(animationFrameId)
 		}
-	}, [slug, socket])
+	}, [enabled, getSelection, socket])
 
 	useEffect(() => {
+		const clearCursors = () => {
+			setCursors({})
+			colorsRef.current = {}
+		}
+
 		const handleCursor = ({
 			id,
 			x,
 			y,
 			name,
 			viewportWidth,
-			viewportHeight
-		}: CursorData) => {
+			viewportHeight,
+			revision
+		}: RemoteCursorMove) => {
+			if (revision < getRevision() || id === socket?.id) return
 			if (!colorsRef.current[id]) {
 				colorsRef.current[id] = generateRandomColor()
 			}
@@ -93,7 +123,8 @@ export const RealtimeCursors = ({
 				[id]: {
 					x: relativeX,
 					y: relativeY,
-					name: name || 'Guest'
+					name: name || 'Guest',
+					lastSeen: Date.now()
 				}
 			}))
 		}
@@ -109,12 +140,35 @@ export const RealtimeCursors = ({
 
 		socket?.on('cursor-move', handleCursor)
 		socket?.on('cursor-leave', handleCursorLeave)
+		socket?.on('connect', clearCursors)
+		socket?.on('disconnect', clearCursors)
+
+		const cleanupInterval = window.setInterval(() => {
+			const threshold = Date.now() - CURSOR_TTL_MS
+			setCursors((previous) => {
+				const active = Object.fromEntries(
+					Object.entries(previous).filter(([id, cursor]) => {
+						const keep = cursor.lastSeen >= threshold
+						if (!keep) delete colorsRef.current[id]
+						return keep
+					})
+				)
+				return Object.keys(active).length ===
+					Object.keys(previous).length
+					? previous
+					: active
+			})
+		}, CURSOR_CLEANUP_INTERVAL_MS)
 
 		return () => {
+			window.clearInterval(cleanupInterval)
 			socket?.off('cursor-move', handleCursor)
 			socket?.off('cursor-leave', handleCursorLeave)
+			socket?.off('connect', clearCursors)
+			socket?.off('disconnect', clearCursors)
+			clearCursors()
 		}
-	}, [socket])
+	}, [getRevision, socket])
 
 	return (
 		<>
