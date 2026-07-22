@@ -1,27 +1,21 @@
 import { useState } from 'react'
 import { UAParser } from 'ua-parser-js'
-import type { Session as SessionType } from '../../types'
+import type { SessionDto } from '../../types'
 
 interface SessionProps {
-	session: SessionType
-	currentSessionToken: string
-	revokeSession: (token: string) => void
+	session: SessionDto
+	revokeSession: (sessionId: string) => void
 }
 
-export const Session: React.FC<SessionProps> = ({
-	session,
-	currentSessionToken,
-	revokeSession
-}) => {
+export const Session: React.FC<SessionProps> = ({ session, revokeSession }) => {
 	const { browser, os } = UAParser(session.userAgent || '')
 	const [showSessionId, setShowSessionId] = useState(false)
-	const [showSessionToken, setShowSessionToken] = useState(false)
 
 	return (
 		<div className='flex justify-between items-center p-4 border border-error-content rounded-lg shadow-sm'>
 			<div className='flex flex-col md:flex-row gap-2 md:items-center w-full justify-between'>
 				<div className='flex flex-col gap-2'>
-					{currentSessionToken === session.token ? (
+					{session.isCurrent ? (
 						<span className='text-accent font-bold'>
 							Current session
 						</span>
@@ -40,23 +34,6 @@ export const Session: React.FC<SessionProps> = ({
 								type='button'
 							>
 								{showSessionId ? 'Hide' : 'Show'}
-							</button>
-						</div>
-					</div>
-					<div className='flex md:flex-row md:items-center gap-2 flex-col'>
-						<strong>Token:</strong>
-						<div className='flex items-center gap-2'>
-							<span className='badge badge-neutral'>
-								{showSessionToken ? session.token : 'HIDDEN'}
-							</span>
-							<button
-								className='btn btn-xs btn-outline rounded-2xl'
-								onClick={() =>
-									setShowSessionToken(!showSessionToken)
-								}
-								type='button'
-							>
-								{showSessionToken ? 'Hide' : 'Show'}
 							</button>
 						</div>
 					</div>
@@ -85,11 +62,9 @@ export const Session: React.FC<SessionProps> = ({
 				<button
 					type='button'
 					className='btn btn-error btn-outline'
-					onClick={() => revokeSession(session.token)}
+					onClick={() => revokeSession(session.id)}
 				>
-					{session.token === currentSessionToken
-						? 'Sign out'
-						: 'Revoke'}
+					{session.isCurrent ? 'Sign out' : 'Revoke'}
 				</button>
 			</div>
 		</div>

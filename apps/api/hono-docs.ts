@@ -1,5 +1,8 @@
 import { defineConfig } from '@rcmade/hono-docs'
 
+const openApiOutput =
+	process.env.DOGGOPASTE_OPENAPI_OUTPUT ?? './openapi/openapi.json'
+
 export default defineConfig({
 	tsConfigPath: './tsconfig.json',
 	openApi: {
@@ -12,10 +15,16 @@ export default defineConfig({
 				name: 'MIT',
 				url: 'https://opensource.org/licenses/MIT'
 			}
-		}
+		},
+		servers: [
+			{
+				url: '/api',
+				description: 'DoggoPaste REST API'
+			}
+		]
 	},
 	outputs: {
-		openApiJson: './openapi/openapi.json'
+		openApiJson: openApiOutput
 	},
 	apis: [
 		{
@@ -59,6 +68,13 @@ export default defineConfig({
 						'Deletes a specific static paste identified by its slug.'
 				},
 				{
+					api: '/{slug}/verify',
+					method: 'post',
+					summary: 'Verify a password-protected paste',
+					description:
+						'Verifies a password in a JSON body and returns readable paste content.'
+				},
+				{
 					api: '/{slug}/download',
 					method: 'get',
 					summary: 'Download a paste without a password',
@@ -70,7 +86,7 @@ export default defineConfig({
 					method: 'post',
 					summary: 'Download a password-protected paste',
 					description:
-						'Requires an `application/json` body shaped as `{ "password": "non-empty string" }`. Responses: 200 with `Content-Type: text/plain; charset=UTF-8` and `Content-Disposition: attachment; filename="..."`; 400 for a missing, malformed, or invalid body or when the paste does not require a password; 403 for an incorrect password; 404 when the paste is private, expired, or missing. Every response includes `Cache-Control: no-store`. A 200 response increments `hits` exactly once.'
+						'Requires an `application/json` body shaped as `{ "password": "non-empty string" }`. Responses: 200 with `Content-Type: text/plain; charset=UTF-8` and `Content-Disposition: attachment; filename="..."`; 400 for a missing, malformed, or invalid body or when the paste does not require a password; 403 for an incorrect password; 404 when the paste is private, expired, or missing. Route-handled responses include `Cache-Control: no-store`; an oversized body can receive a global 413 before route middleware. A 200 response increments `hits` exactly once.'
 				}
 			]
 		},

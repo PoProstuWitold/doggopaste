@@ -26,13 +26,17 @@ import {
 	validatorCreatePasteJson,
 	validatorDownloadPasteJson,
 	validatorPaginationQuery,
-	validatorParamStringSlug
+	validatorParamStringSlug,
+	verifyPasteSchema
 } from '../utils/index.js'
+import { enforceRestRateLimit } from '../utils/rate-limiter.js'
+import { REST_RATE_LIMITS } from '../utils/request-limits.js'
 
 interface PasteDownloadOptions {
 	slug: string
 	reader: Env['Variables']['user']
 	password?: string | null
+	beforePasswordVerify?: () => void
 }
 
 interface PasteDownloadResult {
@@ -139,7 +143,8 @@ export async function updateOwnedPasteById(
 async function handlePasteDownload({
 	slug,
 	reader,
-	password = null
+	password = null,
+	beforePasswordVerify
 }: PasteDownloadOptions): Promise<PasteDownloadResult> {
 	const [row] = await db
 		.select({
@@ -170,6 +175,11 @@ async function handlePasteDownload({
 
 	const { paste, syntax } = row
 	await authorizePasteRead(paste, {
+		mode: 'details',
+		reader
+	})
+	if (paste.passwordHash && password !== null) beforePasswordVerify?.()
+	await authorizePasteRead(paste, {
 		mode: 'download',
 		reader,
 		password
@@ -195,6 +205,45 @@ function sendPasteDownload(c: Context<Env>, download: PasteDownloadResult) {
 	c.header('Content-Disposition', download.contentDisposition)
 
 	return c.body(download.content)
+}
+
+async function assertPasswordHashReferences(
+	folder: string,
+	userId: string | null,
+	syntax: string
+): Promise<void> {
+	if (folder !== 'none') {
+		const [dbFolder] = await db
+			.select({ id: foldersTable.id })
+			.from(foldersTable)
+			.where(
+				and(
+					eq(foldersTable.id, folder),
+					eq(foldersTable.userId, userId as string)
+				)
+			)
+
+		if (!dbFolder) {
+			throw new GenericException({
+				statusCode: 404,
+				name: 'Not Found',
+				message: 'Folder not found or does not belong to the user'
+			})
+		}
+	}
+
+	const [dbSyntax] = await db
+		.select({ id: syntaxesTable.id })
+		.from(syntaxesTable)
+		.where(eq(syntaxesTable.name, syntax))
+
+	if (!dbSyntax) {
+		throw new GenericException({
+			statusCode: 400,
+			name: 'Bad Request',
+			message: `Unknown syntax "${syntax}"`
+		})
+	}
 }
 
 const app = new Hono<Env>()
@@ -275,6 +324,8 @@ const app = new Hono<Env>()
 							'Password is required when encryption is disabled'
 					})
 				}
+				await assertPasswordHashReferences(folder, userId, syntax)
+				enforceRestRateLimit(c, REST_RATE_LIMITS.passwordHash)
 				passwordHash = await argon2.hash(password)
 			}
 		}
@@ -526,17 +577,31 @@ const app = new Hono<Env>()
 			.where(eq(pastesTable.slug, slug))
 
 		if (!paste) throwPasteNotFound()
+		await authorizePasteRead(paste, {
+			mode: 'details',
+			reader: c.get('user')
+		})
 
-		const body = await c.req
-			.json<{ password?: unknown }>()
-			.catch(() => null)
-		const password =
-			typeof body?.password === 'string' ? body.password : null
+		const body = await c.req.json<unknown>().catch(() => null)
+		const parsedBody = verifyPasteSchema.safeParse(body)
+		if (parsedBody.success === false) {
+			throw new GenericException({
+				statusCode: 400,
+				name: 'Bad Request',
+				message: 'Invalid verification data',
+				details: parsedBody.error.issues.map((issue) => ({
+					[issue.path.join('.')]: issue.message
+				}))
+			})
+		}
+		if (paste.passwordHash) {
+			enforceRestRateLimit(c, REST_RATE_LIMITS.passwordVerify)
+		}
 
 		await authorizePasteRead(paste, {
 			mode: 'verify',
 			reader: c.get('user'),
-			password
+			password: parsedBody.data.password
 		})
 
 		if (paste.expiration === 'burn_after_read') {
@@ -594,6 +659,8 @@ const app = new Hono<Env>()
 				if (encrypted) {
 					passwordHash = null
 				} else {
+					await assertPasswordHashReferences(folder, user.id, syntax)
+					enforceRestRateLimit(c, REST_RATE_LIMITS.passwordHash)
 					passwordHash = await argon2.hash(password)
 				}
 			}
@@ -793,7 +860,9 @@ const app = new Hono<Env>()
 			const download = await handlePasteDownload({
 				slug,
 				reader: c.get('user'),
-				password
+				password,
+				beforePasswordVerify: () =>
+					enforceRestRateLimit(c, REST_RATE_LIMITS.passwordVerify)
 			})
 			return sendPasteDownload(c, download)
 		}

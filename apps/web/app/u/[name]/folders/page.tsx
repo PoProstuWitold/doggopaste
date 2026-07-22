@@ -1,29 +1,19 @@
 // app/u/[name]/folders/page.tsx
 import type { Metadata } from 'next'
-import { cookies, headers } from 'next/headers'
+import { cookies } from 'next/headers'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { FaFolder, FaInfo, FaLongArrowAltLeft, FaSitemap } from 'react-icons/fa'
 import { FolderCard } from '@/app/components/custom/FolderCard'
 import { NewFolderCard } from '@/app/components/custom/NewFolderCard'
-import type { Folder, User } from '@/app/types'
-import { createDynamicAuthClient } from '@/app/utils/auth-client'
-import { getBaseApiUrl } from '@/app/utils/functions'
+import type { ApiDataResponse, Folder } from '@/app/types'
+import { apiRequest } from '@/app/utils/api'
+import { getPublicUserByName } from '@/app/utils/api-data'
+import { getCurrentViewer } from '@/app/utils/session'
 
 export const dynamic = 'force-dynamic'
 
 type Params = { name: string }
-
-async function fetchUserByName(name: string): Promise<User | null> {
-	const res = await fetch(
-		`${getBaseApiUrl()}/api/user/name/${encodeURIComponent(name)}`,
-		{ next: { revalidate: 0 }, cache: 'no-store' }
-	)
-	if (res.status === 404) return null
-	if (!res.ok) throw new Error('Failed to load user')
-	const json = await res.json()
-	return json.data as User
-}
 
 export async function generateMetadata({
 	params
@@ -31,7 +21,7 @@ export async function generateMetadata({
 	params: Promise<Params>
 }): Promise<Metadata> {
 	const { name } = await params
-	const user = await fetchUserByName(name)
+	const user = await getPublicUserByName(name)
 	if (!user) {
 		return {
 			title: 'User Not Found',
@@ -51,30 +41,24 @@ export default async function FoldersPage({
 	params: Promise<Params>
 }) {
 	const { name } = await params
-	const authClient = createDynamicAuthClient()
-	const session = await authClient.getSession({
-		fetchOptions: { headers: await headers() }
-	})
-	const loggedUser = session.data?.user
-	const foldersUser = await fetchUserByName(name)
+	const viewer = await getCurrentViewer()
+	const foldersUser = await getPublicUserByName(name)
 	if (!foldersUser) notFound()
 
-	const isOwn = loggedUser && loggedUser.id === foldersUser.id
+	const isOwn = viewer?.id === foldersUser.id
 
 	let folders: Folder[] = []
 	if (isOwn) {
 		const cookieHeader = await cookies()
-		const foldersRes = await fetch(`${getBaseApiUrl()}/api/folders/all`, {
-			headers: { Cookie: cookieHeader.toString() },
-			next: { revalidate: 0 },
-			cache: 'no-store'
-		})
-		if (foldersRes.ok) {
-			const j = (await foldersRes.json()) as {
-				success: boolean
-				data: Folder[]
+		const result = await apiRequest<ApiDataResponse<Folder[]>>(
+			'/api/folders/all',
+			{
+				headers: { Cookie: cookieHeader.toString() },
+				cache: 'no-store'
 			}
-			folders = j.data ?? []
+		)
+		if (result.ok) {
+			folders = result.data?.data ?? []
 		}
 	}
 

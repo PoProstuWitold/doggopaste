@@ -9,6 +9,12 @@
 			"url": "https://opensource.org/licenses/MIT"
 		}
 	},
+	"servers": [
+		{
+			"url": "/api",
+			"description": "DoggoPaste REST API"
+		}
+	],
 	"tags": [
 		{
 			"name": "Static Pastes"
@@ -24,774 +30,921 @@
 		},
 		{
 			"name": "DoggoPaste Admin"
+		},
+		{
+			"name": "Misc",
+			"description": "API metadata, documentation, and health endpoints."
 		}
 	],
 	"paths": {
 		"/pastes": {
 			"post": {
 				"summary": "/",
-				"responses": {
-					"default": {
-						"description": "Default fallback response",
-						"content": {
-							"application/json": {
-								"schema": {
-									"type": "object",
-									"properties": {
-										"success": {
-											"type": "boolean"
-										},
-										"data": {
-											"type": "object",
-											"properties": {
-												"content": {
-													"type": "string"
-												},
-												"id": {
-													"type": "string"
-												},
-												"createdAt": {
-													"type": "string"
-												},
-												"updatedAt": {
-													"type": "string"
-												},
-												"userId": {
-													"type": "string"
-												},
-												"folderId": {
-													"type": "string"
-												},
-												"title": {
-													"type": "string"
-												},
-												"description": {
-													"type": "string"
-												},
-												"slug": {
-													"type": "string"
-												},
-												"category": {
-													"type": "string",
-													"enum": [
-														"none",
-														"cryptocurrency",
-														"cybersecurity",
-														"fixit",
-														"gaming",
-														"help",
-														"software",
-														"note",
-														"config",
-														"question",
-														"log",
-														"project",
-														"snippet",
-														"education"
-													]
-												},
-												"expiresAt": {
-													"type": "string"
-												},
-												"expiration": {
-													"type": "string",
-													"enum": [
-														"never",
-														"burn_after_read",
-														"10m",
-														"1h",
-														"1d",
-														"1w",
-														"2w"
-													]
-												},
-												"encrypted": {
-													"type": "boolean"
-												},
-												"passwordProtected": {
-													"type": "boolean"
-												},
-												"hits": {
-													"type": "number"
-												},
-												"visibility": {
-													"type": "string",
-													"enum": [
-														"public",
-														"private",
-														"unlisted",
-														"organization"
-													]
-												},
-												"tags": {
-													"type": "array",
-													"items": {
-														"type": "string"
-													}
-												},
-												"syntax": {
-													"type": "object",
-													"properties": {
-														"name": {
-															"type": "string"
-														},
-														"extension": {
-															"type": "string"
-														},
-														"color": {
-															"type": "string"
-														}
-													},
-													"required": [
-														"name",
-														"extension",
-														"color"
-													]
-												}
-											},
-											"required": [
-												"content",
-												"id",
-												"createdAt",
-												"updatedAt",
-												"userId",
-												"folderId",
-												"title",
-												"description",
-												"slug",
-												"category",
-												"expiresAt",
-												"expiration",
-												"encrypted",
-												"passwordProtected",
-												"hits",
-												"visibility",
-												"tags",
-												"syntax"
-											]
-										}
-									},
-									"required": ["success", "data"]
-								}
-							}
-						}
-					}
-				},
 				"description": "Creates a new static paste with the provided content and metadata.",
-				"tags": ["Static Pastes"]
-			},
-			"get": {
-				"summary": "/",
-				"responses": {
-					"default": {
-						"description": "Default fallback response",
-						"content": {
-							"application/json": {
-								"schema": {
-									"type": "object",
-									"properties": {
-										"success": {
-											"type": "boolean"
-										},
-										"data": {
-											"type": "array",
-											"items": {}
-										},
-										"total": {
-											"type": "number"
-										}
-									},
-									"required": ["success", "data", "total"]
-								}
-							}
-						}
-					}
-				},
-				"description": "Retrieves a list of static pastes with pagination support.",
-				"tags": ["Static Pastes"]
-			}
-		},
-		"/pastes/{slug}": {
-			"get": {
-				"summary": "/{slug}",
-				"responses": {
-					"default": {
-						"description": "Default fallback response",
-						"content": {
-							"application/json": {
-								"schema": {
-									"type": "object",
-									"properties": {
-										"success": {
-											"type": "boolean"
-										},
-										"data": {
-											"type": "object",
-											"properties": {
-												"content": {
-													"type": "string"
-												},
-												"id": {
-													"type": "string"
-												},
-												"createdAt": {
-													"type": "string"
-												},
-												"updatedAt": {
-													"type": "string"
-												},
-												"userId": {
-													"type": "string"
-												},
-												"folderId": {
-													"type": "string"
-												},
-												"title": {
-													"type": "string"
-												},
-												"description": {
-													"type": "string"
-												},
-												"slug": {
-													"type": "string"
-												},
-												"category": {
-													"type": "string",
-													"enum": [
-														"none",
-														"cryptocurrency",
-														"cybersecurity",
-														"fixit",
-														"gaming",
-														"help",
-														"software",
-														"note",
-														"config",
-														"question",
-														"log",
-														"project",
-														"snippet",
-														"education"
-													]
-												},
-												"expiresAt": {
-													"type": "string"
-												},
-												"expiration": {
-													"type": "string",
-													"enum": [
-														"never",
-														"burn_after_read",
-														"10m",
-														"1h",
-														"1d",
-														"1w",
-														"2w"
-													]
-												},
-												"encrypted": {
-													"type": "boolean"
-												},
-												"passwordProtected": {
-													"type": "boolean"
-												},
-												"hits": {
-													"type": "number"
-												},
-												"visibility": {
-													"type": "string",
-													"enum": [
-														"public",
-														"private",
-														"unlisted",
-														"organization"
-													]
-												},
-												"tags": {
-													"type": "array",
-													"items": {
-														"type": "string"
-													}
-												},
-												"syntax": {
-													"type": "object",
-													"properties": {
-														"name": {
-															"type": "string"
-														},
-														"extension": {
-															"type": "string"
-														},
-														"color": {
-															"type": "string"
-														}
-													},
-													"required": [
-														"name",
-														"extension",
-														"color"
-													]
-												}
-											},
-											"required": [
-												"content",
-												"id",
-												"createdAt",
-												"updatedAt",
-												"userId",
-												"folderId",
-												"title",
-												"description",
-												"slug",
-												"category",
-												"expiresAt",
-												"expiration",
-												"encrypted",
-												"passwordProtected",
-												"hits",
-												"visibility",
-												"tags",
-												"syntax"
-											]
-										}
-									},
-									"required": ["success", "data"]
-								}
-							}
-						}
-					}
-				},
-				"parameters": [
-					{
-						"name": "slug",
-						"in": "path",
-						"required": true,
-						"schema": {
-							"type": "string"
-						}
-					}
-				],
-				"description": "Fetches the details of a specific static paste identified by its slug.",
-				"tags": ["Static Pastes"]
-			},
-			"put": {
-				"summary": "/{slug}",
-				"responses": {
-					"default": {
-						"description": "Default fallback response",
-						"content": {
-							"application/json": {
-								"schema": {
-									"type": "object",
-									"properties": {
-										"success": {
-											"type": "boolean"
-										},
-										"data": {
-											"type": "object",
-											"properties": {
-												"content": {
-													"type": "string"
-												},
-												"id": {
-													"type": "string"
-												},
-												"createdAt": {
-													"type": "string"
-												},
-												"updatedAt": {
-													"type": "string"
-												},
-												"userId": {
-													"type": "string"
-												},
-												"folderId": {
-													"type": "string"
-												},
-												"title": {
-													"type": "string"
-												},
-												"description": {
-													"type": "string"
-												},
-												"slug": {
-													"type": "string"
-												},
-												"category": {
-													"type": "string",
-													"enum": [
-														"none",
-														"cryptocurrency",
-														"cybersecurity",
-														"fixit",
-														"gaming",
-														"help",
-														"software",
-														"note",
-														"config",
-														"question",
-														"log",
-														"project",
-														"snippet",
-														"education"
-													]
-												},
-												"expiresAt": {
-													"type": "string"
-												},
-												"expiration": {
-													"type": "string",
-													"enum": [
-														"never",
-														"burn_after_read",
-														"10m",
-														"1h",
-														"1d",
-														"1w",
-														"2w"
-													]
-												},
-												"encrypted": {
-													"type": "boolean"
-												},
-												"passwordProtected": {
-													"type": "boolean"
-												},
-												"hits": {
-													"type": "number"
-												},
-												"visibility": {
-													"type": "string",
-													"enum": [
-														"public",
-														"private",
-														"unlisted",
-														"organization"
-													]
-												},
-												"tags": {
-													"type": "array",
-													"items": {
-														"type": "string"
-													}
-												},
-												"syntax": {
-													"type": "object",
-													"properties": {
-														"name": {
-															"type": "string"
-														},
-														"extension": {
-															"type": "string"
-														},
-														"color": {
-															"type": "string"
-														}
-													},
-													"required": [
-														"name",
-														"extension",
-														"color"
-													]
-												}
-											},
-											"required": [
-												"content",
-												"id",
-												"createdAt",
-												"updatedAt",
-												"userId",
-												"folderId",
-												"title",
-												"description",
-												"slug",
-												"category",
-												"expiresAt",
-												"expiration",
-												"encrypted",
-												"passwordProtected",
-												"hits",
-												"visibility",
-												"tags",
-												"syntax"
-											]
-										}
-									},
-									"required": ["success", "data"]
-								}
-							}
-						}
-					}
-				},
-				"parameters": [
-					{
-						"name": "slug",
-						"in": "path",
-						"required": true,
-						"schema": {
-							"type": "string"
-						}
-					}
-				],
-				"description": "Updates the content or metadata of a specific static paste identified by its slug.",
-				"tags": ["Static Pastes"]
-			},
-			"delete": {
-				"summary": "/{slug}",
-				"responses": {
-					"default": {
-						"description": "Default fallback response",
-						"content": {
-							"application/json": {
-								"schema": {
-									"type": "object",
-									"properties": {
-										"success": {
-											"type": "boolean"
-										},
-										"message": {
-											"type": "string"
-										}
-									},
-									"required": ["success", "message"]
-								}
-							}
-						}
-					}
-				},
-				"parameters": [
-					{
-						"name": "slug",
-						"in": "path",
-						"required": true,
-						"schema": {
-							"type": "string"
-						}
-					}
-				],
-				"description": "Deletes a specific static paste identified by its slug.",
-				"tags": ["Static Pastes"]
-			}
-		},
-		"/pastes/{slug}/verify": {
-			"post": {
-				"summary": "Create By Slug Verify",
-				"responses": {
-					"default": {
-						"description": "Default fallback response",
-						"content": {
-							"application/json": {
-								"schema": {
-									"type": "object",
-									"properties": {
-										"success": {
-											"type": "boolean"
-										},
-										"content": {
-											"type": "string"
-										}
-									},
-									"required": ["success", "content"]
-								}
-							}
-						}
-					}
-				},
-				"parameters": [
-					{
-						"name": "slug",
-						"in": "path",
-						"required": true,
-						"schema": {
-							"type": "string"
-						}
-					}
-				],
-				"tags": ["Static Pastes"]
-			}
-		},
-		"/pastes/{slug}/download": {
-			"get": {
-				"summary": "Download a paste without a password",
-				"responses": {
-					"200": {
-						"description": "Paste content delivered as a UTF-8 text file.",
-						"headers": {
-							"Content-Disposition": {
-								"description": "Attachment filename derived from the sanitized paste title and syntax extension.",
-								"required": true,
-								"schema": {
-									"type": "string",
-									"example": "attachment; filename=\"example.txt\""
-								}
-							},
-							"Cache-Control": {
-								"description": "Prevents storage of static paste download responses.",
-								"required": true,
-								"schema": {
-									"type": "string",
-									"enum": ["no-store"]
-								}
-							}
-						},
-						"content": {
-							"text/plain; charset=utf-8": {
-								"schema": {
-									"type": "string"
-								}
-							}
-						}
-					},
-					"400": {
-						"description": "A password query parameter was supplied; passwords in URLs are rejected.",
-						"headers": {
-							"Cache-Control": {
-								"description": "Prevents storage of static paste download responses.",
-								"required": true,
-								"schema": {
-									"type": "string",
-									"enum": ["no-store"]
-								}
-							}
-						}
-					},
-					"401": {
-						"description": "The paste requires a password and must be downloaded with POST.",
-						"headers": {
-							"Cache-Control": {
-								"description": "Prevents storage of static paste download responses.",
-								"required": true,
-								"schema": {
-									"type": "string",
-									"enum": ["no-store"]
-								}
-							}
-						}
-					},
-					"404": {
-						"description": "The paste is missing, expired, private, or inaccessible.",
-						"headers": {
-							"Cache-Control": {
-								"description": "Prevents storage of static paste download responses.",
-								"required": true,
-								"schema": {
-									"type": "string",
-									"enum": ["no-store"]
-								}
-							}
-						}
-					}
-				},
-				"parameters": [
-					{
-						"name": "slug",
-						"in": "path",
-						"required": true,
-						"schema": {
-							"type": "string"
-						}
-					}
-				],
-				"description": "Returns an accessible, non-password-protected static paste. Responses: 200 with `Content-Type: text/plain; charset=UTF-8` and `Content-Disposition: attachment; filename=\"...\"`; 400 when any `password` query parameter is present; 401 when the paste requires a password; 404 when the paste is private, expired, or missing. Every response includes `Cache-Control: no-store`. A 200 response increments `hits` exactly once.",
-				"tags": ["Static Pastes"]
-			},
-			"post": {
-				"summary": "Download a password-protected paste",
-				"responses": {
-					"200": {
-						"description": "Paste content delivered as a UTF-8 text file.",
-						"headers": {
-							"Content-Disposition": {
-								"description": "Attachment filename derived from the sanitized paste title and syntax extension.",
-								"required": true,
-								"schema": {
-									"type": "string",
-									"example": "attachment; filename=\"example.txt\""
-								}
-							},
-							"Cache-Control": {
-								"description": "Prevents storage of static paste download responses.",
-								"required": true,
-								"schema": {
-									"type": "string",
-									"enum": ["no-store"]
-								}
-							}
-						},
-						"content": {
-							"text/plain; charset=utf-8": {
-								"schema": {
-									"type": "string"
-								}
-							}
-						}
-					},
-					"400": {
-						"description": "The JSON body is missing, malformed, or invalid, or the paste does not require a password.",
-						"headers": {
-							"Cache-Control": {
-								"description": "Prevents storage of static paste download responses.",
-								"required": true,
-								"schema": {
-									"type": "string",
-									"enum": ["no-store"]
-								}
-							}
-						}
-					},
-					"403": {
-						"description": "The supplied password is incorrect.",
-						"headers": {
-							"Cache-Control": {
-								"description": "Prevents storage of static paste download responses.",
-								"required": true,
-								"schema": {
-									"type": "string",
-									"enum": ["no-store"]
-								}
-							}
-						}
-					},
-					"404": {
-						"description": "The paste is missing, expired, private, or inaccessible.",
-						"headers": {
-							"Cache-Control": {
-								"description": "Prevents storage of static paste download responses.",
-								"required": true,
-								"schema": {
-									"type": "string",
-									"enum": ["no-store"]
-								}
-							}
-						}
-					}
-				},
-				"parameters": [
-					{
-						"name": "slug",
-						"in": "path",
-						"required": true,
-						"schema": {
-							"type": "string"
-						}
-					}
-				],
-				"description": "Requires an `application/json` body shaped as `{ \"password\": \"non-empty string\" }`. Responses: 200 with `Content-Type: text/plain; charset=UTF-8` and `Content-Disposition: attachment; filename=\"...\"`; 400 for a missing, malformed, or invalid body or when the paste does not require a password; 403 for an incorrect password; 404 when the paste is private, expired, or missing. Every response includes `Cache-Control: no-store`. A 200 response increments `hits` exactly once.",
 				"tags": ["Static Pastes"],
+				"security": [
+					{},
+					{
+						"sessionCookie": []
+					},
+					{
+						"secureSessionCookie": []
+					}
+				],
 				"requestBody": {
 					"required": true,
 					"content": {
 						"application/json": {
 							"schema": {
-								"type": "object",
-								"required": ["password"],
-								"properties": {
-									"password": {
-										"type": "string",
-										"minLength": 1,
-										"pattern": "\\S",
-										"description": "Non-empty password; it is never accepted in the URL."
-									}
+								"$ref": "#/components/schemas/CreatePasteRequest"
+							}
+						}
+					}
+				},
+				"responses": {
+					"201": {
+						"description": "Paste created.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PasteDetailsResponse"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Invalid paste data.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Authentication is required for a private paste.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Selected folder was not found.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					},
+					"409": {
+						"description": "Slug or another unique value already exists.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					},
+					"413": {
+						"description": "Request body exceeds the 2097152-byte limit.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					},
+					"429": {
+						"description": "Password hashing limit exceeded: 5 attempts per 60 seconds per IP.",
+						"headers": {
+							"Retry-After": {
+								"description": "Seconds until another request can be attempted.",
+								"required": true,
+								"schema": {
+									"type": "integer",
+									"minimum": 1
+								}
+							}
+						},
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Unexpected server error.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					}
+				}
+			},
+			"get": {
+				"summary": "/",
+				"description": "Retrieves a list of static pastes with pagination support.",
+				"tags": ["Static Pastes"],
+				"security": [],
+				"parameters": [
+					{
+						"name": "limit",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"minimum": 1,
+							"maximum": 100,
+							"default": 10
+						}
+					},
+					{
+						"name": "offset",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"minimum": 0,
+							"default": 0
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Success",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PasteListResponse"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Invalid pagination parameters.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Unexpected server error.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/pastes/{slug}": {
+			"get": {
+				"summary": "/{slug}",
+				"description": "Fetches the details of a specific static paste identified by its slug.",
+				"tags": ["Static Pastes"],
+				"security": [
+					{},
+					{
+						"sessionCookie": []
+					},
+					{
+						"secureSessionCookie": []
+					}
+				],
+				"parameters": [
+					{
+						"name": "slug",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"minLength": 1,
+							"maxLength": 64
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Success",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PasteDetailsResponse"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Invalid slug.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Paste is missing, expired, private, or no longer readable.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Unexpected server error.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					}
+				}
+			},
+			"put": {
+				"summary": "/{slug}",
+				"description": "Updates the content or metadata of a specific static paste identified by its slug.",
+				"tags": ["Static Pastes"],
+				"security": [
+					{
+						"sessionCookie": []
+					},
+					{
+						"secureSessionCookie": []
+					}
+				],
+				"parameters": [
+					{
+						"name": "slug",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"minLength": 1,
+							"maxLength": 64
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/UpdatePasteRequest"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "Paste updated.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PasteDetailsResponse"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Invalid paste data.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Authentication is required.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "The authenticated user does not own the paste.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Paste or selected folder was not found.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					},
+					"409": {
+						"description": "Slug or another unique value already exists.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					},
+					"413": {
+						"description": "Request body exceeds the 2097152-byte limit.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					},
+					"429": {
+						"description": "Password hashing limit exceeded: 5 attempts per 60 seconds per IP.",
+						"headers": {
+							"Retry-After": {
+								"description": "Seconds until another request can be attempted.",
+								"required": true,
+								"schema": {
+									"type": "integer",
+									"minimum": 1
+								}
+							}
+						},
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Unexpected server error.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					}
+				}
+			},
+			"delete": {
+				"summary": "/{slug}",
+				"description": "Deletes a specific static paste identified by its slug.",
+				"tags": ["Static Pastes"],
+				"security": [
+					{
+						"sessionCookie": []
+					},
+					{
+						"secureSessionCookie": []
+					}
+				],
+				"parameters": [
+					{
+						"name": "slug",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"minLength": 1,
+							"maxLength": 64
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Paste deleted.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/MessageResponse"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Invalid slug.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Authentication is required.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "The authenticated user does not own the paste.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Paste was not found.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Unexpected server error.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/pastes/{slug}/verify": {
+			"post": {
+				"summary": "Verify a password-protected paste",
+				"description": "Verifies a password in a JSON body and returns readable paste content.",
+				"tags": ["Static Pastes"],
+				"security": [
+					{},
+					{
+						"sessionCookie": []
+					},
+					{
+						"secureSessionCookie": []
+					}
+				],
+				"parameters": [
+					{
+						"name": "slug",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"minLength": 1,
+							"maxLength": 64
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/VerifyPasswordRequest"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "Password accepted.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/VerifyPasteResponse"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Invalid body, missing password, or unprotected paste.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "Password is incorrect.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Paste is missing, expired, private, or no longer readable.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					},
+					"413": {
+						"description": "Request body exceeds the 2097152-byte limit.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					},
+					"429": {
+						"description": "Password verification limit exceeded: 5 attempts per 60 seconds per IP and paste.",
+						"headers": {
+							"Retry-After": {
+								"description": "Seconds until another request can be attempted.",
+								"required": true,
+								"schema": {
+									"type": "integer",
+									"minimum": 1
+								}
+							}
+						},
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Unexpected server error.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/pastes/{slug}/download": {
+			"get": {
+				"summary": "Download a paste without a password",
+				"description": "Returns an accessible, non-password-protected static paste. Responses: 200 with `Content-Type: text/plain; charset=UTF-8` and `Content-Disposition: attachment; filename=\"...\"`; 400 when any `password` query parameter is present; 401 when the paste requires a password; 404 when the paste is private, expired, or missing. Every response includes `Cache-Control: no-store`. A 200 response increments `hits` exactly once.",
+				"tags": ["Static Pastes"],
+				"security": [
+					{},
+					{
+						"sessionCookie": []
+					},
+					{
+						"secureSessionCookie": []
+					}
+				],
+				"parameters": [
+					{
+						"name": "slug",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"minLength": 1,
+							"maxLength": 64
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Paste content delivered as a UTF-8 text file.",
+						"headers": {
+							"Content-Disposition": {
+								"description": "Attachment filename derived from the sanitized paste title.",
+								"required": true,
+								"schema": {
+									"type": "string",
+									"pattern": "^attachment; filename=\".+\"$"
+								}
+							},
+							"Cache-Control": {
+								"description": "Prevents storage of the response.",
+								"required": true,
+								"schema": {
+									"type": "string",
+									"const": "no-store"
+								}
+							}
+						},
+						"content": {
+							"text/plain; charset=utf-8": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Invalid slug or a forbidden password query was supplied.",
+						"headers": {
+							"Cache-Control": {
+								"description": "Prevents storage of the response.",
+								"required": true,
+								"schema": {
+									"type": "string",
+									"const": "no-store"
+								}
+							}
+						},
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "A password is required; use POST with a JSON body.",
+						"headers": {
+							"Cache-Control": {
+								"description": "Prevents storage of the response.",
+								"required": true,
+								"schema": {
+									"type": "string",
+									"const": "no-store"
+								}
+							}
+						},
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Paste is missing, expired, private, or inaccessible.",
+						"headers": {
+							"Cache-Control": {
+								"description": "Prevents storage of the response.",
+								"required": true,
+								"schema": {
+									"type": "string",
+									"const": "no-store"
+								}
+							}
+						},
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Unexpected server error.",
+						"headers": {
+							"Cache-Control": {
+								"description": "Prevents storage of the response.",
+								"required": true,
+								"schema": {
+									"type": "string",
+									"const": "no-store"
+								}
+							}
+						},
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					}
+				}
+			},
+			"post": {
+				"summary": "Download a password-protected paste",
+				"description": "Requires an `application/json` body shaped as `{ \"password\": \"non-empty string\" }`. Responses: 200 with `Content-Type: text/plain; charset=UTF-8` and `Content-Disposition: attachment; filename=\"...\"`; 400 for a missing, malformed, or invalid body or when the paste does not require a password; 403 for an incorrect password; 404 when the paste is private, expired, or missing. Route-handled responses include `Cache-Control: no-store`; an oversized body can receive a global 413 before route middleware. A 200 response increments `hits` exactly once.",
+				"tags": ["Static Pastes"],
+				"security": [
+					{},
+					{
+						"sessionCookie": []
+					},
+					{
+						"secureSessionCookie": []
+					}
+				],
+				"parameters": [
+					{
+						"name": "slug",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"minLength": 1,
+							"maxLength": 64
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/DownloadPasswordRequest"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "Paste content delivered as a UTF-8 text file.",
+						"headers": {
+							"Content-Disposition": {
+								"description": "Attachment filename derived from the sanitized paste title.",
+								"required": true,
+								"schema": {
+									"type": "string",
+									"pattern": "^attachment; filename=\".+\"$"
+								}
+							},
+							"Cache-Control": {
+								"description": "Prevents storage of the response.",
+								"required": true,
+								"schema": {
+									"type": "string",
+									"const": "no-store"
+								}
+							}
+						},
+						"content": {
+							"text/plain; charset=utf-8": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Invalid body, missing password, or unprotected paste.",
+						"headers": {
+							"Cache-Control": {
+								"description": "Prevents storage of the response.",
+								"required": true,
+								"schema": {
+									"type": "string",
+									"const": "no-store"
+								}
+							}
+						},
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "Password is incorrect.",
+						"headers": {
+							"Cache-Control": {
+								"description": "Prevents storage of the response.",
+								"required": true,
+								"schema": {
+									"type": "string",
+									"const": "no-store"
+								}
+							}
+						},
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Paste is missing, expired, private, or inaccessible.",
+						"headers": {
+							"Cache-Control": {
+								"description": "Prevents storage of the response.",
+								"required": true,
+								"schema": {
+									"type": "string",
+									"const": "no-store"
+								}
+							}
+						},
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					},
+					"413": {
+						"description": "Request body exceeds the 2097152-byte limit.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					},
+					"429": {
+						"description": "Password verification limit exceeded: 5 attempts per 60 seconds per IP and paste.",
+						"headers": {
+							"Cache-Control": {
+								"description": "Prevents storage of the response.",
+								"required": true,
+								"schema": {
+									"type": "string",
+									"const": "no-store"
+								}
+							},
+							"Retry-After": {
+								"description": "Seconds until another request can be attempted.",
+								"required": true,
+								"schema": {
+									"type": "integer",
+									"minimum": 1
+								}
+							}
+						},
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Unexpected server error.",
+						"headers": {
+							"Cache-Control": {
+								"description": "Prevents storage of the response.",
+								"required": true,
+								"schema": {
+									"type": "string",
+									"const": "no-store"
+								}
+							}
+						},
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
 								}
 							}
 						}
@@ -802,1425 +955,3307 @@
 		"/pastes-realtime/{slug}": {
 			"post": {
 				"summary": "/{slug}",
-				"responses": {
-					"default": {
-						"description": "Default fallback response",
-						"content": {
-							"application/json": {
-								"schema": {
-									"type": "object",
-									"properties": {
-										"success": {
-											"type": "boolean"
-										},
-										"realtimePaste": {
-											"type": "object",
-											"properties": {
-												"syntax": {},
-												"title": {
-													"type": "string"
-												},
-												"slug": {
-													"type": "string"
-												},
-												"content": {
-													"type": "string"
-												},
-												"syntaxId": {
-													"type": "string"
-												},
-												"visibility": {
-													"type": "string",
-													"enum": [
-														"public",
-														"organization"
-													]
-												},
-												"organizationId": {
-													"type": "string"
-												},
-												"id": {
-													"type": "string"
-												},
-												"createdAt": {
-													"type": "string"
-												},
-												"updatedAt": {
-													"type": "string"
-												}
-											},
-											"required": [
-												"syntax",
-												"title",
-												"slug",
-												"content",
-												"syntaxId",
-												"visibility",
-												"organizationId",
-												"id",
-												"createdAt",
-												"updatedAt"
-											]
-										},
-										"session": {}
-									},
-									"required": [
-										"success",
-										"realtimePaste",
-										"session"
-									]
-								}
-							}
-						}
-					}
-				},
-				"parameters": [
-					{
-						"name": "slug",
-						"in": "path",
-						"required": true,
-						"schema": {
-							"type": "string"
-						}
-					}
-				],
 				"description": "Creates a new realtime paste or retrieves an existing one based on the provided slug.",
-				"tags": ["Realtime Pastes"]
-			},
-			"get": {
-				"summary": "/{slug}",
-				"responses": {
-					"default": {
-						"description": "Default fallback response",
-						"content": {
-							"application/json": {
-								"schema": {
-									"type": "object",
-									"properties": {
-										"success": {
-											"type": "boolean"
-										},
-										"data": {
-											"type": "object",
-											"properties": {
-												"syntax": {
-													"type": "object",
-													"properties": {
-														"name": {
-															"type": "string"
-														},
-														"extension": {
-															"type": "string"
-														},
-														"color": {
-															"type": "string"
-														}
-													},
-													"required": [
-														"name",
-														"extension",
-														"color"
-													]
-												},
-												"title": {
-													"type": "string"
-												},
-												"slug": {
-													"type": "string"
-												},
-												"content": {
-													"type": "string"
-												},
-												"syntaxId": {
-													"type": "string"
-												},
-												"visibility": {
-													"type": "string",
-													"enum": [
-														"public",
-														"organization"
-													]
-												},
-												"organizationId": {
-													"type": "string"
-												},
-												"id": {
-													"type": "string"
-												},
-												"createdAt": {
-													"type": "string"
-												},
-												"updatedAt": {
-													"type": "string"
-												}
-											},
-											"required": [
-												"syntax",
-												"title",
-												"slug",
-												"content",
-												"syntaxId",
-												"visibility",
-												"organizationId",
-												"id",
-												"createdAt",
-												"updatedAt"
-											]
-										}
-									},
-									"required": ["success", "data"]
-								}
-							}
-						}
-					}
-				},
+				"tags": ["Realtime Pastes"],
+				"security": [],
 				"parameters": [
 					{
 						"name": "slug",
 						"in": "path",
 						"required": true,
 						"schema": {
-							"type": "string"
+							"type": "string",
+							"minLength": 1,
+							"maxLength": 64,
+							"pattern": "^[A-Za-z0-9-]+$"
 						}
 					}
 				],
-				"description": "Fetches the details of a specific realtime paste identified by its slug.",
-				"tags": ["Realtime Pastes"]
-			}
-		},
-		"/pastes-realtime/{slug}/download": {
-			"get": {
-				"summary": "/{slug}/download",
-				"responses": {
-					"default": {
-						"description": "Default fallback response",
-						"content": {
-							"application/json": {
-								"schema": {
-									"type": "string"
-								}
+				"requestBody": {
+					"required": false,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/RealtimeCreateRequest"
 							}
 						}
 					}
 				},
-				"parameters": [
-					{
-						"name": "slug",
-						"in": "path",
-						"required": true,
-						"schema": {
-							"type": "string"
-						}
-					}
-				],
-				"description": "Allows users to download the content of a specific realtime paste as a file.",
-				"tags": ["Realtime Pastes"]
-			}
-		},
-		"/folders": {
-			"post": {
-				"summary": "/",
 				"responses": {
-					"default": {
-						"description": "Default fallback response",
+					"200": {
+						"description": "Success",
 						"content": {
 							"application/json": {
 								"schema": {
-									"oneOf": [
-										{
-											"type": "object",
-											"properties": {
-												"success": {
-													"type": "boolean"
-												},
-												"data": {
-													"type": "object",
-													"properties": {
-														"userId": {
-															"type": "string"
-														},
-														"name": {
-															"type": "string"
-														},
-														"parentFolderId": {
-															"type": "string"
-														},
-														"id": {
-															"type": "string"
-														},
-														"createdAt": {
-															"type": "string"
-														},
-														"updatedAt": {
-															"type": "string"
-														}
-													},
-													"required": [
-														"userId",
-														"name",
-														"parentFolderId",
-														"id",
-														"createdAt",
-														"updatedAt"
-													]
-												}
-											},
-											"required": ["success", "data"]
-										},
-										{
-											"type": "object",
-											"properties": {
-												"success": {
-													"type": "boolean"
-												},
-												"data": {
-													"type": "array",
-													"items": {
-														"type": "object",
-														"properties": {
-															"name": {
-																"type": "string"
-															},
-															"id": {
-																"type": "string"
-															},
-															"createdAt": {
-																"type": "string"
-															},
-															"updatedAt": {
-																"type": "string"
-															},
-															"userId": {
-																"type": "string"
-															},
-															"parentFolderId": {
-																"type": "string"
-															}
-														},
-														"required": [
-															"name",
-															"id",
-															"createdAt",
-															"updatedAt",
-															"userId",
-															"parentFolderId"
-														]
-													}
-												}
-											},
-											"required": ["success", "data"]
-										}
-									]
-								}
-							}
-						}
-					}
-				},
-				"description": "Creates (or reuses) a folder (root or nested)",
-				"tags": ["Folders"]
-			},
-			"get": {
-				"summary": "/",
-				"responses": {
-					"default": {
-						"description": "Default fallback response",
-						"content": {
-							"application/json": {
-								"schema": {
-									"type": "object",
-									"properties": {
-										"success": {
-											"type": "boolean"
-										},
-										"data": {
-											"type": "array",
-											"items": {
-												"type": "object",
-												"properties": {
-													"userId": {
-														"type": "string"
-													},
-													"name": {
-														"type": "string"
-													},
-													"parentFolderId": {
-														"type": "string"
-													},
-													"id": {
-														"type": "string"
-													},
-													"createdAt": {
-														"type": "string"
-													},
-													"updatedAt": {
-														"type": "string"
-													}
-												},
-												"required": [
-													"userId",
-													"name",
-													"parentFolderId",
-													"id",
-													"createdAt",
-													"updatedAt"
-												]
-											}
-										}
-									},
-									"required": ["success", "data"]
-								}
-							}
-						}
-					}
-				},
-				"description": "Lists user's folders; supports ?parentId=... to list children of a given parent",
-				"tags": ["Folders"]
-			}
-		},
-		"/folders/all": {
-			"get": {
-				"summary": "/all",
-				"responses": {
-					"default": {
-						"description": "Default fallback response",
-						"content": {
-							"application/json": {
-								"schema": {
-									"type": "object",
-									"properties": {
-										"success": {
-											"type": "boolean"
-										},
-										"data": {
-											"type": "array",
-											"items": {
-												"type": "object",
-												"properties": {
-													"id": {
-														"type": "string"
-													},
-													"name": {
-														"type": "string"
-													},
-													"parentFolderId": {
-														"type": "string"
-													},
-													"createdAt": {
-														"type": "string"
-													},
-													"updatedAt": {
-														"type": "string"
-													},
-													"userId": {
-														"type": "string"
-													},
-													"subfoldersCount": {
-														"type": "number"
-													},
-													"pastesCount": {
-														"type": "number"
-													}
-												},
-												"required": [
-													"id",
-													"name",
-													"parentFolderId",
-													"createdAt",
-													"updatedAt",
-													"userId",
-													"subfoldersCount",
-													"pastesCount"
-												]
-											}
-										}
-									},
-									"required": ["success", "data"]
-								}
-							}
-						}
-					}
-				},
-				"description": "Lists all user's folders (flat)",
-				"tags": ["Folders"]
-			}
-		},
-		"/folders/{id}": {
-			"patch": {
-				"summary": "/{id}",
-				"responses": {
-					"default": {
-						"description": "Default fallback response",
-						"content": {
-							"application/json": {
-								"schema": {
-									"type": "object",
-									"properties": {
-										"success": {
-											"type": "boolean"
-										},
-										"data": {
-											"type": "object",
-											"properties": {
-												"userId": {
-													"type": "string"
-												},
-												"name": {
-													"type": "string"
-												},
-												"parentFolderId": {
-													"type": "string"
-												},
-												"id": {
-													"type": "string"
-												},
-												"createdAt": {
-													"type": "string"
-												},
-												"updatedAt": {
-													"type": "string"
-												}
-											},
-											"required": [
-												"userId",
-												"name",
-												"parentFolderId",
-												"id",
-												"createdAt",
-												"updatedAt"
-											]
-										}
-									},
-									"required": ["success", "data"]
-								}
-							}
-						}
-					}
-				},
-				"description": "Renames a folder",
-				"parameters": [
-					{
-						"name": "id",
-						"in": "path",
-						"required": true,
-						"schema": {
-							"type": "string"
-						}
-					}
-				],
-				"tags": ["Folders"]
-			},
-			"delete": {
-				"summary": "/{id}",
-				"responses": {
-					"default": {
-						"description": "Default fallback response",
-						"content": {
-							"application/json": {
-								"schema": {
-									"type": "object",
-									"properties": {
-										"success": {
-											"type": "boolean"
-										},
-										"deleted": {}
-									},
-									"required": ["success", "deleted"]
-								}
-							}
-						}
-					}
-				},
-				"description": "Deletes a folder",
-				"parameters": [
-					{
-						"name": "id",
-						"in": "path",
-						"required": true,
-						"schema": {
-							"type": "string"
-						}
-					}
-				],
-				"tags": ["Folders"]
-			}
-		},
-		"/folders/f/{id}": {
-			"get": {
-				"summary": "/{id}",
-				"responses": {
-					"default": {
-						"description": "Default fallback response",
-						"content": {
-							"application/json": {
-								"schema": {
-									"type": "object",
-									"properties": {
-										"success": {
-											"type": "boolean"
-										},
-										"data": {
-											"type": "object",
-											"properties": {
-												"folder": {
-													"type": "object",
-													"properties": {
-														"id": {
-															"type": "string"
-														},
-														"name": {
-															"type": "string"
-														},
-														"parentFolderId": {
-															"type": "string"
-														},
-														"createdAt": {
-															"type": "string"
-														},
-														"updatedAt": {
-															"type": "string"
-														},
-														"userId": {
-															"type": "string"
-														},
-														"subfoldersCount": {
-															"type": "number"
-														},
-														"pastesCount": {
-															"type": "number"
-														}
-													},
-													"required": [
-														"id",
-														"name",
-														"parentFolderId",
-														"createdAt",
-														"updatedAt",
-														"userId",
-														"subfoldersCount",
-														"pastesCount"
-													]
-												},
-												"pastes": {
-													"type": "array",
-													"items": {
-														"type": "object",
-														"properties": {
-															"id": {
-																"type": "string"
-															},
-															"createdAt": {
-																"type": "string"
-															},
-															"updatedAt": {
-																"type": "string"
-															},
-															"userId": {
-																"type": "string"
-															},
-															"folderId": {
-																"type": "string"
-															},
-															"title": {
-																"type": "string"
-															},
-															"description": {
-																"type": "string"
-															},
-															"slug": {
-																"type": "string"
-															},
-															"category": {
-																"type": "string",
-																"enum": [
-																	"log",
-																	"none",
-																	"cryptocurrency",
-																	"cybersecurity",
-																	"fixit",
-																	"gaming",
-																	"help",
-																	"software",
-																	"note",
-																	"config",
-																	"question",
-																	"project",
-																	"snippet",
-																	"education"
-																]
-															},
-															"expiresAt": {
-																"type": "string"
-															},
-															"expiration": {
-																"type": "string",
-																"enum": [
-																	"never",
-																	"burn_after_read",
-																	"10m",
-																	"1h",
-																	"1d",
-																	"1w",
-																	"2w"
-																]
-															},
-															"encrypted": {
-																"type": "boolean"
-															},
-															"passwordProtected": {
-																"type": "boolean"
-															},
-															"hits": {
-																"type": "number"
-															},
-															"visibility": {
-																"type": "string",
-																"enum": [
-																	"public",
-																	"organization",
-																	"private",
-																	"unlisted"
-																]
-															},
-															"tags": {
-																"type": "array",
-																"items": {
-																	"type": "string"
-																}
-															},
-															"syntax": {
-																"type": "object",
-																"properties": {
-																	"name": {
-																		"type": "string"
-																	},
-																	"extension": {
-																		"type": "string"
-																	},
-																	"color": {
-																		"type": "string"
-																	}
-																},
-																"required": [
-																	"name",
-																	"extension",
-																	"color"
-																]
-															}
-														},
-														"required": [
-															"id",
-															"createdAt",
-															"updatedAt",
-															"userId",
-															"folderId",
-															"title",
-															"description",
-															"slug",
-															"category",
-															"expiresAt",
-															"expiration",
-															"encrypted",
-															"passwordProtected",
-															"hits",
-															"visibility",
-															"tags",
-															"syntax"
-														]
-													}
-												}
-											},
-											"required": ["folder", "pastes"]
-										}
-									},
-									"required": ["success", "data"]
-								}
-							}
-						}
-					}
-				},
-				"parameters": [
-					{
-						"name": "id",
-						"in": "path",
-						"required": true,
-						"schema": {
-							"type": "string"
-						}
-					}
-				],
-				"description": "Retrieves a specific folder by id",
-				"tags": ["Folders"]
-			}
-		},
-		"/user/pastes": {
-			"get": {
-				"summary": "/pastes",
-				"responses": {
-					"400": {
-						"description": "Status 400",
-						"content": {
-							"application/json": {
-								"schema": {
-									"type": "object",
-									"properties": {
-										"success": {
-											"type": "boolean"
-										},
-										"message": {
-											"type": "string"
-										}
-									},
-									"required": ["success", "message"]
+									"$ref": "#/components/schemas/RealtimeCreateResponse"
 								}
 							}
 						}
 					},
-					"default": {
-						"description": "Default fallback response",
+					"400": {
+						"description": "Invalid realtime slug.",
 						"content": {
 							"application/json": {
 								"schema": {
-									"type": "object",
-									"properties": {
-										"success": {
-											"type": "boolean"
-										},
-										"data": {
-											"type": "array",
-											"items": {}
-										},
-										"total": {
-											"type": "number"
-										}
-									},
-									"required": ["success", "data", "total"]
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					},
+					"413": {
+						"description": "Request body exceeds the 2097152-byte limit.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Unexpected server error.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
 								}
 							}
 						}
 					}
-				},
-				"description": "Retrieves a list of public pastes created by specific user. If user that makes the request is authenticated and requests their own pastes, all their pastes are returned.",
-				"tags": ["User"]
-			}
-		},
-		"/user/name/{name}": {
+				}
+			},
 			"get": {
-				"summary": "/name/{name}",
+				"summary": "/{slug}",
+				"description": "Fetches the details of a specific realtime paste identified by its slug.",
+				"tags": ["Realtime Pastes"],
+				"security": [],
+				"parameters": [
+					{
+						"name": "slug",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"minLength": 1,
+							"maxLength": 64,
+							"pattern": "^[A-Za-z0-9-]+$"
+						}
+					}
+				],
 				"responses": {
-					"400": {
-						"description": "Status 400",
+					"200": {
+						"description": "Success",
 						"content": {
 							"application/json": {
 								"schema": {
-									"type": "object",
-									"properties": {
-										"success": {
-											"type": "boolean"
-										},
-										"message": {
-											"type": "string"
-										}
-									},
-									"required": ["success", "message"]
+									"$ref": "#/components/schemas/RealtimePasteResponse"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Invalid realtime slug.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
 								}
 							}
 						}
 					},
 					"404": {
-						"description": "Status 404",
+						"description": "Realtime paste was not found.",
 						"content": {
 							"application/json": {
 								"schema": {
-									"type": "object",
-									"properties": {
-										"success": {
-											"type": "boolean"
-										},
-										"message": {
-											"type": "string"
-										}
-									},
-									"required": ["success", "message"]
+									"$ref": "#/components/schemas/ApiError"
 								}
 							}
 						}
 					},
-					"default": {
-						"description": "Default fallback response",
+					"500": {
+						"description": "Unexpected server error.",
 						"content": {
 							"application/json": {
 								"schema": {
-									"type": "object",
-									"properties": {
-										"success": {
-											"type": "boolean"
-										},
-										"data": {
-											"type": "object",
-											"properties": {
-												"id": {
-													"type": "string"
-												},
-												"name": {
-													"type": "string"
-												},
-												"createdAt": {
-													"type": "string"
-												},
-												"role": {
-													"type": "string"
-												}
-											},
-											"required": [
-												"id",
-												"name",
-												"createdAt",
-												"role"
-											]
-										}
-									},
-									"required": ["success", "data"]
+									"$ref": "#/components/schemas/ApiError"
 								}
 							}
 						}
 					}
+				}
+			}
+		},
+		"/pastes-realtime/{slug}/download": {
+			"get": {
+				"summary": "/{slug}/download",
+				"description": "Allows users to download the content of a specific realtime paste as a file.",
+				"tags": ["Realtime Pastes"],
+				"security": [],
+				"parameters": [
+					{
+						"name": "slug",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"minLength": 1,
+							"maxLength": 64,
+							"pattern": "^[A-Za-z0-9-]+$"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Realtime paste content delivered as a UTF-8 text file.",
+						"headers": {
+							"Content-Disposition": {
+								"description": "Attachment filename derived from the sanitized paste title.",
+								"required": true,
+								"schema": {
+									"type": "string",
+									"pattern": "^attachment; filename=\".+\"$"
+								}
+							}
+						},
+						"content": {
+							"text/plain; charset=utf-8": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Invalid realtime slug.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Realtime paste was not found.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Unexpected server error.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/folders": {
+			"post": {
+				"summary": "/",
+				"description": "Creates (or reuses) a folder (root or nested)",
+				"tags": ["Folders"],
+				"security": [
+					{
+						"sessionCookie": []
+					},
+					{
+						"secureSessionCookie": []
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/CreateFolderRequest"
+							}
+						}
+					}
 				},
+				"responses": {
+					"200": {
+						"description": "Existing folder returned.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/FolderResponse"
+								}
+							}
+						}
+					},
+					"201": {
+						"description": "Folder created.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/FolderResponse"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Invalid folder data.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Authentication is required.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Parent folder was not found.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					},
+					"413": {
+						"description": "Request body exceeds the 2097152-byte limit.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Unexpected server error.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					}
+				}
+			},
+			"get": {
+				"summary": "/",
+				"description": "Lists user's folders; supports ?parentId=... to list children of a given parent",
+				"tags": ["Folders"],
+				"security": [
+					{
+						"sessionCookie": []
+					},
+					{
+						"secureSessionCookie": []
+					}
+				],
+				"parameters": [
+					{
+						"name": "parentId",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"oneOf": [
+								{
+									"type": "string",
+									"format": "uuid"
+								},
+								{
+									"type": "string",
+									"const": "null"
+								}
+							]
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Success",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/FolderListResponse"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Invalid parentId.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Authentication is required.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Unexpected server error.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/folders/all": {
+			"get": {
+				"summary": "/all",
+				"description": "Lists all user's folders (flat)",
+				"tags": ["Folders"],
+				"security": [
+					{
+						"sessionCookie": []
+					},
+					{
+						"secureSessionCookie": []
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Success",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/FolderCountListResponse"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Authentication is required.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Unexpected server error.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/folders/{id}": {
+			"patch": {
+				"summary": "/{id}",
+				"description": "Renames a folder",
+				"tags": ["Folders"],
+				"security": [
+					{
+						"sessionCookie": []
+					},
+					{
+						"secureSessionCookie": []
+					}
+				],
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"format": "uuid"
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/UpdateFolderRequest"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "Folder updated.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/FolderResponse"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Invalid folder id or body.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Authentication is required.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Folder was not found.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					},
+					"409": {
+						"description": "A folder with that name already exists.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					},
+					"413": {
+						"description": "Request body exceeds the 2097152-byte limit.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Unexpected server error.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					}
+				}
+			},
+			"delete": {
+				"summary": "/{id}",
+				"description": "Deletes a folder",
+				"tags": ["Folders"],
+				"security": [
+					{
+						"sessionCookie": []
+					},
+					{
+						"secureSessionCookie": []
+					}
+				],
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"format": "uuid"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Folder tree deleted.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/DeleteFolderResponse"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Invalid folder id.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Authentication is required.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Folder was not found.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Unexpected server error.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/folders/f/{id}": {
+			"get": {
+				"summary": "/{id}",
+				"description": "Retrieves a specific folder by id",
+				"tags": ["Folders"],
+				"security": [
+					{
+						"sessionCookie": []
+					},
+					{
+						"secureSessionCookie": []
+					}
+				],
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"format": "uuid"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Success",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/FolderDetailsResponse"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Invalid folder id.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Authentication is required.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Folder was not found.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Unexpected server error.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/user/pastes": {
+			"get": {
+				"summary": "/pastes",
+				"description": "Retrieves a list of public pastes created by specific user. If user that makes the request is authenticated and requests their own pastes, all their pastes are returned.",
+				"tags": ["User"],
+				"security": [
+					{},
+					{
+						"sessionCookie": []
+					},
+					{
+						"secureSessionCookie": []
+					}
+				],
+				"parameters": [
+					{
+						"name": "limit",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"minimum": 1,
+							"maximum": 100,
+							"default": 10
+						}
+					},
+					{
+						"name": "offset",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"minimum": 0,
+							"default": 0
+						}
+					},
+					{
+						"name": "userId",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"format": "uuid"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Success",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PasteListResponse"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Invalid user or pagination parameters.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/UserPastesBadRequest"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Unexpected server error.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/user/name/{name}": {
+			"get": {
+				"summary": "/name/{name}",
+				"description": "Checks if user with given name exists and returns basic info about them.",
+				"tags": ["User"],
+				"security": [],
 				"parameters": [
 					{
 						"name": "name",
 						"in": "path",
 						"required": true,
 						"schema": {
-							"type": "string"
+							"type": "string",
+							"minLength": 1
 						}
 					}
 				],
-				"description": "Checks if user with given name exists and returns basic info about them.",
-				"tags": ["User"]
+				"responses": {
+					"200": {
+						"description": "Success",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PublicUserResponse"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Missing or empty user name.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/SimpleError"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "User was not found.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/SimpleError"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Unexpected server error.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					}
+				}
 			}
 		},
 		"/admin/pastes": {
 			"get": {
 				"summary": "/pastes",
+				"description": "Retrieves a list of all pastes in the system for administrative purposes.",
+				"tags": ["DoggoPaste Admin"],
+				"security": [
+					{
+						"sessionCookie": []
+					},
+					{
+						"secureSessionCookie": []
+					}
+				],
 				"responses": {
-					"default": {
-						"description": "Default fallback response",
+					"200": {
+						"description": "Success",
 						"content": {
 							"application/json": {
 								"schema": {
-									"type": "object",
-									"properties": {
-										"success": {
-											"type": "boolean"
-										},
-										"data": {
-											"type": "object",
-											"properties": {
-												"pastes": {
-													"type": "array",
-													"items": {
-														"type": "object",
-														"properties": {
-															"paste": {
-																"type": "object",
-																"properties": {
-																	"id": {
-																		"type": "string"
-																	},
-																	"title": {
-																		"type": "string"
-																	},
-																	"slug": {
-																		"type": "string"
-																	},
-																	"visibility": {
-																		"type": "string",
-																		"enum": [
-																			"public",
-																			"private",
-																			"unlisted",
-																			"organization"
-																		]
-																	},
-																	"createdAt": {
-																		"type": "string"
-																	},
-																	"updatedAt": {
-																		"type": "string"
-																	}
-																},
-																"required": [
-																	"id",
-																	"title",
-																	"slug",
-																	"visibility",
-																	"createdAt",
-																	"updatedAt"
-																]
-															},
-															"user": {
-																"type": "object",
-																"properties": {
-																	"id": {
-																		"type": "string"
-																	},
-																	"name": {
-																		"type": "string"
-																	}
-																},
-																"required": [
-																	"id",
-																	"name"
-																]
-															},
-															"syntax": {
-																"type": "object",
-																"properties": {
-																	"id": {
-																		"type": "string"
-																	},
-																	"name": {
-																		"type": "string"
-																	},
-																	"extension": {
-																		"type": "string"
-																	},
-																	"color": {
-																		"type": "string"
-																	}
-																},
-																"required": [
-																	"id",
-																	"name",
-																	"extension",
-																	"color"
-																]
-															}
-														},
-														"required": [
-															"paste",
-															"user",
-															"syntax"
-														]
-													}
-												}
-											},
-											"required": ["pastes"]
-										}
-									},
-									"required": ["success", "data"]
+									"$ref": "#/components/schemas/AdminStaticPasteListResponse"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Authentication is required.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "Administrator access is required.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Unexpected server error.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
 								}
 							}
 						}
 					}
-				},
-				"description": "Retrieves a list of all pastes in the system for administrative purposes.",
-				"tags": ["DoggoPaste Admin"]
+				}
 			}
 		},
 		"/admin/pastes-realtime": {
 			"get": {
 				"summary": "/pastes-realtime",
+				"description": "Retrieves a list of all realtime pastes in the system for administrative purposes.",
+				"tags": ["DoggoPaste Admin"],
+				"security": [
+					{
+						"sessionCookie": []
+					},
+					{
+						"secureSessionCookie": []
+					}
+				],
 				"responses": {
-					"default": {
-						"description": "Default fallback response",
+					"200": {
+						"description": "Success",
 						"content": {
 							"application/json": {
 								"schema": {
-									"type": "object",
-									"properties": {
-										"success": {
-											"type": "boolean"
-										},
-										"data": {
-											"type": "object",
-											"properties": {
-												"realtimePastes": {
-													"type": "array",
-													"items": {
-														"type": "object",
-														"properties": {
-															"paste": {
-																"type": "object",
-																"properties": {
-																	"title": {
-																		"type": "string"
-																	},
-																	"slug": {
-																		"type": "string"
-																	},
-																	"content": {
-																		"type": "string"
-																	},
-																	"syntaxId": {
-																		"type": "string"
-																	},
-																	"visibility": {
-																		"type": "string",
-																		"enum": [
-																			"public",
-																			"organization"
-																		]
-																	},
-																	"organizationId": {
-																		"type": "string"
-																	},
-																	"id": {
-																		"type": "string"
-																	},
-																	"createdAt": {
-																		"type": "string"
-																	},
-																	"updatedAt": {
-																		"type": "string"
-																	}
-																},
-																"required": [
-																	"title",
-																	"slug",
-																	"content",
-																	"syntaxId",
-																	"visibility",
-																	"organizationId",
-																	"id",
-																	"createdAt",
-																	"updatedAt"
-																]
-															},
-															"syntax": {
-																"type": "object",
-																"properties": {
-																	"name": {
-																		"type": "string"
-																	},
-																	"extension": {
-																		"type": "string"
-																	},
-																	"color": {
-																		"type": "string"
-																	}
-																},
-																"required": [
-																	"name",
-																	"extension",
-																	"color"
-																]
-															}
-														},
-														"required": [
-															"paste",
-															"syntax"
-														]
-													}
-												}
-											},
-											"required": ["realtimePastes"]
-										}
-									},
-									"required": ["success", "data"]
+									"$ref": "#/components/schemas/AdminRealtimePasteListResponse"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Authentication is required.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "Administrator access is required.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Unexpected server error.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
 								}
 							}
 						}
 					}
-				},
-				"description": "Retrieves a list of all realtime pastes in the system for administrative purposes.",
-				"tags": ["DoggoPaste Admin"]
+				}
 			}
 		},
 		"/admin/users/{id}": {
 			"delete": {
 				"summary": "/users/{id}",
-				"responses": {
-					"default": {
-						"description": "Default fallback response",
-						"content": {
-							"application/json": {
-								"schema": {
-									"type": "object",
-									"properties": {
-										"success": {
-											"type": "boolean"
-										},
-										"message": {
-											"type": "string"
-										}
-									},
-									"required": ["success", "message"]
-								}
-							}
-						}
-					}
-				},
 				"description": "Deletes a specific user identified by their id.",
+				"tags": ["DoggoPaste Admin"],
+				"security": [
+					{
+						"sessionCookie": []
+					},
+					{
+						"secureSessionCookie": []
+					}
+				],
 				"parameters": [
 					{
 						"name": "id",
 						"in": "path",
 						"required": true,
 						"schema": {
-							"type": "string"
+							"type": "string",
+							"format": "uuid"
 						}
 					}
 				],
-				"tags": ["DoggoPaste Admin"]
+				"responses": {
+					"200": {
+						"description": "User deleted.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/MessageResponse"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Invalid user id.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Authentication is required.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "Administrator access is required.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "User was not found.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Unexpected server error.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					}
+				}
 			}
 		},
 		"/admin/tags": {
 			"get": {
 				"summary": "/tags",
+				"description": "Retrieves a list of all tags in the system for administrative purposes.",
+				"tags": ["DoggoPaste Admin"],
+				"security": [
+					{
+						"sessionCookie": []
+					},
+					{
+						"secureSessionCookie": []
+					}
+				],
 				"responses": {
-					"default": {
-						"description": "Default fallback response",
+					"200": {
+						"description": "Success",
 						"content": {
 							"application/json": {
 								"schema": {
-									"type": "object",
-									"properties": {
-										"success": {
-											"type": "boolean"
-										},
-										"data": {
-											"type": "object",
-											"properties": {
-												"tags": {
-													"type": "array",
-													"items": {
-														"type": "object",
-														"properties": {
-															"id": {
-																"type": "string"
-															},
-															"name": {
-																"type": "string"
-															}
-														},
-														"required": [
-															"id",
-															"name"
-														]
-													}
-												}
-											},
-											"required": ["tags"]
-										}
-									},
-									"required": ["success", "data"]
+									"$ref": "#/components/schemas/AdminTagListResponse"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Authentication is required.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "Administrator access is required.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Unexpected server error.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
 								}
 							}
 						}
 					}
-				},
-				"description": "Retrieves a list of all tags in the system for administrative purposes.",
-				"tags": ["DoggoPaste Admin"]
+				}
 			}
 		},
 		"/admin/syntaxes": {
 			"get": {
 				"summary": "/syntaxes",
+				"description": "Retrieves a list of all syntaxes in the system for administrative purposes.",
+				"tags": ["DoggoPaste Admin"],
+				"security": [
+					{
+						"sessionCookie": []
+					},
+					{
+						"secureSessionCookie": []
+					}
+				],
 				"responses": {
-					"default": {
-						"description": "Default fallback response",
+					"200": {
+						"description": "Success",
 						"content": {
 							"application/json": {
 								"schema": {
-									"type": "object",
-									"properties": {
-										"success": {
-											"type": "boolean"
-										},
-										"data": {
-											"type": "object",
-											"properties": {
-												"syntaxes": {
-													"type": "array",
-													"items": {
-														"type": "object",
-														"properties": {
-															"id": {
-																"type": "string"
-															},
-															"name": {
-																"type": "string"
-															},
-															"extension": {
-																"type": "string"
-															},
-															"color": {
-																"type": "string"
-															}
-														},
-														"required": [
-															"id",
-															"name",
-															"extension",
-															"color"
-														]
-													}
-												}
-											},
-											"required": ["syntaxes"]
-										}
-									},
-									"required": ["success", "data"]
+									"$ref": "#/components/schemas/AdminSyntaxListResponse"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Authentication is required.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "Administrator access is required.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Unexpected server error.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
 								}
 							}
 						}
 					}
-				},
-				"description": "Retrieves a list of all syntaxes in the system for administrative purposes.",
-				"tags": ["DoggoPaste Admin"]
+				}
 			}
 		},
 		"/admin/pastes/{id}": {
 			"delete": {
 				"summary": "/pastes/{id}",
-				"responses": {
-					"default": {
-						"description": "Default fallback response",
-						"content": {
-							"application/json": {
-								"schema": {
-									"type": "object",
-									"properties": {
-										"success": {
-											"type": "boolean"
-										},
-										"message": {
-											"type": "string"
-										}
-									},
-									"required": ["success", "message"]
-								}
-							}
-						}
-					}
-				},
 				"description": "Deletes a specific paste identified by its id.",
+				"tags": ["DoggoPaste Admin"],
+				"security": [
+					{
+						"sessionCookie": []
+					},
+					{
+						"secureSessionCookie": []
+					}
+				],
 				"parameters": [
 					{
 						"name": "id",
 						"in": "path",
 						"required": true,
 						"schema": {
-							"type": "string"
+							"type": "string",
+							"format": "uuid"
 						}
 					}
 				],
-				"tags": ["DoggoPaste Admin"]
+				"responses": {
+					"200": {
+						"description": "Paste deleted.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/MessageResponse"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Invalid paste id.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Authentication is required.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "Administrator access is required.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Paste was not found.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Unexpected server error.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					}
+				}
 			}
 		},
 		"/admin/pastes-realtime/{id}": {
 			"delete": {
 				"summary": "/pastes-realtime/{id}",
-				"responses": {
-					"default": {
-						"description": "Default fallback response",
-						"content": {
-							"application/json": {
-								"schema": {
-									"type": "object",
-									"properties": {
-										"success": {
-											"type": "boolean"
-										},
-										"message": {
-											"type": "string"
-										}
-									},
-									"required": ["success", "message"]
-								}
-							}
-						}
-					}
-				},
 				"description": "Deletes a specific realtime paste identified by its id.",
+				"tags": ["DoggoPaste Admin"],
+				"security": [
+					{
+						"sessionCookie": []
+					},
+					{
+						"secureSessionCookie": []
+					}
+				],
 				"parameters": [
 					{
 						"name": "id",
 						"in": "path",
 						"required": true,
 						"schema": {
-							"type": "string"
+							"type": "string",
+							"format": "uuid"
 						}
 					}
 				],
-				"tags": ["DoggoPaste Admin"]
+				"responses": {
+					"200": {
+						"description": "Realtime paste deleted.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/MessageResponse"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Invalid realtime paste id.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Authentication is required.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "Administrator access is required.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Realtime paste was not found.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Unexpected server error.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					}
+				}
 			}
 		},
 		"/admin/tags/{id}": {
 			"delete": {
 				"summary": "/tags/{id}",
-				"responses": {
-					"default": {
-						"description": "Default fallback response",
-						"content": {
-							"application/json": {
-								"schema": {
-									"type": "object",
-									"properties": {
-										"success": {
-											"type": "boolean"
-										},
-										"message": {
-											"type": "string"
-										}
-									},
-									"required": ["success", "message"]
-								}
-							}
-						}
-					}
-				},
 				"description": "Deletes a specific tag identified by its id.",
+				"tags": ["DoggoPaste Admin"],
+				"security": [
+					{
+						"sessionCookie": []
+					},
+					{
+						"secureSessionCookie": []
+					}
+				],
 				"parameters": [
 					{
 						"name": "id",
 						"in": "path",
 						"required": true,
 						"schema": {
-							"type": "string"
+							"type": "string",
+							"format": "uuid"
 						}
 					}
 				],
-				"tags": ["DoggoPaste Admin"]
+				"responses": {
+					"200": {
+						"description": "Tag deleted.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/MessageResponse"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Invalid tag id.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Authentication is required.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "Administrator access is required.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Tag was not found.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Unexpected server error.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					}
+				}
 			}
 		},
 		"/admin/syntaxes/{id}": {
 			"put": {
 				"summary": "/syntaxes/{id}",
-				"responses": {
-					"default": {
-						"description": "Default fallback response",
-						"content": {
-							"application/json": {
-								"schema": {
-									"type": "object",
-									"properties": {
-										"success": {
-											"type": "boolean"
-										},
-										"message": {
-											"type": "string"
-										}
-									},
-									"required": ["success", "message"]
-								}
-							}
-						}
+				"description": "Updates the details of a specific syntax identified by its id.",
+				"tags": ["DoggoPaste Admin"],
+				"security": [
+					{
+						"sessionCookie": []
+					},
+					{
+						"secureSessionCookie": []
 					}
-				},
+				],
 				"parameters": [
 					{
 						"name": "id",
 						"in": "path",
 						"required": true,
 						"schema": {
-							"type": "string"
+							"type": "string",
+							"format": "uuid"
 						}
 					}
 				],
-				"description": "Updates the details of a specific syntax identified by its id.",
-				"tags": ["DoggoPaste Admin"]
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/UpdateSyntaxRequest"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "Syntax updated.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/MessageResponse"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Invalid syntax id or body.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Authentication is required.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "Administrator access is required.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Syntax was not found.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					},
+					"409": {
+						"description": "Syntax name already exists.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					},
+					"413": {
+						"description": "Request body exceeds the 2097152-byte limit.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Unexpected server error.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiError"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/": {
+			"get": {
+				"tags": ["Misc"],
+				"summary": "API greeting",
+				"description": "Returns a plain-text API greeting.",
+				"security": [],
+				"responses": {
+					"200": {
+						"description": "DoggoPaste REST API greeting.",
+						"content": {
+							"text/plain; charset=utf-8": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/health": {
+			"get": {
+				"tags": ["Misc"],
+				"summary": "Health check",
+				"description": "Reports API and PostgreSQL health.",
+				"security": [],
+				"responses": {
+					"200": {
+						"description": "API and PostgreSQL are healthy.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HealthOk"
+								}
+							}
+						}
+					},
+					"503": {
+						"description": "PostgreSQL is unavailable.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HealthDegraded"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/openapi": {
+			"get": {
+				"tags": ["Misc"],
+				"summary": "OpenAPI document",
+				"description": "Returns this OpenAPI document as JSON.",
+				"security": [],
+				"responses": {
+					"200": {
+						"description": "OpenAPI JSON document.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"additionalProperties": true
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/docs": {
+			"get": {
+				"tags": ["Misc"],
+				"summary": "Interactive API documentation",
+				"description": "Returns the Scalar documentation UI.",
+				"security": [],
+				"responses": {
+					"200": {
+						"description": "Scalar HTML documentation.",
+						"content": {
+							"text/html; charset=UTF-8": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/redirect": {
+			"get": {
+				"tags": ["Misc"],
+				"summary": "Profile redirect",
+				"description": "Redirects to the configured web profile page.",
+				"security": [],
+				"responses": {
+					"302": {
+						"description": "Redirect to the profile page.",
+						"headers": {
+							"Location": {
+								"description": "Absolute profile URL.",
+								"required": true,
+								"schema": {
+									"type": "string",
+									"format": "uri"
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	},
+	"components": {
+		"schemas": {
+			"ErrorDetail": {
+				"type": "object",
+				"additionalProperties": {
+					"type": "string"
+				}
+			},
+			"ApiError": {
+				"type": "object",
+				"additionalProperties": false,
+				"required": ["statusCode", "name", "message"],
+				"properties": {
+					"statusCode": {
+						"type": "integer",
+						"minimum": 400,
+						"maximum": 599
+					},
+					"name": {
+						"type": "string"
+					},
+					"message": {
+						"type": "string"
+					},
+					"details": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/ErrorDetail"
+						}
+					}
+				}
+			},
+			"SimpleError": {
+				"type": "object",
+				"additionalProperties": false,
+				"required": ["success", "message"],
+				"properties": {
+					"success": {
+						"type": "boolean",
+						"const": false
+					},
+					"message": {
+						"type": "string"
+					}
+				}
+			},
+			"UserPastesBadRequest": {
+				"oneOf": [
+					{
+						"$ref": "#/components/schemas/ApiError"
+					},
+					{
+						"$ref": "#/components/schemas/SimpleError"
+					}
+				]
+			},
+			"PasteSyntax": {
+				"type": "object",
+				"additionalProperties": false,
+				"required": ["name", "extension", "color"],
+				"properties": {
+					"name": {
+						"type": "string"
+					},
+					"extension": {
+						"type": "string"
+					},
+					"color": {
+						"type": "string"
+					}
+				}
+			},
+			"PasteSummary": {
+				"type": "object",
+				"additionalProperties": false,
+				"required": [
+					"id",
+					"createdAt",
+					"updatedAt",
+					"userId",
+					"folderId",
+					"title",
+					"description",
+					"slug",
+					"category",
+					"expiresAt",
+					"expiration",
+					"encrypted",
+					"passwordProtected",
+					"hits",
+					"visibility",
+					"tags",
+					"syntax"
+				],
+				"properties": {
+					"id": {
+						"type": "string",
+						"format": "uuid"
+					},
+					"createdAt": {
+						"type": "string",
+						"format": "date-time"
+					},
+					"updatedAt": {
+						"type": "string",
+						"format": "date-time"
+					},
+					"userId": {
+						"oneOf": [
+							{
+								"type": "string",
+								"format": "uuid"
+							},
+							{
+								"type": "null"
+							}
+						]
+					},
+					"folderId": {
+						"oneOf": [
+							{
+								"type": "string",
+								"format": "uuid"
+							},
+							{
+								"type": "null"
+							}
+						]
+					},
+					"title": {
+						"type": "string"
+					},
+					"description": {
+						"type": "string"
+					},
+					"slug": {
+						"type": "string"
+					},
+					"category": {
+						"type": "string",
+						"enum": [
+							"none",
+							"cryptocurrency",
+							"cybersecurity",
+							"fixit",
+							"gaming",
+							"help",
+							"software",
+							"note",
+							"config",
+							"question",
+							"log",
+							"project",
+							"snippet",
+							"education"
+						]
+					},
+					"expiresAt": {
+						"oneOf": [
+							{
+								"type": "string",
+								"format": "date-time"
+							},
+							{
+								"type": "null"
+							}
+						]
+					},
+					"expiration": {
+						"type": "string",
+						"enum": [
+							"never",
+							"burn_after_read",
+							"10m",
+							"1h",
+							"1d",
+							"1w",
+							"2w"
+						]
+					},
+					"encrypted": {
+						"type": "boolean"
+					},
+					"passwordProtected": {
+						"type": "boolean"
+					},
+					"hits": {
+						"type": "integer",
+						"minimum": 0
+					},
+					"visibility": {
+						"type": "string",
+						"enum": [
+							"public",
+							"private",
+							"unlisted",
+							"organization"
+						]
+					},
+					"tags": {
+						"type": "array",
+						"items": {
+							"type": "string"
+						}
+					},
+					"syntax": {
+						"$ref": "#/components/schemas/PasteSyntax"
+					}
+				}
+			},
+			"PasteDetails": {
+				"type": "object",
+				"additionalProperties": false,
+				"required": [
+					"id",
+					"createdAt",
+					"updatedAt",
+					"userId",
+					"folderId",
+					"title",
+					"description",
+					"slug",
+					"category",
+					"expiresAt",
+					"expiration",
+					"encrypted",
+					"passwordProtected",
+					"hits",
+					"visibility",
+					"tags",
+					"syntax",
+					"content"
+				],
+				"properties": {
+					"id": {
+						"type": "string",
+						"format": "uuid"
+					},
+					"createdAt": {
+						"type": "string",
+						"format": "date-time"
+					},
+					"updatedAt": {
+						"type": "string",
+						"format": "date-time"
+					},
+					"userId": {
+						"oneOf": [
+							{
+								"type": "string",
+								"format": "uuid"
+							},
+							{
+								"type": "null"
+							}
+						]
+					},
+					"folderId": {
+						"oneOf": [
+							{
+								"type": "string",
+								"format": "uuid"
+							},
+							{
+								"type": "null"
+							}
+						]
+					},
+					"title": {
+						"type": "string"
+					},
+					"description": {
+						"type": "string"
+					},
+					"slug": {
+						"type": "string"
+					},
+					"category": {
+						"type": "string",
+						"enum": [
+							"none",
+							"cryptocurrency",
+							"cybersecurity",
+							"fixit",
+							"gaming",
+							"help",
+							"software",
+							"note",
+							"config",
+							"question",
+							"log",
+							"project",
+							"snippet",
+							"education"
+						]
+					},
+					"expiresAt": {
+						"oneOf": [
+							{
+								"type": "string",
+								"format": "date-time"
+							},
+							{
+								"type": "null"
+							}
+						]
+					},
+					"expiration": {
+						"type": "string",
+						"enum": [
+							"never",
+							"burn_after_read",
+							"10m",
+							"1h",
+							"1d",
+							"1w",
+							"2w"
+						]
+					},
+					"encrypted": {
+						"type": "boolean"
+					},
+					"passwordProtected": {
+						"type": "boolean"
+					},
+					"hits": {
+						"type": "integer",
+						"minimum": 0
+					},
+					"visibility": {
+						"type": "string",
+						"enum": [
+							"public",
+							"private",
+							"unlisted",
+							"organization"
+						]
+					},
+					"tags": {
+						"type": "array",
+						"items": {
+							"type": "string"
+						}
+					},
+					"syntax": {
+						"$ref": "#/components/schemas/PasteSyntax"
+					},
+					"content": {
+						"type": "string"
+					}
+				}
+			},
+			"PasteDetailsResponse": {
+				"type": "object",
+				"additionalProperties": false,
+				"required": ["success", "data"],
+				"properties": {
+					"success": {
+						"type": "boolean",
+						"const": true
+					},
+					"data": {
+						"$ref": "#/components/schemas/PasteDetails"
+					}
+				}
+			},
+			"PasteListResponse": {
+				"type": "object",
+				"additionalProperties": false,
+				"required": ["success", "data", "total"],
+				"properties": {
+					"success": {
+						"type": "boolean",
+						"const": true
+					},
+					"data": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/PasteSummary"
+						}
+					},
+					"total": {
+						"type": "integer",
+						"minimum": 0
+					}
+				}
+			},
+			"CreatePasteRequest": {
+				"type": "object",
+				"additionalProperties": true,
+				"required": ["title", "slug", "content", "syntax"],
+				"properties": {
+					"title": {
+						"type": "string",
+						"minLength": 1,
+						"maxLength": 100
+					},
+					"slug": {
+						"type": "string",
+						"maxLength": 40,
+						"pattern": "^(?:[a-z0-9-]+)?$"
+					},
+					"description": {
+						"type": "string",
+						"maxLength": 255,
+						"default": ""
+					},
+					"content": {
+						"type": "string",
+						"minLength": 1,
+						"maxLength": 1000000
+					},
+					"category": {
+						"type": "string",
+						"enum": [
+							"none",
+							"cryptocurrency",
+							"cybersecurity",
+							"fixit",
+							"gaming",
+							"help",
+							"software",
+							"note",
+							"config",
+							"question",
+							"log",
+							"project",
+							"snippet",
+							"education"
+						],
+						"default": "none"
+					},
+					"tags": {
+						"type": "array",
+						"maxItems": 20,
+						"default": [],
+						"items": {
+							"type": "string",
+							"minLength": 1,
+							"maxLength": 16,
+							"pattern": "^[a-z][a-z0-9]*$"
+						}
+					},
+					"syntax": {
+						"type": "string",
+						"minLength": 1,
+						"maxLength": 64
+					},
+					"expiration": {
+						"type": "string",
+						"enum": [
+							"never",
+							"burn_after_read",
+							"10m",
+							"1h",
+							"1d",
+							"1w",
+							"2w"
+						],
+						"default": "never"
+					},
+					"visibility": {
+						"type": "string",
+						"enum": ["public", "private", "unlisted"],
+						"default": "public"
+					},
+					"folder": {
+						"oneOf": [
+							{
+								"type": "string",
+								"const": "none"
+							},
+							{
+								"type": "string",
+								"format": "uuid"
+							}
+						],
+						"default": "none"
+					},
+					"pasteAsGuest": {
+						"type": "boolean",
+						"default": false
+					},
+					"passwordEnabled": {
+						"type": "boolean",
+						"default": false
+					},
+					"password": {
+						"oneOf": [
+							{
+								"type": "string",
+								"maxLength": 128
+							},
+							{
+								"type": "null"
+							}
+						]
+					},
+					"encrypted": {
+						"type": "boolean",
+						"default": false
+					}
+				},
+				"allOf": [
+					{
+						"if": {
+							"required": ["passwordEnabled"],
+							"properties": {
+								"passwordEnabled": {
+									"const": true
+								},
+								"encrypted": {
+									"const": false
+								}
+							}
+						},
+						"then": {
+							"required": ["password"],
+							"properties": {
+								"password": {
+									"type": "string",
+									"minLength": 1,
+									"maxLength": 128,
+									"pattern": "\\S"
+								}
+							}
+						}
+					},
+					{
+						"if": {
+							"required": ["pasteAsGuest"],
+							"properties": {
+								"pasteAsGuest": {
+									"const": true
+								}
+							}
+						},
+						"then": {
+							"properties": {
+								"visibility": {
+									"type": "string",
+									"enum": ["public", "unlisted"]
+								},
+								"folder": {
+									"type": "string",
+									"const": "none"
+								}
+							}
+						}
+					}
+				]
+			},
+			"UpdatePasteRequest": {
+				"type": "object",
+				"additionalProperties": true,
+				"required": ["title", "slug", "content", "syntax"],
+				"properties": {
+					"title": {
+						"type": "string",
+						"minLength": 1,
+						"maxLength": 100
+					},
+					"slug": {
+						"type": "string",
+						"maxLength": 40,
+						"pattern": "^(?:[a-z0-9-]+)?$"
+					},
+					"description": {
+						"type": "string",
+						"maxLength": 255,
+						"default": ""
+					},
+					"content": {
+						"type": "string",
+						"minLength": 1,
+						"maxLength": 1000000
+					},
+					"category": {
+						"type": "string",
+						"enum": [
+							"none",
+							"cryptocurrency",
+							"cybersecurity",
+							"fixit",
+							"gaming",
+							"help",
+							"software",
+							"note",
+							"config",
+							"question",
+							"log",
+							"project",
+							"snippet",
+							"education"
+						],
+						"default": "none"
+					},
+					"tags": {
+						"type": "array",
+						"maxItems": 20,
+						"default": [],
+						"items": {
+							"type": "string",
+							"minLength": 1,
+							"maxLength": 16,
+							"pattern": "^[a-z][a-z0-9]*$"
+						}
+					},
+					"syntax": {
+						"type": "string",
+						"minLength": 1,
+						"maxLength": 64
+					},
+					"expiration": {
+						"type": "string",
+						"enum": [
+							"never",
+							"burn_after_read",
+							"10m",
+							"1h",
+							"1d",
+							"1w",
+							"2w"
+						],
+						"default": "never"
+					},
+					"visibility": {
+						"type": "string",
+						"enum": ["public", "private", "unlisted"],
+						"default": "public"
+					},
+					"folder": {
+						"oneOf": [
+							{
+								"type": "string",
+								"const": "none"
+							},
+							{
+								"type": "string",
+								"format": "uuid"
+							}
+						],
+						"default": "none"
+					},
+					"pasteAsGuest": {
+						"type": "boolean",
+						"default": false
+					},
+					"passwordEnabled": {
+						"type": "boolean",
+						"default": false
+					},
+					"password": {
+						"oneOf": [
+							{
+								"type": "string",
+								"maxLength": 128
+							},
+							{
+								"type": "null"
+							}
+						]
+					},
+					"encrypted": {
+						"type": "boolean",
+						"default": false
+					}
+				},
+				"allOf": [
+					{
+						"if": {
+							"required": ["passwordEnabled"],
+							"properties": {
+								"passwordEnabled": {
+									"const": true
+								},
+								"encrypted": {
+									"const": false
+								}
+							}
+						},
+						"then": {
+							"required": ["password"],
+							"properties": {
+								"password": {
+									"type": "string",
+									"minLength": 1,
+									"maxLength": 128,
+									"pattern": "\\S"
+								}
+							}
+						}
+					}
+				]
+			},
+			"VerifyPasswordRequest": {
+				"type": "object",
+				"additionalProperties": true,
+				"required": ["password"],
+				"properties": {
+					"password": {
+						"type": "string",
+						"minLength": 1,
+						"maxLength": 128
+					}
+				}
+			},
+			"DownloadPasswordRequest": {
+				"type": "object",
+				"additionalProperties": true,
+				"required": ["password"],
+				"properties": {
+					"password": {
+						"type": "string",
+						"minLength": 1,
+						"maxLength": 128,
+						"pattern": "\\S"
+					}
+				}
+			},
+			"VerifyPasteResponse": {
+				"type": "object",
+				"additionalProperties": false,
+				"required": ["success", "content"],
+				"properties": {
+					"success": {
+						"type": "boolean",
+						"const": true
+					},
+					"content": {
+						"type": "string"
+					}
+				}
+			},
+			"RealtimeSyntax": {
+				"type": "object",
+				"additionalProperties": false,
+				"required": ["name", "extension", "color"],
+				"properties": {
+					"name": {
+						"type": "string"
+					},
+					"extension": {
+						"oneOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						]
+					},
+					"color": {
+						"type": "string"
+					}
+				}
+			},
+			"RealtimePasteRecord": {
+				"type": "object",
+				"additionalProperties": false,
+				"required": [
+					"id",
+					"createdAt",
+					"updatedAt",
+					"title",
+					"slug",
+					"content",
+					"syntaxId",
+					"visibility",
+					"organizationId"
+				],
+				"properties": {
+					"id": {
+						"type": "string",
+						"format": "uuid"
+					},
+					"createdAt": {
+						"type": "string",
+						"format": "date-time"
+					},
+					"updatedAt": {
+						"type": "string",
+						"format": "date-time"
+					},
+					"title": {
+						"type": "string"
+					},
+					"slug": {
+						"type": "string",
+						"minLength": 1,
+						"maxLength": 64
+					},
+					"content": {
+						"type": "string"
+					},
+					"syntaxId": {
+						"oneOf": [
+							{
+								"type": "string",
+								"format": "uuid"
+							},
+							{
+								"type": "null"
+							}
+						]
+					},
+					"visibility": {
+						"type": "string",
+						"enum": [
+							"public",
+							"private",
+							"unlisted",
+							"organization"
+						]
+					},
+					"organizationId": {
+						"oneOf": [
+							{
+								"type": "string",
+								"format": "uuid"
+							},
+							{
+								"type": "null"
+							}
+						]
+					}
+				}
+			},
+			"RealtimePaste": {
+				"type": "object",
+				"additionalProperties": false,
+				"required": [
+					"id",
+					"createdAt",
+					"updatedAt",
+					"title",
+					"slug",
+					"content",
+					"syntaxId",
+					"visibility",
+					"organizationId",
+					"syntax"
+				],
+				"properties": {
+					"id": {
+						"type": "string",
+						"format": "uuid"
+					},
+					"createdAt": {
+						"type": "string",
+						"format": "date-time"
+					},
+					"updatedAt": {
+						"type": "string",
+						"format": "date-time"
+					},
+					"title": {
+						"type": "string"
+					},
+					"slug": {
+						"type": "string",
+						"minLength": 1,
+						"maxLength": 64
+					},
+					"content": {
+						"type": "string"
+					},
+					"syntaxId": {
+						"oneOf": [
+							{
+								"type": "string",
+								"format": "uuid"
+							},
+							{
+								"type": "null"
+							}
+						]
+					},
+					"visibility": {
+						"type": "string",
+						"enum": [
+							"public",
+							"private",
+							"unlisted",
+							"organization"
+						]
+					},
+					"organizationId": {
+						"oneOf": [
+							{
+								"type": "string",
+								"format": "uuid"
+							},
+							{
+								"type": "null"
+							}
+						]
+					},
+					"syntax": {
+						"$ref": "#/components/schemas/RealtimeSyntax"
+					}
+				}
+			},
+			"Viewer": {
+				"type": "object",
+				"additionalProperties": false,
+				"required": ["name"],
+				"properties": {
+					"name": {
+						"type": "string"
+					}
+				}
+			},
+			"RealtimeCreateRequest": {
+				"type": "object",
+				"additionalProperties": true,
+				"properties": {
+					"token": {
+						"oneOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						]
+					}
+				}
+			},
+			"RealtimeCreateResponse": {
+				"type": "object",
+				"additionalProperties": false,
+				"required": ["success", "realtimePaste", "viewer"],
+				"properties": {
+					"success": {
+						"type": "boolean",
+						"const": true
+					},
+					"realtimePaste": {
+						"$ref": "#/components/schemas/RealtimePaste"
+					},
+					"viewer": {
+						"oneOf": [
+							{
+								"$ref": "#/components/schemas/Viewer"
+							},
+							{
+								"type": "null"
+							}
+						]
+					}
+				}
+			},
+			"RealtimePasteResponse": {
+				"type": "object",
+				"additionalProperties": false,
+				"required": ["success", "data"],
+				"properties": {
+					"success": {
+						"type": "boolean",
+						"const": true
+					},
+					"data": {
+						"$ref": "#/components/schemas/RealtimePaste"
+					}
+				}
+			},
+			"Folder": {
+				"type": "object",
+				"additionalProperties": false,
+				"required": [
+					"id",
+					"createdAt",
+					"updatedAt",
+					"name",
+					"userId",
+					"parentFolderId"
+				],
+				"properties": {
+					"id": {
+						"type": "string",
+						"format": "uuid"
+					},
+					"createdAt": {
+						"type": "string",
+						"format": "date-time"
+					},
+					"updatedAt": {
+						"type": "string",
+						"format": "date-time"
+					},
+					"userId": {
+						"type": "string",
+						"format": "uuid"
+					},
+					"name": {
+						"type": "string"
+					},
+					"parentFolderId": {
+						"oneOf": [
+							{
+								"type": "string",
+								"format": "uuid"
+							},
+							{
+								"type": "null"
+							}
+						]
+					}
+				}
+			},
+			"FolderWithCounts": {
+				"type": "object",
+				"additionalProperties": false,
+				"required": [
+					"id",
+					"createdAt",
+					"updatedAt",
+					"name",
+					"userId",
+					"parentFolderId",
+					"subfoldersCount",
+					"pastesCount"
+				],
+				"properties": {
+					"id": {
+						"type": "string",
+						"format": "uuid"
+					},
+					"createdAt": {
+						"type": "string",
+						"format": "date-time"
+					},
+					"updatedAt": {
+						"type": "string",
+						"format": "date-time"
+					},
+					"userId": {
+						"type": "string",
+						"format": "uuid"
+					},
+					"name": {
+						"type": "string"
+					},
+					"parentFolderId": {
+						"oneOf": [
+							{
+								"type": "string",
+								"format": "uuid"
+							},
+							{
+								"type": "null"
+							}
+						]
+					},
+					"subfoldersCount": {
+						"type": "integer",
+						"minimum": 0
+					},
+					"pastesCount": {
+						"type": "integer",
+						"minimum": 0
+					}
+				}
+			},
+			"FolderResponse": {
+				"type": "object",
+				"additionalProperties": false,
+				"required": ["success", "data"],
+				"properties": {
+					"success": {
+						"type": "boolean",
+						"const": true
+					},
+					"data": {
+						"$ref": "#/components/schemas/Folder"
+					}
+				}
+			},
+			"FolderListResponse": {
+				"type": "object",
+				"additionalProperties": false,
+				"required": ["success", "data"],
+				"properties": {
+					"success": {
+						"type": "boolean",
+						"const": true
+					},
+					"data": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/Folder"
+						}
+					}
+				}
+			},
+			"FolderCountListResponse": {
+				"type": "object",
+				"additionalProperties": false,
+				"required": ["success", "data"],
+				"properties": {
+					"success": {
+						"type": "boolean",
+						"const": true
+					},
+					"data": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/FolderWithCounts"
+						}
+					}
+				}
+			},
+			"FolderDetailsResponse": {
+				"type": "object",
+				"additionalProperties": false,
+				"required": ["success", "data"],
+				"properties": {
+					"success": {
+						"type": "boolean",
+						"const": true
+					},
+					"data": {
+						"type": "object",
+						"additionalProperties": false,
+						"required": ["folder", "pastes"],
+						"properties": {
+							"folder": {
+								"$ref": "#/components/schemas/FolderWithCounts"
+							},
+							"pastes": {
+								"type": "array",
+								"items": {
+									"$ref": "#/components/schemas/PasteSummary"
+								}
+							}
+						}
+					}
+				}
+			},
+			"CreateFolderRequest": {
+				"type": "object",
+				"additionalProperties": true,
+				"required": ["name"],
+				"properties": {
+					"name": {
+						"type": "string",
+						"minLength": 3,
+						"maxLength": 40,
+						"pattern": "^[A-Za-z][A-Za-z0-9]*$"
+					},
+					"parentId": {
+						"oneOf": [
+							{
+								"type": "string",
+								"format": "uuid"
+							},
+							{
+								"type": "null"
+							}
+						]
+					}
+				}
+			},
+			"UpdateFolderRequest": {
+				"type": "object",
+				"additionalProperties": true,
+				"required": ["name"],
+				"properties": {
+					"name": {
+						"type": "string",
+						"minLength": 3,
+						"maxLength": 40,
+						"pattern": "^[A-Za-z][A-Za-z0-9]*$"
+					}
+				}
+			},
+			"DeleteFolderResponse": {
+				"type": "object",
+				"additionalProperties": false,
+				"required": ["success", "deleted"],
+				"properties": {
+					"success": {
+						"type": "boolean",
+						"const": true
+					},
+					"deleted": {
+						"type": "integer",
+						"minimum": 1
+					}
+				}
+			},
+			"PublicUser": {
+				"type": "object",
+				"additionalProperties": false,
+				"required": ["id", "name", "createdAt", "role"],
+				"properties": {
+					"id": {
+						"type": "string",
+						"format": "uuid"
+					},
+					"name": {
+						"type": "string"
+					},
+					"createdAt": {
+						"type": "string",
+						"format": "date-time"
+					},
+					"role": {
+						"oneOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						]
+					}
+				}
+			},
+			"PublicUserResponse": {
+				"type": "object",
+				"additionalProperties": false,
+				"required": ["success", "data"],
+				"properties": {
+					"success": {
+						"type": "boolean",
+						"const": true
+					},
+					"data": {
+						"$ref": "#/components/schemas/PublicUser"
+					}
+				}
+			},
+			"MessageResponse": {
+				"type": "object",
+				"additionalProperties": false,
+				"required": ["success", "message"],
+				"properties": {
+					"success": {
+						"type": "boolean",
+						"const": true
+					},
+					"message": {
+						"type": "string"
+					}
+				}
+			},
+			"AdminUserSummary": {
+				"type": "object",
+				"additionalProperties": false,
+				"required": ["id", "name"],
+				"properties": {
+					"id": {
+						"type": "string",
+						"format": "uuid"
+					},
+					"name": {
+						"type": "string"
+					}
+				}
+			},
+			"AdminSyntax": {
+				"type": "object",
+				"additionalProperties": false,
+				"required": ["id", "name", "extension", "color"],
+				"properties": {
+					"id": {
+						"type": "string",
+						"format": "uuid"
+					},
+					"name": {
+						"type": "string"
+					},
+					"extension": {
+						"oneOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						]
+					},
+					"color": {
+						"type": "string"
+					}
+				}
+			},
+			"AdminStaticPaste": {
+				"type": "object",
+				"additionalProperties": false,
+				"required": [
+					"id",
+					"title",
+					"slug",
+					"visibility",
+					"createdAt",
+					"updatedAt"
+				],
+				"properties": {
+					"id": {
+						"type": "string",
+						"format": "uuid"
+					},
+					"title": {
+						"type": "string"
+					},
+					"slug": {
+						"oneOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						]
+					},
+					"visibility": {
+						"type": "string",
+						"enum": [
+							"public",
+							"private",
+							"unlisted",
+							"organization"
+						]
+					},
+					"createdAt": {
+						"type": "string",
+						"format": "date-time"
+					},
+					"updatedAt": {
+						"type": "string",
+						"format": "date-time"
+					}
+				}
+			},
+			"AdminStaticPasteItem": {
+				"type": "object",
+				"additionalProperties": false,
+				"required": ["paste", "user", "syntax"],
+				"properties": {
+					"paste": {
+						"$ref": "#/components/schemas/AdminStaticPaste"
+					},
+					"user": {
+						"oneOf": [
+							{
+								"$ref": "#/components/schemas/AdminUserSummary"
+							},
+							{
+								"type": "null"
+							}
+						]
+					},
+					"syntax": {
+						"oneOf": [
+							{
+								"$ref": "#/components/schemas/AdminSyntax"
+							},
+							{
+								"type": "null"
+							}
+						]
+					}
+				}
+			},
+			"AdminStaticPasteListResponse": {
+				"type": "object",
+				"additionalProperties": false,
+				"required": ["success", "data"],
+				"properties": {
+					"success": {
+						"type": "boolean",
+						"const": true
+					},
+					"data": {
+						"type": "object",
+						"additionalProperties": false,
+						"required": ["pastes"],
+						"properties": {
+							"pastes": {
+								"type": "array",
+								"items": {
+									"$ref": "#/components/schemas/AdminStaticPasteItem"
+								}
+							}
+						}
+					}
+				}
+			},
+			"AdminRealtimePasteItem": {
+				"type": "object",
+				"additionalProperties": false,
+				"required": ["paste", "syntax"],
+				"properties": {
+					"paste": {
+						"$ref": "#/components/schemas/RealtimePasteRecord"
+					},
+					"syntax": {
+						"oneOf": [
+							{
+								"$ref": "#/components/schemas/RealtimeSyntax"
+							},
+							{
+								"type": "null"
+							}
+						]
+					}
+				}
+			},
+			"AdminRealtimePasteListResponse": {
+				"type": "object",
+				"additionalProperties": false,
+				"required": ["success", "data"],
+				"properties": {
+					"success": {
+						"type": "boolean",
+						"const": true
+					},
+					"data": {
+						"type": "object",
+						"additionalProperties": false,
+						"required": ["realtimePastes"],
+						"properties": {
+							"realtimePastes": {
+								"type": "array",
+								"items": {
+									"$ref": "#/components/schemas/AdminRealtimePasteItem"
+								}
+							}
+						}
+					}
+				}
+			},
+			"AdminTag": {
+				"type": "object",
+				"additionalProperties": false,
+				"required": ["id", "name"],
+				"properties": {
+					"id": {
+						"type": "string",
+						"format": "uuid"
+					},
+					"name": {
+						"type": "string"
+					}
+				}
+			},
+			"AdminTagListResponse": {
+				"type": "object",
+				"additionalProperties": false,
+				"required": ["success", "data"],
+				"properties": {
+					"success": {
+						"type": "boolean",
+						"const": true
+					},
+					"data": {
+						"type": "object",
+						"additionalProperties": false,
+						"required": ["tags"],
+						"properties": {
+							"tags": {
+								"type": "array",
+								"items": {
+									"$ref": "#/components/schemas/AdminTag"
+								}
+							}
+						}
+					}
+				}
+			},
+			"AdminSyntaxListResponse": {
+				"type": "object",
+				"additionalProperties": false,
+				"required": ["success", "data"],
+				"properties": {
+					"success": {
+						"type": "boolean",
+						"const": true
+					},
+					"data": {
+						"type": "object",
+						"additionalProperties": false,
+						"required": ["syntaxes"],
+						"properties": {
+							"syntaxes": {
+								"type": "array",
+								"items": {
+									"$ref": "#/components/schemas/AdminSyntax"
+								}
+							}
+						}
+					}
+				}
+			},
+			"UpdateSyntaxRequest": {
+				"type": "object",
+				"additionalProperties": true,
+				"required": ["name", "color"],
+				"properties": {
+					"name": {
+						"type": "string",
+						"minLength": 1,
+						"maxLength": 64
+					},
+					"extension": {
+						"oneOf": [
+							{
+								"type": "string",
+								"maxLength": 32,
+								"pattern": "^(?:[a-zA-Z0-9]+(?:\\.[a-zA-Z0-9]+)*)?$"
+							},
+							{
+								"type": "null"
+							}
+						]
+					},
+					"color": {
+						"type": "string",
+						"minLength": 1,
+						"maxLength": 32
+					}
+				}
+			},
+			"HealthOk": {
+				"type": "object",
+				"additionalProperties": false,
+				"required": [
+					"status",
+					"description",
+					"version",
+					"uptime",
+					"timestamp",
+					"isDocker",
+					"node",
+					"services"
+				],
+				"properties": {
+					"status": {
+						"type": "string",
+						"const": "ok"
+					},
+					"description": {
+						"type": "string"
+					},
+					"version": {
+						"type": "string"
+					},
+					"uptime": {
+						"type": "number",
+						"minimum": 0
+					},
+					"timestamp": {
+						"type": "string",
+						"format": "date-time"
+					},
+					"isDocker": {
+						"type": "boolean"
+					},
+					"node": {
+						"type": "string"
+					},
+					"services": {
+						"type": "object",
+						"additionalProperties": false,
+						"required": ["postgres"],
+						"properties": {
+							"postgres": {
+								"type": "object",
+								"additionalProperties": false,
+								"required": ["connected", "latencyMs"],
+								"properties": {
+									"connected": {
+										"type": "boolean",
+										"const": true
+									},
+									"latencyMs": {
+										"type": "integer",
+										"minimum": 0
+									}
+								}
+							}
+						}
+					}
+				}
+			},
+			"HealthDegraded": {
+				"type": "object",
+				"additionalProperties": false,
+				"required": [
+					"status",
+					"description",
+					"version",
+					"uptime",
+					"timestamp",
+					"isDocker",
+					"node",
+					"services"
+				],
+				"properties": {
+					"status": {
+						"type": "string",
+						"const": "degraded"
+					},
+					"description": {
+						"type": "string"
+					},
+					"version": {
+						"type": "string"
+					},
+					"uptime": {
+						"type": "number",
+						"minimum": 0
+					},
+					"timestamp": {
+						"type": "string",
+						"format": "date-time"
+					},
+					"isDocker": {
+						"type": "boolean"
+					},
+					"node": {
+						"type": "string"
+					},
+					"services": {
+						"type": "object",
+						"additionalProperties": false,
+						"required": ["postgres"],
+						"properties": {
+							"postgres": {
+								"type": "object",
+								"additionalProperties": false,
+								"required": ["connected", "error"],
+								"properties": {
+									"connected": {
+										"type": "boolean",
+										"const": false
+									},
+									"error": {
+										"type": "string",
+										"const": "unavailable"
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"securitySchemes": {
+			"sessionCookie": {
+				"type": "apiKey",
+				"in": "cookie",
+				"name": "doggopaste.session_token",
+				"description": "DoggoPaste Better Auth session cookie over HTTP."
+			},
+			"secureSessionCookie": {
+				"type": "apiKey",
+				"in": "cookie",
+				"name": "__Secure-doggopaste.session_token",
+				"description": "DoggoPaste Better Auth session cookie over HTTPS."
 			}
 		}
 	}

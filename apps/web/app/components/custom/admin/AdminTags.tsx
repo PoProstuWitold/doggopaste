@@ -2,20 +2,22 @@
 
 import { useEffect, useState } from 'react'
 import { FaDatabase, FaSync, FaTags, FaTrash } from 'react-icons/fa'
-import { getBaseApiUrl } from '@/app/utils/functions'
+import type { AdminTagDto, AdminTagsResponse } from '@/app/types'
+import { apiRequest, getApiErrorMessage } from '@/app/utils/api'
 
-interface AdminTag {
-	id: string
-	name: string
-}
+async function getAdminTags(): Promise<AdminTagDto[]> {
+	const result = await apiRequest<AdminTagsResponse>('/api/admin/tags')
+	if (!result.ok) {
+		throw new Error(
+			getApiErrorMessage(result.data, `Failed ${result.status}`)
+		)
+	}
 
-interface AdminTagsResponse {
-	data?: { tags: AdminTag[] }
-	error?: string
+	return result.data?.data.tags ?? []
 }
 
 export const AdminTags: React.FC = () => {
-	const [tags, setTags] = useState<AdminTag[]>([])
+	const [tags, setTags] = useState<AdminTagDto[]>([])
 	const [loading, setLoading] = useState(true)
 	const [error, setError] = useState<string | null>(null)
 
@@ -24,13 +26,8 @@ export const AdminTags: React.FC = () => {
 		;(async () => {
 			setLoading(true)
 			try {
-				const res = await fetch(`${getBaseApiUrl()}/api/admin/tags`, {
-					credentials: 'include'
-				})
-				const json: AdminTagsResponse = await res.json()
-				if (!res.ok)
-					throw new Error(json.error || `Failed ${res.status}`)
-				if (!cancelled) setTags(json.data?.tags || [])
+				const nextTags = await getAdminTags()
+				if (!cancelled) setTags(nextTags)
 			} catch (e) {
 				if (!cancelled)
 					setError((e as Error).message || 'Failed to load tags')
@@ -43,17 +40,16 @@ export const AdminTags: React.FC = () => {
 		}
 	}, [])
 
-	function reload() {
+	async function reload() {
 		setLoading(true)
 		setError(null)
-		fetch(`${getBaseApiUrl()}/api/admin/tags`, { credentials: 'include' })
-			.then(async (r) => {
-				const j: AdminTagsResponse = await r.json()
-				if (!r.ok) throw new Error(j.error || `Failed ${r.status}`)
-				setTags(j.data?.tags || [])
-			})
-			.catch((e) => setError(e.message || 'Failed to reload tags'))
-			.finally(() => setLoading(false))
+		try {
+			setTags(await getAdminTags())
+		} catch (e) {
+			setError((e as Error).message || 'Failed to reload tags')
+		} finally {
+			setLoading(false)
+		}
 	}
 
 	return (
@@ -133,7 +129,7 @@ export const AdminTags: React.FC = () => {
 }
 
 interface TagRowProps {
-	tag: AdminTag
+	tag: AdminTagDto
 	onAction?: () => void
 }
 
@@ -144,17 +140,15 @@ const TagRow: React.FC<TagRowProps> = ({ tag, onAction }) => {
 		if (!confirm('Delete this tag?')) return
 		setWorking(true)
 		try {
-			const res = await fetch(
-				`${getBaseApiUrl()}/api/admin/tags/${tag.id}`,
-				{
-					method: 'DELETE',
-					credentials: 'include'
-				}
+			const result = await apiRequest(
+				`/api/admin/tags/${encodeURIComponent(tag.id)}`,
+				{ method: 'DELETE' }
 			)
 
-			if (!res.ok) {
-				const json = await res.json()
-				throw new Error(json.message || `Failed ${res.status}`)
+			if (!result.ok) {
+				throw new Error(
+					getApiErrorMessage(result.data, `Failed ${result.status}`)
+				)
 			}
 			onAction?.()
 		} catch (e) {

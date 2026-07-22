@@ -1,40 +1,42 @@
-import type { extensions } from './utils/functions'
-
-export interface Session {
+export interface SessionDto {
 	id: string
 	expiresAt: Date
-	token: string
 	createdAt: Date
 	updatedAt: Date
 	userAgent?: string | null
 	ipAddress?: string | null
+	isCurrent: boolean
 }
 
-export interface User {
+export interface ViewerDto {
 	id: string
+	name: string
+	role: string | null
+}
+
+export interface RealtimeViewerDto {
+	name: string
+}
+
+export interface ProfileUserDto extends ViewerDto {
 	createdAt: Date
 	updatedAt: Date
-	name: string
 	email: string
 	emailVerified: boolean
-	image?: string | null
-	role?: string | null
-	banned?: boolean | null
-	banReason?: string | null
-	banExpires?: Date | null
 }
 
-export interface SessionsProps {
-	allSessions: Session[]
-	currentSessionToken: string
+export interface PublicUserDto {
+	id: string
+	name: string
+	createdAt: string
+	role: string | null
 }
 
-export interface Account {
+export interface AccountDto {
 	id: string
 	providerId: string
 	createdAt: Date
 	updatedAt: Date
-	accountId: string
 	scopes: string[]
 }
 
@@ -80,7 +82,7 @@ export interface PasteForm {
 }
 
 export interface Syntax {
-	name: keyof typeof extensions
+	name: string
 	color: string
 	extension: string | null
 }
@@ -100,7 +102,7 @@ export interface PasteSummary {
 	expiration: string
 	encrypted: boolean
 	passwordProtected: boolean
-	hits: string | number
+	hits: number
 	visibility: string
 	tags: string[]
 }
@@ -112,6 +114,25 @@ export interface Paste extends PasteSummary {
 export interface PasteResponse {
 	success: boolean
 	data: Paste
+	message?: string
+}
+
+export interface VerifyPasteResponse {
+	success: boolean
+	content: string
+}
+
+export interface ApiMessageResponse {
+	success: boolean
+	message: string
+}
+
+export interface ApiErrorDto {
+	statusCode?: number
+	name?: string
+	message?: string
+	error?: string
+	details?: Array<Record<string, string>>
 }
 
 export interface RealtimePaste {
@@ -123,8 +144,7 @@ export interface RealtimePaste {
 	content: string
 	syntax: Syntax
 	visibility: string
-	userId: string | null
-	folderId: string | null
+	syntaxId: string | null
 	organizationId: string | null
 }
 
@@ -133,13 +153,101 @@ export interface RealtimePasteResponse {
 	data: RealtimePaste
 }
 
-export interface Folder {
+export interface RealtimePasteCreateResponse {
+	success: boolean
+	realtimePaste: RealtimePaste
+	viewer: RealtimeViewerDto | null
+}
+
+export interface FolderDto {
 	id: string
 	name: string
 	parentFolderId: string | null
 	createdAt: string
 	updatedAt: string
 	userId: string
+}
+
+export interface Folder extends FolderDto {
 	subfoldersCount: number
 	pastesCount: number
+}
+
+export interface ApiDataResponse<T> {
+	success: boolean
+	data: T
+	message?: string
+}
+
+export interface PaginatedResponse<T> {
+	success: boolean
+	data: T[]
+	total: number
+}
+
+export interface AdminSyntaxDto {
+	id: string
+	name: string
+	extension: string | null
+	color: string
+}
+
+export interface AdminTagDto {
+	id: string
+	name: string
+}
+
+export interface AdminPasteDto {
+	paste: {
+		id: string
+		title: string
+		slug: string | null
+		visibility: 'public' | 'private' | 'unlisted' | 'organization'
+		createdAt: string
+		updatedAt: string
+	}
+	user: {
+		id: string
+		name: string
+	} | null
+	syntax: AdminSyntaxDto | null
+}
+
+export interface AdminRealtimePasteDto {
+	paste: Omit<RealtimePaste, 'syntax'>
+	syntax: Omit<AdminSyntaxDto, 'id'> | null
+}
+
+export type AdminPastesResponse = ApiDataResponse<{
+	pastes: AdminPasteDto[]
+}>
+
+export type AdminRealtimePastesResponse = ApiDataResponse<{
+	realtimePastes: AdminRealtimePasteDto[]
+}>
+
+export type AdminTagsResponse = ApiDataResponse<{
+	tags: AdminTagDto[]
+}>
+
+export type AdminSyntaxesResponse = ApiDataResponse<{
+	syntaxes: AdminSyntaxDto[]
+}>
+
+export interface AdminUserDto {
+	id: string
+	name: string
+	email: string
+	createdAt: string
+}
+
+export interface HealthDto {
+	status: string
+	description: string
+	version: string
+	isDocker: boolean
+	node: string
+	uptime: number
+	timestamp: string
+	services: Record<string, { connected: boolean; latencyMs?: number }>
 }

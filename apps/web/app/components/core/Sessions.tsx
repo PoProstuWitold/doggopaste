@@ -2,39 +2,32 @@
 
 import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
+import { revokeSessionById } from '@/app/profile/actions'
 import { createDynamicAuthClient } from '@/app/utils/auth-client'
 import { wait } from '@/app/utils/functions'
-import type { Session as SessionType } from '../../types'
+import type { SessionDto } from '../../types'
 import { Session } from './Session'
 
 interface SessionsProps {
-	allSessions: SessionType[]
-	currentSessionToken: string
+	allSessions: SessionDto[]
 }
 
-export const Sessions: React.FC<SessionsProps> = ({
-	allSessions,
-	currentSessionToken
-}) => {
+export const Sessions: React.FC<SessionsProps> = ({ allSessions }) => {
 	const authClient = createDynamicAuthClient()
 	const router = useRouter()
-	const currentSession = allSessions.find(
-		(session) => session.token === currentSessionToken
-	)
+	const currentSession = allSessions.find((session) => session.isCurrent)
 
-	const revokeSession = async (token: string) => {
-		const { data, error } = await authClient.revokeSession({ token })
+	const revokeSession = async (sessionId: string) => {
+		const { status } = await revokeSessionById(sessionId)
 
-		if (data?.status) {
+		if (status) {
 			toast.success('Session revoked')
 			await wait(500)
-			if (currentSessionToken === token) {
+			if (currentSession?.id === sessionId) {
 				router.replace('/')
 			}
 			router.refresh()
-		}
-
-		if (error) {
+		} else {
 			toast.error('Failed to revoke session')
 		}
 	}
@@ -85,7 +78,6 @@ export const Sessions: React.FC<SessionsProps> = ({
 					{allSessions.map((session) => (
 						<Session
 							key={session.id}
-							currentSessionToken={currentSessionToken}
 							session={session}
 							revokeSession={revokeSession}
 						/>
@@ -120,7 +112,7 @@ export const Sessions: React.FC<SessionsProps> = ({
 									type='button'
 									className='btn btn-error'
 									onClick={() =>
-										revokeSession(currentSession.token)
+										revokeSession(currentSession.id)
 									}
 								>
 									Revoke current session

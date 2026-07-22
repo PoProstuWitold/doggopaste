@@ -2,21 +2,18 @@
 import { useState } from 'react'
 import { FaCheck } from 'react-icons/fa'
 import { FaXmark } from 'react-icons/fa6'
-import type { Session, User } from '../../types'
+import type { ProfileUserDto } from '../../types'
 import { ChangePassword } from './ChangePassword'
 import { CustomDialog } from './CustomDialog'
 import { EditUser } from './EditUser'
 
 export interface ProfileProps {
-	currentSession: {
-		session: Session
-		user: User
-	}
+	currentUser: ProfileUserDto
 	hasCredentialAccount: boolean
 }
 
 export const Profile: React.FC<ProfileProps> = ({
-	currentSession,
+	currentUser,
 	hasCredentialAccount
 }) => {
 	const [showId, setShowId] = useState<boolean>(false)
@@ -27,7 +24,7 @@ export const Profile: React.FC<ProfileProps> = ({
 				<div className='flex items-center gap-2'>
 					<p>Profile</p>
 					<span className='badge badge-accent'>
-						{currentSession.user.role}
+						{currentUser.role}
 					</span>
 				</div>
 			</summary>
@@ -37,7 +34,7 @@ export const Profile: React.FC<ProfileProps> = ({
 						<strong>ID:</strong>
 						<div className='flex items-center gap-2'>
 							<span className='badge badge-neutral'>
-								{showId ? currentSession.user.id : 'HIDDEN'}
+								{showId ? currentUser.id : 'HIDDEN'}
 							</span>
 							<button
 								className='btn btn-xs btn-outline rounded-2xl'
@@ -49,13 +46,13 @@ export const Profile: React.FC<ProfileProps> = ({
 						</div>
 					</div>
 					<div className='flex items-center gap-2'>
-						<strong>Name:</strong> {currentSession.user.name}
+						<strong>Name:</strong> {currentUser.name}
 					</div>
 					<div className='flex md:flex-row md:items-center gap-2 flex-col'>
 						<div className='flex items-center gap-2'>
 							<strong>Email:</strong>
-							{currentSession.user.email}
-							{currentSession.user.emailVerified ? (
+							{currentUser.email}
+							{currentUser.emailVerified ? (
 								<div className='badge badge-outline badge-success text-xs'>
 									<span className='flex items-center gap-1'>
 										Verified <FaCheck />
@@ -72,11 +69,11 @@ export const Profile: React.FC<ProfileProps> = ({
 					</div>
 					<div className='flex md:flex-row md:items-center gap-2 flex-col'>
 						<strong>Created/Updated:</strong>
-						{new Date(currentSession.user.createdAt).toLocaleString(
+						{new Date(currentUser.createdAt).toLocaleString(
 							'pl-PL'
 						)}
 						/
-						{new Date(currentSession.user.updatedAt).toLocaleString(
+						{new Date(currentUser.updatedAt).toLocaleString(
 							'pl-PL'
 						)}
 					</div>

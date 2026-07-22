@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { toast } from 'react-hot-toast'
 import { FaFolderPlus, FaSpinner } from 'react-icons/fa'
 import { CustomDialog } from '@/app/components/core/CustomDialog'
-import { getBaseApiUrl } from '@/app/utils/functions'
+import { apiRequest, getApiErrorMessage } from '@/app/utils/api'
 
 interface NewFolderCardProps {
 	label?: string
@@ -27,16 +27,14 @@ export const NewFolderCard = ({
 		}
 		setLoading(true)
 		try {
-			const res = await fetch(`${getBaseApiUrl()}/api/folders`, {
+			const result = await apiRequest('/api/folders', {
 				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				credentials: 'include',
-				body: JSON.stringify({ name: trimmed, parentId })
+				json: { name: trimmed, parentId }
 			})
-			const json = await res.json()
-			if (!res.ok) {
-				const msg = json?.message || 'Failed to create folder'
-				toast.error(msg)
+			if (!result.ok) {
+				toast.error(
+					getApiErrorMessage(result.data, 'Failed to create folder')
+				)
 			} else {
 				toast.success('Folder created')
 				window.location.reload()

@@ -1,81 +1,80 @@
 import type { Metadata } from 'next'
-import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { Accounts } from '@/app/components/core/Accounts'
 import { Profile } from '@/app/components/core/Profile'
 import { Sessions } from '@/app/components/core/Sessions'
 import { createDynamicAuthClient } from '@/app/utils/auth-client'
 import { wait } from '@/app/utils/functions'
-import type { Session } from '../types'
+import {
+	getAuthRequestHeaders,
+	getCurrentProfileUser,
+	getCurrentSession
+} from '@/app/utils/session'
+import type { AccountDto, SessionDto } from '../types'
 
 export async function generateMetadata(): Promise<Metadata> {
-	const authClient = createDynamicAuthClient()
-	const currentSession = await authClient.getSession({
-		fetchOptions: {
-			headers: await headers()
-		}
-	})
+	const currentUser = await getCurrentProfileUser()
 
 	return {
-		title: `${currentSession.data?.user.name || ''}`,
-		description: `Profile of ${currentSession.data?.user.name || ''}`,
+		title: `${currentUser?.name || ''}`,
+		description: `Profile of ${currentUser?.name || ''}`,
 		metadataBase: new URL(process.env.APP_URL || 'https://doggopaste.org')
 	}
 }
 
 export default async function ProfilePage() {
 	const authClient = createDynamicAuthClient()
-	const allSessions = await authClient.listSessions({
-		fetchOptions: {
-			headers: await headers()
-		}
-	})
+	const authHeaders = await getAuthRequestHeaders()
+	const [allSessions, accounts, currentSession, currentUser] =
+		await Promise.all([
+			authClient.listSessions({
+				fetchOptions: { headers: authHeaders }
+			}),
+			authClient.listAccounts({
+				fetchOptions: { headers: authHeaders }
+			}),
+			getCurrentSession(),
+			getCurrentProfileUser()
+		])
 
-	if (!allSessions.data) {
+	if (!allSessions.data || !currentSession || !currentUser) {
 		await wait(1000)
 		redirect('/login')
 	}
 
-	const processedSessions = allSessions.data.map((session: Session) => ({
-		...session,
-		ipAddress: session.ipAddress || 'Unknown',
-		userAgent: session.userAgent || 'Unknown'
+	const processedSessions: SessionDto[] = allSessions.data.map((session) => ({
+		id: session.id,
+		ipAddress: session.ipAddress ?? null,
+		userAgent: session.userAgent ?? null,
+		expiresAt: session.expiresAt,
+		createdAt: session.createdAt,
+		updatedAt: session.updatedAt,
+		isCurrent: session.id === currentSession.session.id
 	}))
-
-	const currentSession = await authClient.getSession({
-		fetchOptions: {
-			headers: await headers()
-		}
-	})
-
-	if (!currentSession.data || !allSessions) {
-		await wait(1000)
-		redirect('/login')
-	}
-
-	const accounts = await authClient.listAccounts({
-		fetchOptions: {
-			headers: await headers()
-		}
-	})
-	const hasCredentialAccount =
-		accounts.data?.some((account) => account.providerId === 'credential') ??
-		false
+	const processedAccounts: AccountDto[] = (accounts.data ?? []).map(
+		(account) => ({
+			id: account.id,
+			providerId: account.providerId,
+			createdAt: account.createdAt,
+			updatedAt: account.updatedAt,
+			scopes: account.scopes
+		})
+	)
+	const hasCredentialAccount = processedAccounts.some(
+		(account) => account.providerId === 'credential'
+	)
 
 	return (
 		<div className='flex flex-col gap-4'>
 			<Profile
-				currentSession={currentSession.data}
+				currentUser={currentUser}
 				hasCredentialAccount={hasCredentialAccount}
 			/>
 			<Accounts
-				accounts={accounts.data}
+				accounts={processedAccounts}
 				hasCredentialAccount={hasCredentialAccount}
 			/>
-			<Sessions
-				allSessions={processedSessions}
-				currentSessionToken={currentSession.data.session.token}
-			/>
+			<Sessions allSessions={processedSessions} />
 		</div>
 	)
 }

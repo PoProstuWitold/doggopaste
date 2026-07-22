@@ -3,9 +3,34 @@ import { pastesTable } from '../db/schema.js'
 
 type PasteRecord = typeof pastesTable.$inferSelect
 
+export const PASTE_SYNTAX_DTO_KEYS = ['name', 'extension', 'color'] as const
+export const PASTE_SUMMARY_DTO_KEYS = [
+	'id',
+	'createdAt',
+	'updatedAt',
+	'userId',
+	'folderId',
+	'title',
+	'description',
+	'slug',
+	'category',
+	'expiresAt',
+	'expiration',
+	'encrypted',
+	'passwordProtected',
+	'hits',
+	'visibility',
+	'tags',
+	'syntax'
+] as const
+export const PASTE_DETAILS_DTO_KEYS = [
+	...PASTE_SUMMARY_DTO_KEYS,
+	'content'
+] as const
+
 export interface PasteSyntaxDto {
 	name: string
-	extension: string | null
+	extension: string
 	color: string
 }
 

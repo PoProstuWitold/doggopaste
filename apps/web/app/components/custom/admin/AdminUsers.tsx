@@ -2,15 +2,29 @@
 
 import { useEffect, useState } from 'react'
 import { FaDatabase, FaSync, FaTrash, FaUser } from 'react-icons/fa'
+import type { AdminUserDto } from '@/app/types'
+import { apiRequest, getApiErrorMessage } from '@/app/utils/api'
 import { createDynamicAuthClient } from '@/app/utils/auth-client'
-import { getBaseApiUrl } from '@/app/utils/functions'
 
-type ListUsersResult = Awaited<
-	ReturnType<ReturnType<typeof createDynamicAuthClient>['admin']['listUsers']>
->
+function toAdminUsers(
+	users: Array<{
+		id: string
+		name: string
+		email: string
+		createdAt: string | Date
+	}>
+): AdminUserDto[] {
+	return users.map((user) => ({
+		id: user.id,
+		name: user.name,
+		email: user.email,
+		createdAt: new Date(user.createdAt).toISOString()
+	}))
+}
 
 export const AdminUsers: React.FC = () => {
-	const [result, setResult] = useState<ListUsersResult | null>(null)
+	const [users, setUsers] = useState<AdminUserDto[]>([])
+	const [total, setTotal] = useState(0)
 	const [loading, setLoading] = useState(true)
 	const [error, setError] = useState<string | null>(null)
 
@@ -23,7 +37,10 @@ export const AdminUsers: React.FC = () => {
 				const res = await auth.admin.listUsers({
 					query: { limit: 100, offset: 0 }
 				})
-				if (!cancelled) setResult(res)
+				if (!cancelled) {
+					setUsers(toAdminUsers(res.data?.users ?? []))
+					setTotal(res.data?.total ?? 0)
+				}
 			} catch (e) {
 				if (!cancelled)
 					setError((e as Error).message || 'Failed to load users')
@@ -42,13 +59,13 @@ export const AdminUsers: React.FC = () => {
 		const auth = createDynamicAuthClient()
 		auth.admin
 			.listUsers({ query: { limit: 100, offset: 0 } })
-			.then((res) => setResult(res))
+			.then((res) => {
+				setUsers(toAdminUsers(res.data?.users ?? []))
+				setTotal(res.data?.total ?? 0)
+			})
 			.catch((e) => setError(e.message || 'Failed to reload users'))
 			.finally(() => setLoading(false))
 	}
-
-	const users = result?.data?.users || []
-	const total = result?.data?.total || 0
 
 	return (
 		<details className='collapse bg-base-200 collapse-arrow border border-base-300 rounded-lg'>
@@ -114,7 +131,7 @@ export const AdminUsers: React.FC = () => {
 									</tr>
 								</thead>
 								<tbody>
-									{users.map((user: UserRowUser) => (
+									{users.map((user) => (
 										<UserRow
 											key={user.id}
 											user={user}
@@ -132,18 +149,8 @@ export const AdminUsers: React.FC = () => {
 	)
 }
 
-export interface UserRowUser {
-	id: string
-	name: string
-	email: string
-	createdAt: string
-	emailVerified?: boolean
-	banned?: boolean
-	banReason?: string | null
-}
-
 interface UserRowProps {
-	user: UserRowUser
+	user: AdminUserDto
 	onActionComplete?: () => void
 }
 
@@ -156,17 +163,15 @@ const UserRow: React.FC<UserRowProps> = ({ user, onActionComplete }) => {
 		setWorking(true)
 		setError(null)
 		try {
-			const res = await fetch(
-				`${getBaseApiUrl()}/api/admin/users/${user.id}`,
-				{
-					method: 'DELETE',
-					credentials: 'include'
-				}
+			const result = await apiRequest(
+				`/api/admin/users/${encodeURIComponent(user.id)}`,
+				{ method: 'DELETE' }
 			)
 
-			if (!res.ok) {
-				const json = await res.json()
-				throw new Error(json.message || `Failed ${res.status}`)
+			if (!result.ok) {
+				throw new Error(
+					getApiErrorMessage(result.data, `Failed ${result.status}`)
+				)
 			}
 			onActionComplete?.()
 		} catch (e) {

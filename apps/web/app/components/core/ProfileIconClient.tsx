@@ -8,16 +8,16 @@ import { CgProfile } from 'react-icons/cg'
 import { FaFileCode, FaUserAlt } from 'react-icons/fa'
 import { MdAdminPanelSettings, MdHealthAndSafety } from 'react-icons/md'
 import { SlDocs } from 'react-icons/sl'
-import type { User } from '@/app/types'
+import type { ViewerDto } from '@/app/types'
 import { createDynamicAuthClient } from '@/app/utils/auth-client'
 import { wait } from '@/app/utils/functions'
 
 interface ProfileIconClientProps {
-	user?: User
+	viewer: ViewerDto | null
 }
 
 export const ProfileIconClient: React.FC<ProfileIconClientProps> = ({
-	user
+	viewer
 }) => {
 	const authClient = createDynamicAuthClient()
 	const [isOpen, setIsOpen] = useState(false)
@@ -27,7 +27,7 @@ export const ProfileIconClient: React.FC<ProfileIconClientProps> = ({
 		try {
 			const { error } = await authClient.signOut()
 			if (error) console.error('Sign out request failed')
-			toast.success(`Signed out successfully. Bye ${user?.name}!`)
+			toast.success(`Signed out successfully. Bye ${viewer?.name}!`)
 			await wait(1000)
 			window.location.reload()
 		} catch {
@@ -50,7 +50,7 @@ export const ProfileIconClient: React.FC<ProfileIconClientProps> = ({
 		}
 	}, [])
 
-	if (!user) {
+	if (!viewer) {
 		return (
 			<Link href='/login' aria-label='Go to login'>
 				<button type='button' className='btn btn-ghost'>
@@ -73,7 +73,7 @@ export const ProfileIconClient: React.FC<ProfileIconClientProps> = ({
 
 			{isOpen && (
 				<div className='absolute right-0 w-52 bg-base-100 rounded-box shadow p-2 z-50 flex flex-col gap-3'>
-					<div className='text-sm'>Hello, {user.name}!</div>
+					<div className='text-sm'>Hello, {viewer.name}!</div>
 					<div className='flex flex-col gap-2'>
 						<Link
 							href='/profile'
@@ -85,7 +85,7 @@ export const ProfileIconClient: React.FC<ProfileIconClientProps> = ({
 							<span>Profile</span>
 						</Link>
 						<Link
-							href={`/u/${user.name}`}
+							href={`/u/${viewer.name}`}
 							className='btn btn-outline btn-sm justify-start'
 							aria-label='Go to profile'
 							onClick={() => setIsOpen(false)}
@@ -93,7 +93,7 @@ export const ProfileIconClient: React.FC<ProfileIconClientProps> = ({
 							<FaFileCode className='w-5 h-5' />
 							<span>My DoggoPaste</span>
 						</Link>
-						{user.role === 'admin' && (
+						{viewer.role === 'admin' && (
 							<>
 								<Link
 									href='/status'

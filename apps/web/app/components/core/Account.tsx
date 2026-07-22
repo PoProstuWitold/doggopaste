@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import { FaFacebook, FaGithub, FaGoogle } from 'react-icons/fa6'
 import { RiLockPasswordFill } from 'react-icons/ri'
-import type { Account as AccountType } from '../../types'
+import type { AccountDto } from '../../types'
 
 interface AccountProps {
-	account: AccountType
+	account: AccountDto
 	unlinkSocial: (provider: 'google' | 'github' | 'facebook') => void
 }
 
@@ -12,10 +12,7 @@ export const Account: React.FC<AccountProps> = ({ account, unlinkSocial }) => {
 	const [showAccountId, setShowAccountId] = useState(false)
 
 	return (
-		<div
-			key={`${account.id}:${account.accountId}`}
-			className='flex md:flex-row gap-2 border p-4 border-error-content rounded-lg shadow-sm md:items-center w-full justify-between flex-col'
-		>
+		<div className='flex md:flex-row gap-2 border p-4 border-error-content rounded-lg shadow-sm md:items-center w-full justify-between flex-col'>
 			<div>
 				<div className='flex items-center gap-2'>
 					{account.providerId === 'github' ? (

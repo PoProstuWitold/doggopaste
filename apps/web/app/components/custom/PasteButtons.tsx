@@ -8,21 +8,22 @@ import { BsFiletypeRaw } from 'react-icons/bs'
 import { FaCheck, FaShare } from 'react-icons/fa'
 import { FaCodeFork, FaLock } from 'react-icons/fa6'
 import { MdDelete, MdDownload, MdEdit } from 'react-icons/md'
-import type { Paste, User } from '../../types'
+import type { ApiMessageResponse, Paste, ViewerDto } from '../../types'
+import { apiRequest, getApiErrorMessage } from '../../utils/api'
 import { getBaseApiUrl } from '../../utils/functions'
 import { CustomDialog } from '../core/CustomDialog'
 import { CopyButton } from './CopyButton'
 
 interface PasteButtonsProps {
 	paste: Paste
-	user: User | null
+	viewer: ViewerDto | null
 	isLocked?: boolean
 	content: string
 }
 
 export const PasteButtons = ({
 	paste,
-	user,
+	viewer,
 	isLocked = false,
 	content
 }: PasteButtonsProps) => {
@@ -115,18 +116,19 @@ export const PasteButtons = ({
 
 	const handleDeletePaste = async () => {
 		try {
-			const res = await fetch(
-				`${getBaseApiUrl()}/api/pastes/${paste.slug}`,
-				{ method: 'DELETE', credentials: 'include' }
+			const result = await apiRequest<ApiMessageResponse>(
+				`/api/pastes/${encodeURIComponent(paste.slug)}`,
+				{ method: 'DELETE' }
 			)
-			const json = await res.json()
 
-			if (res.ok) {
-				toast.success(json.message || 'Paste deleted!')
+			if (result.ok) {
+				toast.success(result.data?.message || 'Paste deleted!')
 				router.push('/')
 				router.refresh()
 			} else {
-				toast.error(json.message || 'Failed to delete paste')
+				toast.error(
+					getApiErrorMessage(result.data, 'Failed to delete paste')
+				)
 			}
 		} catch (_err) {
 			toast.error('Something went wrong while deleting')
@@ -186,7 +188,7 @@ export const PasteButtons = ({
 				</div>
 			</Link>
 
-			{user?.id === paste.userId && (
+			{viewer?.id === paste.userId && (
 				<>
 					<Link
 						href={`/p/${paste.slug}/edit`}

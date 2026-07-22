@@ -2,6 +2,7 @@ import { zValidator } from '@hono/zod-validator'
 import { HTTPException } from 'hono/http-exception'
 import { z } from 'zod'
 import { GenericException } from '../exceptions/index.js'
+import { REQUEST_LIMITS } from './request-limits.js'
 
 const paramStringSlug = z.object({
 	slug: z
@@ -9,7 +10,7 @@ const paramStringSlug = z.object({
 			error: 'Id must be a string'
 		})
 		.min(1, 'Id cannot be empty')
-		.max(64, 'Id is too long')
+		.max(REQUEST_LIMITS.paste.routeSlug, 'Id is too long')
 })
 
 export const validatorParamStringSlug = zValidator(
@@ -40,7 +41,7 @@ export const realtimeSlugSchema = z
 		error: 'Realtime slug must be a string'
 	})
 	.min(1, 'Realtime slug cannot be empty')
-	.max(64, 'Realtime slug is too long')
+	.max(REQUEST_LIMITS.paste.routeSlug, 'Realtime slug is too long')
 	.regex(
 		/^[A-Za-z0-9-]+$/,
 		'Realtime slug can only contain letters, numbers, and hyphens'
@@ -159,15 +160,15 @@ export const validatorUserPastesQuery = zValidator(
 	}
 )
 
-const createPasteSchema = z
+export const createPasteSchema = z
 	.object({
 		title: z
 			.string()
 			.min(1, 'Title is required')
-			.max(100, 'Title is too long'),
+			.max(REQUEST_LIMITS.paste.title, 'Title is too long'),
 		slug: z
 			.string()
-			.max(40, 'Slug is too long')
+			.max(REQUEST_LIMITS.paste.createSlug, 'Slug is too long')
 			.refine(
 				(val) => val === '' || /^[a-z0-9-]+$/.test(val),
 				'Slug can only contain lowercase letters, numbers, and hyphens'
@@ -175,11 +176,14 @@ const createPasteSchema = z
 			.transform((val) => val.toLowerCase()),
 		description: z
 			.string()
-			.max(255, 'Description is too long')
+			.max(REQUEST_LIMITS.paste.description, 'Description is too long')
 			.optional()
 			.or(z.literal(''))
 			.default(''),
-		content: z.string().min(1, 'Content cannot be empty'),
+		content: z
+			.string()
+			.min(1, 'Content cannot be empty')
+			.max(REQUEST_LIMITS.paste.content, 'Content is too long'),
 		category: z
 			.enum(
 				[
@@ -208,15 +212,25 @@ const createPasteSchema = z
 				z
 					.string()
 					.min(1, 'Tag cannot be empty')
-					.max(16, 'Tag is too long (max 16 characters)')
+					.max(
+						REQUEST_LIMITS.paste.tag,
+						`Tag is too long (max ${REQUEST_LIMITS.paste.tag} characters)`
+					)
 					.regex(
 						/^[a-z][a-z0-9]*$/,
 						'Tag must start with a letter and contain only lowercase letters or digits'
 					)
 					.transform((val) => val.toLowerCase())
 			)
+			.max(
+				REQUEST_LIMITS.paste.tags,
+				`Too many tags (max ${REQUEST_LIMITS.paste.tags})`
+			)
 			.default([]),
-		syntax: z.string().min(1, 'Syntax is required'),
+		syntax: z
+			.string()
+			.min(1, 'Syntax is required')
+			.max(REQUEST_LIMITS.paste.syntax, 'Syntax is too long'),
 		expiration: z
 			.enum(['never', 'burn_after_read', '10m', '1h', '1d', '1w', '2w'], {
 				error: 'Invalid expiration option'
@@ -233,7 +247,10 @@ const createPasteSchema = z
 			.default('none'),
 		pasteAsGuest: z.boolean().default(false),
 		passwordEnabled: z.boolean().default(false),
-		password: z.string().nullish(),
+		password: z
+			.string()
+			.max(REQUEST_LIMITS.paste.password, 'Password is too long')
+			.nullish(),
 		encrypted: z.boolean().default(false)
 	})
 	.superRefine((data, ctx) => {
@@ -271,9 +288,17 @@ export const validatorCreatePasteJson = zValidator(
 	}
 )
 
+export const verifyPasteSchema = z.object({
+	password: z
+		.string()
+		.min(1, 'Password is required')
+		.max(REQUEST_LIMITS.paste.password, 'Password is too long')
+})
+
 export const downloadPasteSchema = z.object({
 	password: z
 		.string()
+		.max(REQUEST_LIMITS.paste.password, 'Password is too long')
 		.refine(
 			(password) => password.trim().length > 0,
 			'Password is required'

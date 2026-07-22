@@ -9,22 +9,24 @@ import {
 	FaSync,
 	FaTimes
 } from 'react-icons/fa'
-import { getBaseApiUrl } from '@/app/utils/functions'
+import type { AdminSyntaxDto, AdminSyntaxesResponse } from '@/app/types'
+import { apiRequest, getApiErrorMessage } from '@/app/utils/api'
 
-interface AdminSyntax {
-	id: string
-	name: string
-	extension: string
-	color: string
-}
+async function getAdminSyntaxes(): Promise<AdminSyntaxDto[]> {
+	const result = await apiRequest<AdminSyntaxesResponse>(
+		'/api/admin/syntaxes'
+	)
+	if (!result.ok) {
+		throw new Error(
+			getApiErrorMessage(result.data, `Failed ${result.status}`)
+		)
+	}
 
-interface AdminSyntaxesResponse {
-	data?: { syntaxes: AdminSyntax[] }
-	error?: string
+	return result.data?.data.syntaxes ?? []
 }
 
 export const AdminSyntaxes: React.FC = () => {
-	const [syntaxes, setSyntaxes] = useState<AdminSyntax[]>([])
+	const [syntaxes, setSyntaxes] = useState<AdminSyntaxDto[]>([])
 	const [loading, setLoading] = useState(true)
 	const [error, setError] = useState<string | null>(null)
 
@@ -33,14 +35,8 @@ export const AdminSyntaxes: React.FC = () => {
 		;(async () => {
 			setLoading(true)
 			try {
-				const res = await fetch(
-					`${getBaseApiUrl()}/api/admin/syntaxes`,
-					{ credentials: 'include' }
-				)
-				const json: AdminSyntaxesResponse = await res.json()
-				if (!res.ok)
-					throw new Error(json.error || `Failed ${res.status}`)
-				if (!cancelled) setSyntaxes(json.data?.syntaxes || [])
+				const nextSyntaxes = await getAdminSyntaxes()
+				if (!cancelled) setSyntaxes(nextSyntaxes)
 			} catch (e) {
 				if (!cancelled)
 					setError((e as Error).message || 'Failed to load syntaxes')
@@ -53,19 +49,16 @@ export const AdminSyntaxes: React.FC = () => {
 		}
 	}, [])
 
-	function reload() {
+	async function reload() {
 		setLoading(true)
 		setError(null)
-		fetch(`${getBaseApiUrl()}/api/admin/syntaxes`, {
-			credentials: 'include'
-		})
-			.then(async (r) => {
-				const j: AdminSyntaxesResponse = await r.json()
-				if (!r.ok) throw new Error(j.error || `Failed ${r.status}`)
-				setSyntaxes(j.data?.syntaxes || [])
-			})
-			.catch((e) => setError(e.message || 'Failed to reload syntaxes'))
-			.finally(() => setLoading(false))
+		try {
+			setSyntaxes(await getAdminSyntaxes())
+		} catch (e) {
+			setError((e as Error).message || 'Failed to reload syntaxes')
+		} finally {
+			setLoading(false)
+		}
 	}
 
 	return (
@@ -151,7 +144,7 @@ export const AdminSyntaxes: React.FC = () => {
 }
 
 interface SyntaxRowProps {
-	syntax: AdminSyntax
+	syntax: AdminSyntaxDto
 	onAction?: () => void
 }
 
@@ -159,7 +152,7 @@ const SyntaxRow: React.FC<SyntaxRowProps> = ({ syntax, onAction }) => {
 	const [editing, setEditing] = useState(false)
 	const [working, setWorking] = useState(false)
 	const [name, setName] = useState(syntax.name)
-	const [extension, setExtension] = useState(syntax.extension)
+	const [extension, setExtension] = useState(syntax.extension ?? '')
 	const [color, setColor] = useState(syntax.color)
 	const [error, setError] = useState<string | null>(null)
 
@@ -171,7 +164,7 @@ const SyntaxRow: React.FC<SyntaxRowProps> = ({ syntax, onAction }) => {
 	function cancelEdit() {
 		setEditing(false)
 		setName(syntax.name)
-		setExtension(syntax.extension)
+		setExtension(syntax.extension ?? '')
 		setColor(syntax.color)
 		setError(null)
 	}
@@ -180,25 +173,22 @@ const SyntaxRow: React.FC<SyntaxRowProps> = ({ syntax, onAction }) => {
 		setWorking(true)
 		setError(null)
 		try {
-			const res = await fetch(
-				`${getBaseApiUrl()}/api/admin/syntaxes/${syntax.id}`,
+			const result = await apiRequest(
+				`/api/admin/syntaxes/${encodeURIComponent(syntax.id)}`,
 				{
 					method: 'PUT',
-					headers: {
-						'Content-Type': 'application/json'
-					},
-					body: JSON.stringify({
+					json: {
 						name,
 						extension,
 						color
-					}),
-					credentials: 'include'
+					}
 				}
 			)
 
-			if (!res.ok) {
-				const json = await res.json()
-				throw new Error(json.message || `Failed ${res.status}`)
+			if (!result.ok) {
+				throw new Error(
+					getApiErrorMessage(result.data, `Failed ${result.status}`)
+				)
 			}
 
 			onAction?.()
@@ -227,7 +217,7 @@ const SyntaxRow: React.FC<SyntaxRowProps> = ({ syntax, onAction }) => {
 					<span className='truncate'>{syntax.name}</span>
 				)}
 			</td>
-			<td className='truncate' title={syntax.extension}>
+			<td className='truncate' title={syntax.extension ?? undefined}>
 				{editing ? (
 					<input
 						value={extension}

@@ -1,11 +1,10 @@
 import type { Metadata } from 'next'
-import { headers } from 'next/headers'
 import Image from 'next/image'
 import Link from 'next/link'
 import { FaGithub, FaInfoCircle, FaQuestionCircle } from 'react-icons/fa'
 import { MdLightbulb, MdMenuBook, MdSchool } from 'react-icons/md'
 import { FeatureSection } from './components/custom/FeatureSection'
-import { createDynamicAuthClient } from './utils/auth-client'
+import { getCurrentViewer } from './utils/session'
 
 export const metadata: Metadata = {
 	title: 'DoggoPaste',
@@ -14,21 +13,16 @@ export const metadata: Metadata = {
 }
 
 export default async function HomePage() {
-	const authClient = createDynamicAuthClient()
-	const session = await authClient.getSession({
-		fetchOptions: {
-			headers: await headers()
-		}
-	})
+	const viewer = await getCurrentViewer()
 
 	return (
 		<>
 			{/* Session tracker */}
 			<div className='relative'>
 				<div className='absolute top-0 right-0 text-sm text-base-content/70'>
-					{session.data?.user ? (
+					{viewer ? (
 						<span className='badge badge-success'>
-							Logged in as {session.data.user.name}
+							Logged in as {viewer.name}
 						</span>
 					) : (
 						<span className='badge badge-warning'>

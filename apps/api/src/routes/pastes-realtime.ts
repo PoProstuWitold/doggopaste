@@ -3,9 +3,10 @@ import { Hono } from 'hono'
 import { db } from '../db/index.js'
 import { realTimePastesTable, syntaxesTable } from '../db/schema.js'
 import { GenericException } from '../exceptions/generic-exception.js'
-import type { Env, Session } from '../types.js'
+import type { Env, RealtimeViewerDto } from '../types.js'
 import { auth } from '../utils/auth.js'
 import { DoggoUtils } from '../utils/doggo-utils.js'
+import { toRealtimePasteDto } from '../utils/response-dto.js'
 import { validatorParamRealtimeSlug } from '../utils/schemas.js'
 
 type NullableRealtimeSyntax = {
@@ -18,6 +19,21 @@ const plaintextSyntax = {
 	name: 'Plaintext',
 	extension: 'txt',
 	color: '#808080'
+}
+
+export function toRealtimeViewerDto(value: unknown): RealtimeViewerDto | null {
+	if (!value || typeof value !== 'object') return null
+
+	const candidate = value as {
+		session?: unknown
+		user?: { name?: unknown }
+	}
+
+	if (!candidate.session || typeof candidate.user?.name !== 'string') {
+		return null
+	}
+
+	return { name: candidate.user.name }
 }
 
 function toRealtimeSyntax(syntax: NullableRealtimeSyntax) {
@@ -34,7 +50,7 @@ const app = new Hono<Env>()
 	.post('/:slug', validatorParamRealtimeSlug, async (c) => {
 		const { slug } = c.req.valid('param')
 
-		let session = null
+		let viewer: RealtimeViewerDto | null = null
 		let token: string | undefined
 
 		try {
@@ -50,8 +66,7 @@ const app = new Hono<Env>()
 					body: { token },
 					asResponse: true
 				})
-				const data: Session = (await verifyResponse.json()) as Session
-				if (data.session) session = data ?? null
+				viewer = toRealtimeViewerDto(await verifyResponse.json())
 			} catch {
 				console.warn(
 					'Token verification failed; continuing without a session'
@@ -127,10 +142,10 @@ const app = new Hono<Env>()
 		return c.json({
 			success: true,
 			realtimePaste: {
-				...paste,
+				...toRealtimePasteDto(paste),
 				syntax: toRealtimeSyntax(syntax)
 			},
-			session
+			viewer
 		})
 	})
 	.get('/:slug/download', validatorParamRealtimeSlug, async (c) => {
@@ -202,7 +217,7 @@ const app = new Hono<Env>()
 		const syntax = toRealtimeSyntax(row.syntax)
 
 		const enrichedPaste = {
-			...paste,
+			...toRealtimePasteDto(paste),
 			syntax
 		}
 

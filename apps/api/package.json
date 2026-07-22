@@ -15,7 +15,7 @@
 		"db:generate": "drizzle-kit generate --config=drizzle.config.ts",
 		"db:migrate": "drizzle-kit migrate --config=drizzle.config.ts",
 		"db:seed": "node --env-file .env --import tsx src/db/seed.ts",
-		"docs": "pnpx @rcmade/hono-docs generate --config ./hono-docs.ts && node ./scripts/finalize-openapi.mjs",
+		"docs": "hono-docs generate --config ./hono-docs.ts && node --import tsx ./scripts/finalize-openapi.mjs && biome format --write ./openapi/openapi.json",
 		"test": "node --env-file .env.test scripts/run-tests.mjs",
 		"test:watch": "node --env-file .env.test scripts/run-tests.mjs --watch"
 	},

@@ -4,8 +4,8 @@ import Link from 'next/link'
 import { FaGithub } from 'react-icons/fa6'
 import { FiPlus } from 'react-icons/fi'
 import { PasteCard } from '../components/custom/PasteCard'
-import type { PasteSummary } from '../types'
-import { getBaseApiUrl } from '../utils/functions'
+import type { PaginatedResponse, PasteSummary } from '../types'
+import { apiRequest } from '../utils/api'
 
 export const dynamic = 'force-dynamic'
 
@@ -24,14 +24,14 @@ export default async function PublicPastes({
 	const limit = 10
 	const offset = (page - 1) * limit
 
-	const res = await fetch(
-		`${getBaseApiUrl()}/api/pastes?limit=${limit}&offset=${offset}`,
-		{ next: { revalidate: 0 } }
+	const result = await apiRequest<PaginatedResponse<PasteSummary>>(
+		`/api/pastes?limit=${limit}&offset=${offset}`,
+		{ cache: 'no-store' }
 	)
+	if (!result.ok || !result.data) throw new Error('Failed to load pastes')
 
-	const json = await res.json()
-	const pastes: PasteSummary[] = json.data
-	const total = json.total
+	const pastes = result.data.data
+	const total = result.data.total
 
 	return (
 		<div className='max-w-5xl mx-auto px-6 py-12 flex flex-col gap-10'>

@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { cookies, headers } from 'next/headers'
+import { cookies } from 'next/headers'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { FaFolder, FaFolderOpen, FaLongArrowAltLeft } from 'react-icons/fa'
@@ -7,9 +7,10 @@ import { FolderButtons } from '@/app/components/custom/FolderButtons'
 import { FolderCard } from '@/app/components/custom/FolderCard'
 import { NewFolderCard } from '@/app/components/custom/NewFolderCard'
 import { PasteCard } from '@/app/components/custom/PasteCard'
-import type { Folder, PasteSummary, User } from '@/app/types'
-import { createDynamicAuthClient } from '@/app/utils/auth-client'
-import { getBaseApiUrl } from '@/app/utils/functions'
+import type { ApiDataResponse, Folder, PasteSummary } from '@/app/types'
+import { apiRequest } from '@/app/utils/api'
+import { getPublicUserByName } from '@/app/utils/api-data'
+import { getCurrentViewer } from '@/app/utils/session'
 
 export const dynamic = 'force-dynamic'
 
@@ -18,24 +19,13 @@ type Params = {
 	id: string
 }
 
-async function fetchUserByName(name: string): Promise<User | null> {
-	const res = await fetch(
-		`${getBaseApiUrl()}/api/user/name/${encodeURIComponent(name)}`,
-		{ next: { revalidate: 0 }, cache: 'no-store' }
-	)
-	if (res.status === 404) return null
-	if (!res.ok) throw new Error('Failed to load user')
-	const json = await res.json()
-	return json.data as User
-}
-
 export async function generateMetadata({
 	params
 }: {
 	params: Promise<Params>
 }): Promise<Metadata> {
 	const { name, id } = await params
-	const user = await fetchUserByName(name)
+	const user = await getPublicUserByName(name)
 	if (!user) {
 		return {
 			title: 'User Not Found',
@@ -55,15 +45,11 @@ export default async function FolderPage({
 	params: Promise<Params>
 }) {
 	const { name, id } = await params
-	const authClient = createDynamicAuthClient()
-	const session = await authClient.getSession({
-		fetchOptions: { headers: await headers() }
-	})
-	const loggedUser = session.data?.user
-	const foldersUser = await fetchUserByName(name)
+	const viewer = await getCurrentViewer()
+	const foldersUser = await getPublicUserByName(name)
 	if (!foldersUser) notFound()
 
-	const isOwn = loggedUser && loggedUser.id === foldersUser.id
+	const isOwn = viewer?.id === foldersUser.id
 
 	let folders: Folder[] = []
 	let currentFolder: Folder | undefined
@@ -72,37 +58,29 @@ export default async function FolderPage({
 
 	if (isOwn) {
 		const cookieHeader = await cookies()
-		const folderRes = await fetch(
-			`${getBaseApiUrl()}/api/folders/f/${encodeURIComponent(id)}`,
+		const folderResult = await apiRequest<
+			ApiDataResponse<{ folder: Folder; pastes: PasteSummary[] }>
+		>(`/api/folders/f/${encodeURIComponent(id)}`, {
+			headers: { Cookie: cookieHeader.toString() },
+			cache: 'no-store'
+		})
+
+		if (!folderResult.ok || !folderResult.data) {
+			if (folderResult.status === 404) notFound()
+			throw new Error('Failed to load folder')
+		}
+		currentFolder = folderResult.data.data.folder
+		pastes = folderResult.data.data.pastes || []
+
+		const allResult = await apiRequest<ApiDataResponse<Folder[]>>(
+			'/api/folders/all',
 			{
 				headers: { Cookie: cookieHeader.toString() },
-				next: { revalidate: 0 },
 				cache: 'no-store'
 			}
 		)
-
-		if (!folderRes.ok) {
-			if (folderRes.status === 404) notFound()
-			throw new Error('Failed to load folder')
-		}
-		const folderJson = (await folderRes.json()) as {
-			success: boolean
-			data: { folder: Folder; pastes: PasteSummary[] }
-		}
-		currentFolder = folderJson.data.folder
-		pastes = folderJson.data.pastes || []
-
-		const allRes = await fetch(`${getBaseApiUrl()}/api/folders/all`, {
-			headers: { Cookie: cookieHeader.toString() },
-			next: { revalidate: 0 },
-			cache: 'no-store'
-		})
-		if (allRes.ok) {
-			const allJson = (await allRes.json()) as {
-				success: boolean
-				data: Folder[]
-			}
-			folders = allJson.data || []
+		if (allResult.ok) {
+			folders = allResult.data?.data || []
 			childFolders = folders.filter((f) => f.parentFolderId === id)
 		}
 	}

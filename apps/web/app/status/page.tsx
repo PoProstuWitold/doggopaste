@@ -8,22 +8,12 @@ import {
 	MdTimer,
 	MdUpdate
 } from 'react-icons/md'
-import { getBaseApiUrl } from '../utils/functions'
+import type { HealthDto } from '../types'
+import { apiRequest } from '../utils/api'
 
 export const metadata: Metadata = {
 	title: 'DoggoPaste Status',
 	description: 'Check the status of the DoggoPaste'
-}
-
-type Health = {
-	status: string
-	description: string
-	version: string
-	isDocker: boolean
-	node: string
-	uptime: number
-	timestamp: string
-	services: Record<string, { connected: boolean; latencyMs?: number }>
 }
 
 const formatUptime = (totalSeconds: number, includeSeconds = false) => {
@@ -47,13 +37,12 @@ const formatUptime = (totalSeconds: number, includeSeconds = false) => {
 }
 
 export default async function Status() {
-	const res = await fetch(`${getBaseApiUrl()}/api/health`, {
+	const result = await apiRequest<HealthDto>('/api/health', {
 		method: 'GET',
-		credentials: 'include',
 		cache: 'no-store'
 	})
 
-	if (!res.ok) {
+	if (!result.ok || !result.data) {
 		return (
 			<main className='mx-auto max-w-2xl p-6'>
 				<div className='rounded-2xl border shadow-sm p-6 bg-white/60'>
@@ -74,7 +63,7 @@ export default async function Status() {
 		)
 	}
 
-	const json = (await res.json()) as Health
+	const json = result.data
 	const ok = json.status === 'ok'
 
 	return (
