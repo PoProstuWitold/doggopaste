@@ -44,12 +44,12 @@ export default async function ProfilePage() {
 
 	const processedSessions: SessionDto[] = allSessions.data.map((session) => ({
 		id: session.id,
+		token: session.token,
 		ipAddress: session.ipAddress ?? null,
 		userAgent: session.userAgent ?? null,
 		expiresAt: session.expiresAt,
 		createdAt: session.createdAt,
-		updatedAt: session.updatedAt,
-		isCurrent: session.id === currentSession.session.id
+		updatedAt: session.updatedAt
 	}))
 	const processedAccounts: AccountDto[] = (accounts.data ?? []).map(
 		(account) => ({
@@ -74,7 +74,10 @@ export default async function ProfilePage() {
 				accounts={processedAccounts}
 				hasCredentialAccount={hasCredentialAccount}
 			/>
-			<Sessions allSessions={processedSessions} />
+			<Sessions
+				allSessions={processedSessions}
+				currentSessionToken={currentSession.session.token}
+			/>
 		</div>
 	)
 }

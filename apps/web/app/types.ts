@@ -1,11 +1,11 @@
 export interface SessionDto {
 	id: string
 	expiresAt: Date
+	token: string
 	createdAt: Date
 	updatedAt: Date
 	userAgent?: string | null
 	ipAddress?: string | null
-	isCurrent: boolean
 }
 
 export interface ViewerDto {

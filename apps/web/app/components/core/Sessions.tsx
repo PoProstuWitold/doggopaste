@@ -2,7 +2,6 @@
 
 import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
-import { revokeSessionById } from '@/app/profile/actions'
 import { createDynamicAuthClient } from '@/app/utils/auth-client'
 import { wait } from '@/app/utils/functions'
 import type { SessionDto } from '../../types'
@@ -10,24 +9,32 @@ import { Session } from './Session'
 
 interface SessionsProps {
 	allSessions: SessionDto[]
+	currentSessionToken: string
 }
 
-export const Sessions: React.FC<SessionsProps> = ({ allSessions }) => {
+export const Sessions: React.FC<SessionsProps> = ({
+	allSessions,
+	currentSessionToken
+}) => {
 	const authClient = createDynamicAuthClient()
 	const router = useRouter()
-	const currentSession = allSessions.find((session) => session.isCurrent)
+	const currentSession = allSessions.find(
+		(session) => session.token === currentSessionToken
+	)
 
-	const revokeSession = async (sessionId: string) => {
-		const { status } = await revokeSessionById(sessionId)
+	const revokeSession = async (token: string) => {
+		const { data, error } = await authClient.revokeSession({ token })
 
-		if (status) {
+		if (data?.status) {
 			toast.success('Session revoked')
 			await wait(500)
-			if (currentSession?.id === sessionId) {
+			if (currentSessionToken === token) {
 				router.replace('/')
 			}
 			router.refresh()
-		} else {
+		}
+
+		if (error) {
 			toast.error('Failed to revoke session')
 		}
 	}
@@ -78,6 +85,7 @@ export const Sessions: React.FC<SessionsProps> = ({ allSessions }) => {
 					{allSessions.map((session) => (
 						<Session
 							key={session.id}
+							currentSessionToken={currentSessionToken}
 							session={session}
 							revokeSession={revokeSession}
 						/>
@@ -112,7 +120,7 @@ export const Sessions: React.FC<SessionsProps> = ({ allSessions }) => {
 									type='button'
 									className='btn btn-error'
 									onClick={() =>
-										revokeSession(currentSession.id)
+										revokeSession(currentSession.token)
 									}
 								>
 									Revoke current session
