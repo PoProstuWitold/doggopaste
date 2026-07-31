@@ -7,7 +7,9 @@ import {
 	contentSyncPayloadSchema,
 	cursorMovePayloadSchema,
 	joinRoomPayloadSchema,
+	liveTitleChangePayloadSchema,
 	metaSyncPayloadSchema,
+	presenceUpdatePayloadSchema,
 	SOCKET_LIMITS
 } from '../../src/utils/socket-contract.js'
 
@@ -124,6 +126,83 @@ test('cursor schema rejects invalid coordinates, positions and selections', () =
 		cursorMovePayloadSchema.safeParse({
 			...validCursor,
 			viewportWidth: SOCKET_LIMITS.viewport + 1
+		}).success,
+		false
+	)
+})
+
+test('presence schema validates field-specific payloads and strips server-owned fields', () => {
+	deepStrictEqual(
+		presenceUpdatePayloadSchema.parse({
+			field: 'content',
+			selection: { anchor: 1, head: 2 },
+			name: 'Guest',
+			slug: 'public-room',
+			id: 'spoofed',
+			revision: 123
+		}),
+		{
+			field: 'content',
+			selection: { anchor: 1, head: 2 },
+			name: 'Guest',
+			slug: 'public-room'
+		}
+	)
+	strictEqual(
+		presenceUpdatePayloadSchema.safeParse({
+			field: 'title',
+			selection: { anchor: 0, head: 0 }
+		}).success,
+		true
+	)
+	strictEqual(
+		presenceUpdatePayloadSchema.safeParse({ field: 'syntax' }).success,
+		true
+	)
+	strictEqual(
+		presenceUpdatePayloadSchema.safeParse({ field: 'idle' }).success,
+		true
+	)
+	strictEqual(
+		presenceUpdatePayloadSchema.safeParse({
+			field: 'content',
+			selection: { anchor: -1, head: 0 }
+		}).success,
+		false
+	)
+	strictEqual(
+		presenceUpdatePayloadSchema.safeParse({ field: 'content' }).success,
+		false
+	)
+	strictEqual(
+		presenceUpdatePayloadSchema.safeParse({
+			field: 'title',
+			selection: {
+				anchor: 0,
+				head: REQUEST_LIMITS.paste.title + 1
+			}
+		}).success,
+		false
+	)
+	strictEqual(
+		presenceUpdatePayloadSchema.safeParse({ field: 'unknown' }).success,
+		false
+	)
+})
+
+test('live title schema validates length and strips server-owned fields', () => {
+	deepStrictEqual(
+		liveTitleChangePayloadSchema.parse({
+			title: 'Live title',
+			slug: 'public-room',
+			sender: 'spoofed',
+			revision: 12
+		}),
+		{ title: 'Live title', slug: 'public-room' }
+	)
+	strictEqual(
+		liveTitleChangePayloadSchema.safeParse({
+			title: 'x'.repeat(REQUEST_LIMITS.paste.title + 1)
 		}).success,
 		false
 	)

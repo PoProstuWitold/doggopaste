@@ -13,7 +13,9 @@ import {
 	contentSyncPayloadSchema,
 	cursorMovePayloadSchema,
 	joinRoomPayloadSchema,
+	liveTitleChangePayloadSchema,
 	metaSyncPayloadSchema,
+	presenceUpdatePayloadSchema,
 	type RealtimeSocketSnapshot,
 	SOCKET_LIMITS,
 	type SocketAcknowledgement,
@@ -25,11 +27,16 @@ import { SocketRateLimiter } from '../utils/socket-rate-limiter.js'
 type RealtimeSocket = Socket & {
 	data: {
 		slug?: string
+		joinedRevision?: number
 	}
 }
 
 type RealtimeRoomState = RealtimeSocketSnapshot & {
 	dirty: boolean
+	contentVersion: number
+	liveRevisionFloor: number
+	liveTitle: string
+	titleVersion: number
 	flushAttempts: number
 	orphanedAt?: number
 }
@@ -47,7 +54,7 @@ function toPublicSnapshot(
 ): RealtimeSocketSnapshot {
 	return {
 		content: state.content,
-		title: state.title,
+		title: 'liveTitle' in state ? state.liveTitle : state.title,
 		syntax: { ...state.syntax },
 		revision: state.revision
 	}
@@ -57,6 +64,10 @@ function toRoomState(snapshot: RealtimeSocketSnapshot): RealtimeRoomState {
 	return {
 		...toPublicSnapshot(snapshot),
 		dirty: false,
+		contentVersion: 0,
+		liveRevisionFloor: snapshot.revision,
+		liveTitle: snapshot.title,
+		titleVersion: 0,
 		flushAttempts: 0
 	}
 }
@@ -126,6 +137,7 @@ async function flushDirtyRoomState(
 	)
 	if (result.status === 'success') {
 		state.revision = result.revision
+		state.liveRevisionFloor = result.revision
 		state.dirty = false
 		clearOrphanedState(slug, state)
 		return true
@@ -249,6 +261,7 @@ function resolveBoundSlug(
 	const slug = socket.data.slug
 	if (!slug || !socket.rooms.has(roomName(slug))) {
 		socket.data.slug = undefined
+		socket.data.joinedRevision = undefined
 		acknowledge(callback, { status: 'not_joined' })
 		return null
 	}
@@ -268,19 +281,60 @@ function cleanupRoomState(server: WebSocketsServer, slug: string): void {
 	}
 }
 
+function emitSocketLeave(socket: RealtimeSocket, slug: string): void {
+	const room = roomName(slug)
+	socket.to(room).emit('cursor-leave', { id: socket.id })
+	socket.to(room).emit('presence-leave', { id: socket.id })
+}
+
+function broadcastConflictSnapshot(
+	socket: RealtimeSocket,
+	slug: string,
+	snapshot: RealtimeSocketSnapshot
+): void {
+	const room = roomName(slug)
+	socket.to(room).emit('content-change', {
+		content: snapshot.content,
+		revision: snapshot.revision,
+		sender: socket.id
+	})
+	socket.to(room).emit('meta-change', {
+		title: snapshot.title,
+		syntax: snapshot.syntax,
+		revision: snapshot.revision,
+		sender: socket.id
+	})
+}
+
+function broadcastRevisionChange(
+	socket: RealtimeSocket,
+	slug: string,
+	revision: number,
+	kind: 'content' | 'metadata'
+): void {
+	socket.to(roomName(slug)).emit('revision-change', {
+		revision,
+		sender: socket.id,
+		kind
+	})
+}
+
 async function leaveCurrentRoom(
 	server: WebSocketsServer,
 	socket: RealtimeSocket
 ): Promise<number | undefined> {
 	const slug = socket.data.slug
 	if (!slug) return undefined
+	emitSocketLeave(socket, slug)
+	socket.data.slug = undefined
+	socket.data.joinedRevision = undefined
+	await socket.leave(roomName(slug))
 
 	return runRoomTask(slug, async () => {
 		const state = realtimeRoomStates.get(slug)
-		const members = server.sockets.adapter.rooms.get(roomName(slug))
-		const isLastMember = members?.size === 1 && members.has(socket.id)
+		const hasMembers = server.sockets.adapter.rooms.has(roomName(slug))
 		let flushFailed = false
-		if (state?.dirty && isLastMember) {
+		if (state?.dirty && !hasMembers) {
 			try {
 				flushFailed = !(await flushDirtyRoomState(slug, state))
 			} catch {
@@ -288,9 +342,6 @@ async function leaveCurrentRoom(
 			}
 		}
 
-		socket.to(roomName(slug)).emit('cursor-leave', { id: socket.id })
-		await socket.leave(roomName(slug))
-		socket.data.slug = undefined
 		if (flushFailed && state.dirty) {
 			retainOrphanedDirtyState(server, slug, state)
 		}
@@ -383,6 +434,7 @@ export function initWebSockets(server: ServerType): WebSocketsServer {
 						realtimeRoomStates.set(slug, activeSnapshot)
 					}
 					clearOrphanedState(slug, activeSnapshot)
+					socket.data.joinedRevision = activeSnapshot.revision
 
 					const acknowledgementSnapshot =
 						toPublicSnapshot(activeSnapshot)
@@ -420,67 +472,62 @@ export function initWebSockets(server: ServerType): WebSocketsServer {
 			}
 		})
 
-		socket.on(
-			'code-change',
-			async (payload: unknown, callback?: unknown) => {
-				if (!checkRateLimit(limiter, 'codeChange', callback)) return
-				const parsed = codeChangePayloadSchema.safeParse(payload)
-				if (!parsed.success) {
-					acknowledge(callback, { status: 'validation_error' })
-					return
-				}
-
-				const slug = resolveBoundSlug(socket, parsed.data, callback)
-				if (!slug) return
-
-				try {
-					await runRoomTask(slug, () => {
-						if (!revalidateQueuedRoom(socket, slug, callback))
-							return
-						const state = realtimeRoomStates.get(slug)
-						if (!state) {
-							acknowledge(callback, { status: 'internal_error' })
-							return
-						}
-						if (parsed.data.baseRevision !== state.revision) {
-							const snapshot = toPublicSnapshot(state)
-							acknowledge(callback, {
-								status: 'revision_conflict',
-								revision: snapshot.revision,
-								snapshot
-							})
-							return
-						}
-
-						const nextContent = applyRealtimeCodeChanges(
-							state.content,
-							parsed.data.changes
-						)
-						if (nextContent === null) {
-							acknowledge(callback, {
-								status: 'validation_error'
-							})
-							return
-						}
-
-						state.content = nextContent
-						state.dirty = true
-						clearOrphanedState(slug, state)
-						socket.to(roomName(slug)).emit('code-change', {
-							changes: parsed.data.changes,
-							sender: socket.id,
-							revision: state.revision
-						})
-						acknowledge(callback, {
-							status: 'success',
-							revision: state.revision
-						})
-					})
-				} catch {
-					acknowledge(callback, { status: 'internal_error' })
-				}
+		socket.on('code-change', (payload: unknown, callback?: unknown) => {
+			if (!checkRateLimit(limiter, 'codeChange', callback)) return
+			const parsed = codeChangePayloadSchema.safeParse(payload)
+			if (!parsed.success) {
+				acknowledge(callback, { status: 'validation_error' })
+				return
 			}
-		)
+
+			const slug = resolveBoundSlug(socket, parsed.data, callback)
+			if (!slug) return
+
+			const state = realtimeRoomStates.get(slug)
+			if (!state) {
+				acknowledge(callback, { status: 'internal_error' })
+				return
+			}
+			const minimumRevision = Math.max(
+				state.liveRevisionFloor,
+				socket.data.joinedRevision ?? state.revision
+			)
+			if (
+				parsed.data.baseRevision < minimumRevision ||
+				parsed.data.baseRevision > state.revision
+			) {
+				const snapshot = toPublicSnapshot(state)
+				acknowledge(callback, {
+					status: 'revision_conflict',
+					revision: snapshot.revision,
+					snapshot
+				})
+				return
+			}
+
+			const nextContent = applyRealtimeCodeChanges(
+				state.content,
+				parsed.data.changes
+			)
+			if (nextContent === null) {
+				acknowledge(callback, { status: 'validation_error' })
+				return
+			}
+
+			state.content = nextContent
+			state.contentVersion += 1
+			state.dirty = true
+			clearOrphanedState(slug, state)
+			socket.to(roomName(slug)).emit('code-change', {
+				changes: parsed.data.changes,
+				sender: socket.id,
+				revision: state.revision
+			})
+			acknowledge(callback, {
+				status: 'success',
+				revision: state.revision
+			})
+		})
 
 		socket.on(
 			'content-sync',
@@ -494,20 +541,47 @@ export function initWebSockets(server: ServerType): WebSocketsServer {
 
 				const slug = resolveBoundSlug(socket, parsed.data, callback)
 				if (!slug) return
+				const capturedState = realtimeRoomStates.get(slug)
+				if (!capturedState) {
+					acknowledge(callback, { status: 'internal_error' })
+					return
+				}
+				if (
+					parsed.data.baseRevision !== capturedState.revision ||
+					parsed.data.content !== capturedState.content
+				) {
+					const snapshot = toPublicSnapshot(capturedState)
+					acknowledge(callback, {
+						status: 'revision_conflict',
+						revision: snapshot.revision,
+						snapshot
+					})
+					return
+				}
+				const capturedContent = parsed.data.content
+				const capturedContentVersion = capturedState.contentVersion
 
 				try {
 					await runRoomTask(slug, async () => {
 						if (!revalidateQueuedRoom(socket, slug, callback))
 							return
 						const roomState = realtimeRoomStates.get(slug)
-						if (!roomState) {
-							acknowledge(callback, { status: 'internal_error' })
+						if (roomState !== capturedState) {
+							if (!roomState) {
+								acknowledge(callback, {
+									status: 'internal_error'
+								})
+								return
+							}
+							const snapshot = toPublicSnapshot(roomState)
+							acknowledge(callback, {
+								status: 'revision_conflict',
+								revision: snapshot.revision,
+								snapshot
+							})
 							return
 						}
-						if (
-							parsed.data.baseRevision !== roomState.revision ||
-							parsed.data.content !== roomState.content
-						) {
+						if (parsed.data.baseRevision !== roomState.revision) {
 							const snapshot = toPublicSnapshot(roomState)
 							acknowledge(callback, {
 								status: 'revision_conflict',
@@ -519,19 +593,22 @@ export function initWebSockets(server: ServerType): WebSocketsServer {
 
 						const result = await saveRealtimeContent(
 							slug,
-							parsed.data.content,
+							capturedContent,
 							parsed.data.baseRevision
 						)
 						if (result.status === 'success') {
-							roomState.content = parsed.data.content
 							roomState.revision = result.revision
-							roomState.dirty = false
+							roomState.dirty =
+								roomState.contentVersion !==
+									capturedContentVersion ||
+								roomState.content !== capturedContent
 							clearOrphanedState(slug, roomState)
-							socket.to(roomName(slug)).emit('content-change', {
-								content: parsed.data.content,
-								revision: result.revision,
-								sender: socket.id
-							})
+							broadcastRevisionChange(
+								socket,
+								slug,
+								result.revision,
+								'content'
+							)
 							acknowledge(callback, {
 								status: 'success',
 								revision: result.revision
@@ -543,6 +620,11 @@ export function initWebSockets(server: ServerType): WebSocketsServer {
 							realtimeRoomStates.set(
 								slug,
 								toRoomState(result.snapshot)
+							)
+							broadcastConflictSnapshot(
+								socket,
+								slug,
+								result.snapshot
 							)
 							acknowledge(callback, {
 								status: 'revision_conflict',
@@ -571,13 +653,37 @@ export function initWebSockets(server: ServerType): WebSocketsServer {
 
 			const slug = resolveBoundSlug(socket, parsed.data, callback)
 			if (!slug) return
+			const capturedState = realtimeRoomStates.get(slug)
+			if (!capturedState) {
+				acknowledge(callback, { status: 'internal_error' })
+				return
+			}
+			if (parsed.data.baseRevision !== capturedState.revision) {
+				const snapshot = toPublicSnapshot(capturedState)
+				acknowledge(callback, {
+					status: 'revision_conflict',
+					revision: snapshot.revision,
+					snapshot
+				})
+				return
+			}
+			const capturedTitleVersion = capturedState.titleVersion
 
 			try {
 				await runRoomTask(slug, async () => {
 					if (!revalidateQueuedRoom(socket, slug, callback)) return
 					const roomState = realtimeRoomStates.get(slug)
-					if (!roomState) {
-						acknowledge(callback, { status: 'internal_error' })
+					if (roomState !== capturedState) {
+						if (!roomState) {
+							acknowledge(callback, { status: 'internal_error' })
+							return
+						}
+						const snapshot = toPublicSnapshot(roomState)
+						acknowledge(callback, {
+							status: 'revision_conflict',
+							revision: snapshot.revision,
+							snapshot
+						})
 						return
 					}
 					if (parsed.data.baseRevision !== roomState.revision) {
@@ -599,10 +705,19 @@ export function initWebSockets(server: ServerType): WebSocketsServer {
 					if (result.status === 'success') {
 						roomState.revision = result.revision
 						roomState.title = result.title
+						if (roomState.titleVersion === capturedTitleVersion) {
+							roomState.liveTitle = result.title
+						}
 						roomState.syntax = result.syntax
+						broadcastRevisionChange(
+							socket,
+							slug,
+							result.revision,
+							'metadata'
+						)
 						clearOrphanedState(slug, roomState)
 						socketServer.to(roomName(slug)).emit('meta-change', {
-							title: result.title,
+							title: roomState.liveTitle,
 							syntax: result.syntax,
 							revision: result.revision,
 							sender: socket.id
@@ -619,6 +734,7 @@ export function initWebSockets(server: ServerType): WebSocketsServer {
 							slug,
 							toRoomState(result.snapshot)
 						)
+						broadcastConflictSnapshot(socket, slug, result.snapshot)
 						acknowledge(callback, {
 							status: 'revision_conflict',
 							revision: result.snapshot.revision,
@@ -640,62 +756,125 @@ export function initWebSockets(server: ServerType): WebSocketsServer {
 			}
 		})
 
-		socket.on(
-			'cursor-move',
-			async (payload: unknown, callback?: unknown) => {
-				if (!checkRateLimit(limiter, 'cursorMove', callback)) return
-				const parsed = cursorMovePayloadSchema.safeParse(payload)
-				if (!parsed.success) {
+		socket.on('title-change', (payload: unknown, callback?: unknown) => {
+			if (!checkRateLimit(limiter, 'titleChange', callback)) return
+			const parsed = liveTitleChangePayloadSchema.safeParse(payload)
+			if (!parsed.success) {
+				acknowledge(callback, { status: 'validation_error' })
+				return
+			}
+
+			const slug = resolveBoundSlug(socket, parsed.data, callback)
+			if (!slug) return
+			const state = realtimeRoomStates.get(slug)
+			if (!state) {
+				acknowledge(callback, { status: 'internal_error' })
+				return
+			}
+
+			state.liveTitle = parsed.data.title
+			state.titleVersion += 1
+			socket.volatile.to(roomName(slug)).emit('title-change', {
+				title: parsed.data.title,
+				sender: socket.id,
+				revision: state.revision
+			})
+			acknowledge(callback, {
+				status: 'success',
+				revision: state.revision
+			})
+		})
+
+		socket.on('presence-update', (payload: unknown, callback?: unknown) => {
+			if (!checkRateLimit(limiter, 'presenceUpdate', callback)) return
+			const parsed = presenceUpdatePayloadSchema.safeParse(payload)
+			if (!parsed.success) {
+				acknowledge(callback, { status: 'validation_error' })
+				return
+			}
+
+			const slug = resolveBoundSlug(socket, parsed.data, callback)
+			if (!slug) return
+
+			const state = realtimeRoomStates.get(slug)
+			if (!state) {
+				acknowledge(callback, { status: 'internal_error' })
+				return
+			}
+			if (parsed.data.field === 'content') {
+				const maximumPosition = state.content.length
+				if (
+					parsed.data.selection.anchor > maximumPosition ||
+					parsed.data.selection.head > maximumPosition
+				) {
 					acknowledge(callback, { status: 'validation_error' })
 					return
 				}
-
-				const slug = resolveBoundSlug(socket, parsed.data, callback)
-				if (!slug) return
-
-				try {
-					await runRoomTask(slug, () => {
-						if (!revalidateQueuedRoom(socket, slug, callback))
-							return
-						const state = realtimeRoomStates.get(slug)
-						const { position, selection } = parsed.data
-						if (
-							!state ||
-							position > state.content.length ||
-							selection.anchor > state.content.length ||
-							selection.head > state.content.length
-						) {
-							acknowledge(callback, {
-								status: 'validation_error'
-							})
-							return
-						}
-
-						const { slug: _legacySlug, ...cursor } = parsed.data
-						socket.to(roomName(slug)).emit('cursor-move', {
-							...cursor,
-							id: socket.id,
-							revision: state.revision
-						})
-						acknowledge(callback, {
-							status: 'success',
-							revision: state.revision
-						})
-					})
-				} catch {
-					acknowledge(callback, { status: 'internal_error' })
-				}
 			}
-		)
+
+			const { slug: _legacySlug, ...presence } = parsed.data
+			const broadcast = {
+				...presence,
+				id: socket.id,
+				revision: state.revision
+			}
+			const room = roomName(slug)
+			if (
+				parsed.data.field === 'content' ||
+				parsed.data.field === 'title'
+			) {
+				socket.volatile.to(room).emit('presence-update', broadcast)
+			} else {
+				socket.to(room).emit('presence-update', broadcast)
+			}
+			acknowledge(callback, {
+				status: 'success',
+				revision: state.revision
+			})
+		})
+
+		socket.on('cursor-move', (payload: unknown, callback?: unknown) => {
+			if (!checkRateLimit(limiter, 'cursorMove', callback)) return
+			const parsed = cursorMovePayloadSchema.safeParse(payload)
+			if (!parsed.success) {
+				acknowledge(callback, { status: 'validation_error' })
+				return
+			}
+
+			const slug = resolveBoundSlug(socket, parsed.data, callback)
+			if (!slug) return
+
+			const state = realtimeRoomStates.get(slug)
+			const { position, selection } = parsed.data
+			if (
+				!state ||
+				position > state.content.length ||
+				selection.anchor > state.content.length ||
+				selection.head > state.content.length
+			) {
+				acknowledge(callback, { status: 'validation_error' })
+				return
+			}
+
+			const { slug: _legacySlug, ...cursor } = parsed.data
+			socket.volatile.to(roomName(slug)).emit('cursor-move', {
+				...cursor,
+				id: socket.id,
+				revision: state.revision
+			})
+			acknowledge(callback, {
+				status: 'success',
+				revision: state.revision
+			})
+		})
 
 		socket.on('disconnecting', () => {
 			joinAttempt += 1
 			disconnectedSlug = socket.data.slug
 			if (disconnectedSlug) {
-				socket
-					.to(roomName(disconnectedSlug))
-					.emit('cursor-leave', { id: socket.id })
+				emitSocketLeave(socket, disconnectedSlug)
 				socket.data.slug = undefined
+				socket.data.joinedRevision = undefined
 			}
 			limiter.clear()
 		})
