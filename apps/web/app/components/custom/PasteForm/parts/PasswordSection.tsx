@@ -89,8 +89,8 @@ export function PasswordSection() {
 								Standard "Password protection" sends a password
 								hash to the server to verify access, but the
 								content is technically readable by the database
-								admin. Client-side encryption Encryption ensures
-								total privacy.
+								admin. Client-side encryption ensures total
+								privacy.
 							</p>
 						</div>
 					</CustomDialog>
