@@ -12,6 +12,7 @@ import type {
 	RemoteCodeChange,
 	RemoteContentChange,
 	RemoteMetaChange,
+	RemoteRevisionChange,
 	SaveResult
 } from './socket-contract'
 
@@ -69,6 +70,7 @@ export const useRealtimeSocket = ({
 	const connectionAttemptRef = useRef(0)
 	const writeBlockedUntilRef = useRef(0)
 	const operationQueueRef = useRef(Promise.resolve<SaveResult>('success'))
+	const codeLaneBlockedRef = useRef(true)
 	const requestResyncRef = useRef<() => void>(() => undefined)
 	const onSnapshotRef = useRef(onSnapshot)
 	const onRemoteContentRef = useRef(onRemoteContent)
@@ -84,6 +86,7 @@ export const useRealtimeSocket = ({
 		generationRef.current += 1
 		revisionRef.current = snapshot.revision
 		onSnapshotRef.current(snapshot)
+		codeLaneBlockedRef.current = !joinedRef.current
 	}, [])
 
 	useEffect(() => {
@@ -91,6 +94,7 @@ export const useRealtimeSocket = ({
 		setIsJoined(false)
 		revisionRef.current = initialRevision
 		generationRef.current += 1
+		codeLaneBlockedRef.current = true
 		const socket = io(getBaseApiUrl(), {
 			path: '/ws',
 			withCredentials: true
@@ -136,6 +140,7 @@ export const useRealtimeSocket = ({
 				revisionRef.current = ack.revision
 				onSnapshotRef.current(ack.snapshot)
 				joinedRef.current = true
+				codeLaneBlockedRef.current = false
 				setIsJoined(true)
 				return
 			}
@@ -166,6 +171,7 @@ export const useRealtimeSocket = ({
 			joinedRef.current = false
 			setIsJoined(false)
 			generationRef.current += 1
+			codeLaneBlockedRef.current = true
 			void joinCurrentRoom(attempt)
 		}
 
@@ -177,6 +183,7 @@ export const useRealtimeSocket = ({
 			joinedRef.current = false
 			setIsJoined(false)
 			generationRef.current += 1
+			codeLaneBlockedRef.current = true
 			clearJoinTimer()
 		}
 
@@ -201,6 +208,7 @@ export const useRealtimeSocket = ({
 			generationRef.current += 1
 			revisionRef.current = change.revision
 			onRemoteContentRef.current(change.content)
+			codeLaneBlockedRef.current = false
 		}
 
 		const handleMetaChange = (change: RemoteMetaChange) => {
@@ -212,15 +220,19 @@ export const useRealtimeSocket = ({
 			}
 
 			const isSelf = change.sender === socket.id
+			revisionRef.current = Math.max(revisionRef.current, change.revision)
 			if (isSelf) {
 				onRemoteMetadataRef.current(change.title, change.syntax, true)
 				return
 			}
 
-			if (change.revision > revisionRef.current)
-				generationRef.current += 1
-			revisionRef.current = Math.max(revisionRef.current, change.revision)
 			onRemoteMetadataRef.current(change.title, change.syntax, false)
+		}
+
+		const handleRevisionChange = (change: RemoteRevisionChange) => {
+			if (!joinedRef.current || change.revision < revisionRef.current)
+				return
+			revisionRef.current = Math.max(revisionRef.current, change.revision)
 		}
 
 		socket.on('connect', startJoin)
@@ -228,6 +240,7 @@ export const useRealtimeSocket = ({
 		socket.on('code-change', handleCodeChange)
 		socket.on('content-change', handleContentChange)
 		socket.on('meta-change', handleMetaChange)
+		socket.on('revision-change', handleRevisionChange)
 		if (socket.connected) startJoin()
 
 		return () => {
@@ -237,12 +250,14 @@ export const useRealtimeSocket = ({
 			joinInFlightAttempt = null
 			joinedRef.current = false
 			generationRef.current += 1
+			codeLaneBlockedRef.current = true
 			clearJoinTimer()
 			socket.off('connect', startJoin)
 			socket.off('disconnect', handleDisconnect)
 			socket.off('code-change', handleCodeChange)
 			socket.off('content-change', handleContentChange)
 			socket.off('meta-change', handleMetaChange)
+			socket.off('revision-change', handleRevisionChange)
 			if (socket.connected) socket.emit('leave-room', () => undefined)
 			socket.disconnect()
 			if (socketRef.current === socket) socketRef.current = null
@@ -291,41 +306,43 @@ export const useRealtimeSocket = ({
 
 	const sendCodeChange = useCallback(
 		(batch: CodeChangeBatch) => {
-			void enqueueOperation(async (generation) => {
-				const identity = getOperationSocket(generation)
-				if (!identity) return 'discarded'
-				const baseRevision = revisionRef.current
+			if (codeLaneBlockedRef.current) return
 
-				const ack = await emitWithAck<RealtimeWriteAck>(
-					identity.socket,
-					'code-change',
-					{
-						changes: batch.changes,
-						baseRevision
-					}
-				)
-				if (!isCurrentOperation(generation, identity))
-					return 'discarded'
-				if (ack?.status === 'success') {
-					if (ack.revision === baseRevision) return 'success'
-					requestResyncRef.current()
-					return 'resynced'
+			const generation = generationRef.current
+			const identity = getOperationSocket(generation)
+			if (!identity) return
+			const baseRevision = revisionRef.current
+
+			const handleAcknowledgement = (ack: RealtimeWriteAck | null) => {
+				if (
+					!isCurrentOperation(generation, identity) ||
+					codeLaneBlockedRef.current
+				) {
+					return
 				}
+				if (ack?.status === 'success') {
+					revisionRef.current = Math.max(
+						revisionRef.current,
+						ack.revision
+					)
+					return
+				}
+				if (!ack) return
+
+				codeLaneBlockedRef.current = true
 				if (ack?.status === 'revision_conflict') {
 					applySnapshot(ack.snapshot)
-					return 'resynced'
+					return
 				}
-
 				requestResyncRef.current()
-				return 'resynced'
-			})
+			}
+
+			void emitWithAck<RealtimeWriteAck>(identity.socket, 'code-change', {
+				changes: batch.changes,
+				baseRevision
+			}).then(handleAcknowledgement, () => handleAcknowledgement(null))
 		},
-		[
-			applySnapshot,
-			enqueueOperation,
-			getOperationSocket,
-			isCurrentOperation
-		]
+		[applySnapshot, getOperationSocket, isCurrentOperation]
 	)
 
 	const enqueueWrite = useCallback(
@@ -357,7 +374,10 @@ export const useRealtimeSocket = ({
 						requestResyncRef.current()
 						return 'resynced'
 					}
-					revisionRef.current = ack.revision
+					revisionRef.current = Math.max(
+						revisionRef.current,
+						ack.revision
+					)
 					return 'success'
 				}
 				if (ack?.status === 'revision_conflict') {

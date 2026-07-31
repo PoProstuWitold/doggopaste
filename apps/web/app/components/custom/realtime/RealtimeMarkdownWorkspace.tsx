@@ -37,15 +37,18 @@ export const RealtimeMarkdownWorkspace = ({
 	const codeScrollRef = useRef<HTMLDivElement>(null)
 	const previewRef = useRef<HTMLDivElement>(null)
 	const detachSyncRef = useRef<(() => void) | null>(null)
+	const showCode = !isMarkdown || mode === 'code' || mode === 'split'
+	const showPreview = isMarkdown && (mode === 'split' || mode === 'preview')
 
 	useEffect(() => {
+		if (!showPreview) return
 		const timeout = window.setTimeout(() => setPreviewContent(content), 150)
 		return () => window.clearTimeout(timeout)
-	}, [content])
+	}, [content, showPreview])
 
 	const renderedMarkdownHtml = useMemo(
-		() => createSafeMarkdownHtml(previewContent),
-		[previewContent]
+		() => (showPreview ? createSafeMarkdownHtml(previewContent) : ''),
+		[previewContent, showPreview]
 	)
 
 	const detachSync = useCallback(() => {
@@ -122,9 +125,6 @@ export const RealtimeMarkdownWorkspace = ({
 		setSyncEnabled(true)
 		requestAnimationFrame(() => syncScroll(codeElement, previewElement))
 	}
-
-	const showCode = !isMarkdown || mode === 'code' || mode === 'split'
-	const showPreview = isMarkdown && (mode === 'split' || mode === 'preview')
 
 	return (
 		<>

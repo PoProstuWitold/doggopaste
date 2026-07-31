@@ -16,11 +16,13 @@ export const SOCKET_LIMITS = {
 		ttlMs: 30_000
 	},
 	rate: {
-		joinRoom: { max: 10, windowMs: 60_000 },
-		codeChange: { max: 120, windowMs: 10_000 },
-		contentSync: { max: 12, windowMs: 60_000 },
-		metaSync: { max: 30, windowMs: 60_000 },
-		cursorMove: { max: 120, windowMs: 10_000 }
+		joinRoom: { max: 10, burst: 3, windowMs: 60_000 },
+		codeChange: { max: 400, burst: 80, windowMs: 10_000 },
+		contentSync: { max: 12, burst: 3, windowMs: 60_000 },
+		metaSync: { max: 30, burst: 5, windowMs: 60_000 },
+		cursorMove: { max: 400, burst: 80, windowMs: 10_000 },
+		presenceUpdate: { max: 400, burst: 80, windowMs: 10_000 },
+		titleChange: { max: 400, burst: 80, windowMs: 10_000 }
 	}
 } as const
 
@@ -100,11 +102,62 @@ export const cursorMovePayloadSchema = z.object({
 	})
 })
 
+const contentPresenceSelectionSchema = z.object({
+	anchor: documentPositionSchema,
+	head: documentPositionSchema
+})
+
+const titlePositionSchema = z
+	.number()
+	.int()
+	.nonnegative()
+	.max(REQUEST_LIMITS.paste.title)
+
+const titlePresenceSelectionSchema = z.object({
+	anchor: titlePositionSchema,
+	head: titlePositionSchema
+})
+
+const presenceBaseFields = {
+	...legacyRoomField,
+	name: z.string().min(1).max(SOCKET_LIMITS.cursorName).optional()
+}
+
+export const presenceUpdatePayloadSchema = z.discriminatedUnion('field', [
+	z.object({
+		...presenceBaseFields,
+		field: z.literal('content'),
+		selection: contentPresenceSelectionSchema
+	}),
+	z.object({
+		...presenceBaseFields,
+		field: z.literal('title'),
+		selection: titlePresenceSelectionSchema
+	}),
+	z.object({
+		...presenceBaseFields,
+		field: z.literal('syntax')
+	}),
+	z.object({
+		...presenceBaseFields,
+		field: z.literal('idle')
+	})
+])
+
+export const liveTitleChangePayloadSchema = z.object({
+	...legacyRoomField,
+	title: z.string().max(REQUEST_LIMITS.paste.title)
+})
+
 export type JoinRoomPayload = z.infer<typeof joinRoomPayloadSchema>
 export type CodeChangePayload = z.infer<typeof codeChangePayloadSchema>
 export type ContentSyncPayload = z.infer<typeof contentSyncPayloadSchema>
 export type MetaSyncPayload = z.infer<typeof metaSyncPayloadSchema>
 export type CursorMovePayload = z.infer<typeof cursorMovePayloadSchema>
+export type PresenceUpdatePayload = z.infer<typeof presenceUpdatePayloadSchema>
+export type LiveTitleChangePayload = z.infer<
+	typeof liveTitleChangePayloadSchema
+>
 export type RealtimeCodeChange = z.infer<typeof codeChangeSchema>
 
 export function applyRealtimeCodeChanges(

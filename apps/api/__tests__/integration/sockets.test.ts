@@ -5,7 +5,7 @@ import { createServer, type Server } from 'node:http'
 import { createRequire } from 'node:module'
 import { fileURLToPath } from 'node:url'
 import test from 'node:test'
-import { eq, inArray } from 'drizzle-orm'
+import { eq, inArray, sql } from 'drizzle-orm'
 import { db } from '../../src/db/index.js'
 import { realTimePastesTable } from '../../src/db/schema.js'
 import {
@@ -60,6 +60,20 @@ async function waitUntil(
 		}
 		await delay(25)
 	}
+}
+
+async function waitForBlockedRealtimeWrite(): Promise<void> {
+	for (let attempt = 0; attempt < 100; attempt += 1) {
+		const result = await db.execute<{ count: number }>(sql`
+			SELECT count(*)::integer AS count
+			FROM pg_catalog.pg_stat_activity
+			WHERE wait_event_type = 'Lock'
+				AND lower(query) LIKE '%update%realtime_pastes%'
+		`)
+		if (Number(result.rows[0]?.count) > 0) return
+		await delay(10)
+	}
+	throw new Error('Realtime persistence did not wait for the row lock')
 }
 
 function uniqueSlug(prefix: string): string {
@@ -195,6 +209,18 @@ function cursorPayload(position = 0) {
 	}
 }
 
+function presenceSelection(
+	field: 'content' | 'title',
+	anchor = 0,
+	head = anchor
+) {
+	return {
+		field,
+		selection: { anchor, head },
+		name: 'Socket tester'
+	}
+}
+
 test('Socket.IO realtime contract', { concurrency: false }, async (t) => {
 	await prepareDb()
 	const server = createServer()
@@ -260,6 +286,14 @@ test('Socket.IO realtime contract', { concurrency: false }, async (t) => {
 				'not_joined'
 			)
 			strictEqual(
+				(
+					await emitAck(sender, 'title-change', {
+						title: 'Live title'
+					})
+				).status,
+				'not_joined'
+			)
+			strictEqual(
 				(await emitAck(sender, 'code-change', codeChange(0, 0, 0, '')))
 					.status,
 				'not_joined'
@@ -269,7 +303,21 @@ test('Socket.IO realtime contract', { concurrency: false }, async (t) => {
 				'not_joined'
 			)
 			strictEqual(
+				(
+					await emitAck(
+						sender,
+						'presence-update',
+						presenceSelection('content')
+					)
+				).status,
+				'not_joined'
+			)
+			strictEqual(
 				(await emitAck(sender, 'meta-sync', { title: 123 })).status,
+				'validation_error'
+			)
+			strictEqual(
+				(await emitAck(sender, 'title-change', { title: 123 })).status,
 				'validation_error'
 			)
 			strictEqual(
@@ -297,6 +345,26 @@ test('Socket.IO realtime contract', { concurrency: false }, async (t) => {
 				(await emitAck(sender, 'cursor-move', cursorPayload(4))).status,
 				'validation_error'
 			)
+			await assertNoEvent(observer, 'presence-update', async () => {
+				strictEqual(
+					(
+						await emitAck(sender, 'presence-update', {
+							field: 'content'
+						})
+					).status,
+					'validation_error'
+				)
+				strictEqual(
+					(
+						await emitAck(
+							sender,
+							'presence-update',
+							presenceSelection('content', 0, 4)
+						)
+					).status,
+					'validation_error'
+				)
+			})
 
 			await assertNoEvent(observer, 'code-change', async () => {
 				strictEqual(
@@ -390,6 +458,165 @@ test('Socket.IO realtime contract', { concurrency: false }, async (t) => {
 			strictEqual((await queuedAfterLeave).status, 'not_joined')
 		})
 
+		await t.test('presence is public, validated, room-scoped and server-owned', async () => {
+			const firstSlug = await createPaste('presence-a', 'abc')
+			const secondSlug = await createPaste('presence-b', 'xyz')
+			const writer = await createClient()
+			const firstObserver = await createClient()
+			const secondObserver = await createClient()
+			await join(writer, firstSlug)
+			await join(firstObserver, firstSlug)
+			await join(secondObserver, secondSlug)
+
+			const contentPresence = waitForEvent<{
+				field: string
+				selection: { anchor: number; head: number }
+				name?: string
+				id: string
+				revision: number
+			}>(firstObserver, 'presence-update')
+			await assertNoEvent(secondObserver, 'presence-update', async () => {
+				const acknowledgement = await emitAck(
+					writer,
+					'presence-update',
+					{
+						...presenceSelection('content', 1, 2),
+						slug: firstSlug,
+						id: 'spoofed-client',
+						revision: 999
+					}
+				)
+				strictEqual(acknowledgement.status, 'success')
+				if (acknowledgement.status === 'success') {
+					strictEqual(acknowledgement.revision, 0)
+				}
+			})
+			deepStrictEqual(await contentPresence, {
+				field: 'content',
+				selection: { anchor: 1, head: 2 },
+				name: 'Socket tester',
+				id: writer.id,
+				revision: 0
+			})
+
+			await assertNoEvent(secondObserver, 'presence-update', async () => {
+				strictEqual(
+					(
+						await emitAck(writer, 'presence-update', {
+							...presenceSelection('content'),
+							slug: secondSlug
+						})
+					).status,
+					'room_mismatch'
+				)
+			})
+
+			const titlePresence = waitForEvent<{
+				field: string
+				selection: { anchor: number; head: number }
+			}>(firstObserver, 'presence-update')
+			strictEqual(
+				(
+					await emitAck(
+						writer,
+						'presence-update',
+						presenceSelection('title', 50, 75)
+					)
+				).status,
+				'success'
+			)
+			deepStrictEqual((await titlePresence).selection, {
+				anchor: 50,
+				head: 75
+			})
+
+			for (const field of ['syntax', 'idle'] as const) {
+				const event = waitForEvent<{
+					field: string
+					id: string
+					revision: number
+				}>(firstObserver, 'presence-update')
+				strictEqual(
+					(
+						await emitAck(writer, 'presence-update', {
+							field,
+							name: 'Socket tester'
+						})
+					).status,
+					'success'
+				)
+				const received = await event
+				strictEqual(received.field, field)
+				strictEqual(received.id, writer.id)
+				strictEqual(received.revision, 0)
+			}
+
+			const liveTitle = waitForEvent<{
+				title: string
+				sender: string
+				revision: number
+			}>(firstObserver, 'title-change')
+			await assertNoEvent(secondObserver, 'title-change', async () => {
+				strictEqual(
+					(
+						await emitAck(writer, 'title-change', {
+							title: 'Unsaved live title',
+							slug: firstSlug,
+							sender: 'spoofed-client',
+							revision: 999
+						})
+					).status,
+					'success'
+				)
+			})
+			deepStrictEqual(await liveTitle, {
+				title: 'Unsaved live title',
+				sender: writer.id,
+				revision: 0
+			})
+			strictEqual(
+				(
+					await emitAck(writer, 'title-change', {
+						title: 'Wrong room',
+						slug: secondSlug
+					})
+				).status,
+				'room_mismatch'
+			)
+
+			const [unchanged] = await db
+				.select({
+					revision: realTimePastesTable.revision,
+					title: realTimePastesTable.title
+				})
+				.from(realTimePastesTable)
+				.where(eq(realTimePastesTable.slug, firstSlug))
+			strictEqual(unchanged?.revision, 0)
+			strictEqual(unchanged?.title, firstSlug)
+			const lateJoiner = await createClient()
+			const lateJoin = await join(lateJoiner, firstSlug)
+			strictEqual(lateJoin.status, 'success')
+			if (lateJoin.status === 'success') {
+				strictEqual(lateJoin.snapshot?.title, 'Unsaved live title')
+				strictEqual(lateJoin.revision, 0)
+			}
+
+			const firstLeave = waitForEvent<{ id: string }>(
+				firstObserver,
+				'presence-leave'
+			)
+			strictEqual((await join(writer, secondSlug)).status, 'success')
+			strictEqual((await firstLeave).id, writer.id)
+
+			const disconnectedId = writer.id
+			const secondLeave = waitForEvent<{ id: string }>(
+				secondObserver,
+				'presence-leave'
+			)
+			writer.disconnect()
+			strictEqual((await secondLeave).id, disconnectedId)
+		})
+
 		await t.test('the latest concurrent join attempt owns the socket', async () => {
 			const firstSlug = await createPaste('join-race-a')
 			const secondSlug = await createPaste('join-race-b')
@@ -422,6 +649,118 @@ test('Socket.IO realtime contract', { concurrency: false }, async (t) => {
 				).status,
 				'success'
 			)
+		})
+
+		await t.test('pipelined code changes preserve socket arrival order', async () => {
+			const slug = await createPaste('pipelined-code')
+			const writer = await createClient()
+			const observer = await createClient()
+			await join(writer, slug)
+			await join(observer, slug)
+
+			const inserts: string[] = []
+			const receivedBoth = new Promise<void>((resolve, reject) => {
+				const timeout = setTimeout(
+					() => reject(new Error('Timed out waiting for pipelined changes')),
+					EVENT_TIMEOUT_MS
+				)
+				const listener = (payload: {
+					changes: Array<{ insert: string }>
+				}) => {
+					inserts.push(payload.changes[0]?.insert ?? '')
+					if (inserts.length === 2) {
+						clearTimeout(timeout)
+						observer.off('code-change', listener)
+						resolve()
+					}
+				}
+				observer.on('code-change', listener)
+			})
+			const firstWrite = emitAck(
+				writer,
+				'code-change',
+				codeChange(0, 0, 0, 'A')
+			)
+			const secondWrite = emitAck(
+				writer,
+				'code-change',
+				codeChange(0, 1, 1, 'B')
+			)
+			const acknowledgements = await Promise.all([firstWrite, secondWrite])
+			deepStrictEqual(
+				acknowledgements.map(({ status }) => status),
+				['success', 'success']
+			)
+			await receivedBoth
+			deepStrictEqual(inserts, ['A', 'B'])
+
+			const lateJoiner = await createClient()
+			const acknowledgement = await join(lateJoiner, slug)
+			strictEqual(acknowledgement.status, 'success')
+			if (acknowledgement.status === 'success') {
+				strictEqual(acknowledgement.snapshot?.content, 'AB')
+				strictEqual(acknowledgement.revision, 0)
+			}
+		})
+
+		await t.test('normal realtime bursts stay ordered and below rate limits', async () => {
+			const slug = await createPaste('normal-burst')
+			const writer = await createClient()
+			await join(writer, slug)
+			const characters = Array.from({ length: 30 }, (_, index) =>
+				String.fromCharCode(97 + (index % 26))
+			)
+			const codeAcknowledgements = await Promise.all(
+				characters.map((character, index) =>
+					emitAck(
+						writer,
+						'code-change',
+						codeChange(0, index, index, character)
+					)
+				)
+			)
+			strictEqual(
+				codeAcknowledgements.every(({ status }) => status === 'success'),
+				true
+			)
+
+			const presenceAcknowledgements = await Promise.all(
+				Array.from({ length: 30 }, () =>
+					emitAck(writer, 'presence-update', { field: 'idle' })
+				)
+			)
+			strictEqual(
+				presenceAcknowledgements.every(
+					({ status }) => status === 'success'
+				),
+				true
+			)
+
+			const titleAcknowledgements = await Promise.all(
+				Array.from({ length: 30 }, (_, index) =>
+					emitAck(writer, 'title-change', {
+						title: `Live title ${index}`
+					})
+				)
+			)
+			strictEqual(
+				titleAcknowledgements.every(({ status }) => status === 'success'),
+				true
+			)
+
+			const lateJoiner = await createClient()
+			const acknowledgement = await join(lateJoiner, slug)
+			strictEqual(acknowledgement.status, 'success')
+			if (acknowledgement.status === 'success') {
+				strictEqual(
+					acknowledgement.snapshot?.content,
+					characters.join('')
+				)
+				strictEqual(
+					acknowledgement.snapshot?.title,
+					'Live title 29'
+				)
+			}
 		})
 
 		await t.test('live snapshots, reconnect and cursor cleanup stay room-scoped', async () => {
@@ -530,6 +869,226 @@ test('Socket.IO realtime contract', { concurrency: false }, async (t) => {
 			}
 		})
 
+		await t.test('live code, presence and title bypass blocked persistence', async () => {
+			const slug = await createPaste('non-blocking', 'abc')
+			const writer = await createClient()
+			const observer = await createClient()
+			await join(writer, slug)
+			await join(observer, slug)
+
+			let releaseLock = () => {}
+			let signalLockReady = () => {}
+			const lockReady = new Promise<void>((resolve) => {
+				signalLockReady = resolve
+			})
+			const lockRelease = new Promise<void>((resolve) => {
+				releaseLock = resolve
+			})
+			const lockHolder = db.transaction(async (tx) => {
+				await tx.execute(sql`
+					SELECT slug
+					FROM ${realTimePastesTable}
+					WHERE ${realTimePastesTable.slug} = ${slug}
+					FOR UPDATE
+				`)
+				signalLockReady()
+				await lockRelease
+			})
+			await lockReady
+
+			const contentSave = emitAck(writer, 'content-sync', {
+				content: 'abc',
+				baseRevision: 0
+			})
+			let receivedFullContent = false
+			const contentListener = () => {
+				receivedFullContent = true
+			}
+			observer.on('content-change', contentListener)
+			try {
+				await waitForBlockedRealtimeWrite()
+
+				const codeEvent = waitForEvent(observer, 'code-change')
+				strictEqual(
+					(
+						await emitAck(
+							writer,
+							'code-change',
+							codeChange(0, 3, 3, '!')
+						)
+					).status,
+					'success'
+				)
+				await codeEvent
+
+				const presenceEvent = waitForEvent(observer, 'presence-update')
+				strictEqual(
+					(
+						await emitAck(
+							writer,
+							'presence-update',
+							presenceSelection('content', 4)
+						)
+					).status,
+					'success'
+				)
+				await presenceEvent
+
+				const cursorEvent = waitForEvent(observer, 'cursor-move')
+				strictEqual(
+					(
+						await emitAck(
+							writer,
+							'cursor-move',
+							cursorPayload(4)
+						)
+					).status,
+					'success'
+				)
+				await cursorEvent
+
+				const titleEvent = waitForEvent(observer, 'title-change')
+				strictEqual(
+					(
+						await emitAck(writer, 'title-change', {
+							title: 'Live while saving'
+						})
+					).status,
+					'success'
+				)
+				await titleEvent
+
+				const revisionEvent = waitForEvent<{
+					revision: number
+					sender: string
+					kind: string
+				}>(observer, 'revision-change')
+				releaseLock()
+				await lockHolder
+				const saveAcknowledgement = await contentSave
+				strictEqual(saveAcknowledgement.status, 'success')
+				if (saveAcknowledgement.status === 'success') {
+					strictEqual(saveAcknowledgement.revision, 1)
+				}
+				deepStrictEqual(await revisionEvent, {
+					revision: 1,
+					sender: writer.id,
+					kind: 'content'
+				})
+				await delay(75)
+				strictEqual(receivedFullContent, false)
+
+				const [persisted] = await db
+					.select({
+						content: realTimePastesTable.content,
+						revision: realTimePastesTable.revision,
+						title: realTimePastesTable.title
+					})
+					.from(realTimePastesTable)
+					.where(eq(realTimePastesTable.slug, slug))
+				deepStrictEqual(persisted, {
+					content: 'abc',
+					revision: 1,
+					title: slug
+				})
+
+				let releaseMetadataLock = () => {}
+				let signalMetadataLockReady = () => {}
+				const metadataLockReady = new Promise<void>((resolve) => {
+					signalMetadataLockReady = resolve
+				})
+				const metadataLockRelease = new Promise<void>((resolve) => {
+					releaseMetadataLock = resolve
+				})
+				const metadataLockHolder = db.transaction(async (tx) => {
+					await tx.execute(sql`
+						SELECT slug
+						FROM ${realTimePastesTable}
+						WHERE ${realTimePastesTable.slug} = ${slug}
+						FOR UPDATE
+					`)
+					signalMetadataLockReady()
+					await metadataLockRelease
+				})
+				await metadataLockReady
+				const metadataSave = emitAck(writer, 'meta-sync', {
+					title: 'Persisted while blocked',
+					syntaxName: 'Plaintext',
+					baseRevision: 1
+				})
+				try {
+					await waitForBlockedRealtimeWrite()
+					const newerTitle = waitForEvent<{
+						title: string
+					}>(observer, 'title-change')
+					strictEqual(
+						(
+							await emitAck(writer, 'title-change', {
+								title: 'Newer live title'
+							})
+						).status,
+						'success'
+					)
+					strictEqual((await newerTitle).title, 'Newer live title')
+
+					const metadataRevision = waitForEvent<{
+						revision: number
+						kind: string
+					}>(observer, 'revision-change')
+					const metadataChange = waitForEvent<{
+						title: string
+						revision: number
+					}>(observer, 'meta-change')
+					releaseMetadataLock()
+					await metadataLockHolder
+					const metadataAcknowledgement = await metadataSave
+					strictEqual(metadataAcknowledgement.status, 'success')
+					if (metadataAcknowledgement.status === 'success') {
+						strictEqual(metadataAcknowledgement.revision, 2)
+					}
+					deepStrictEqual(await metadataRevision, {
+						revision: 2,
+						kind: 'metadata',
+						sender: writer.id
+					})
+					deepStrictEqual(
+						{
+							title: (await metadataChange).title,
+							revision: (await metadataChange).revision
+						},
+						{ title: 'Newer live title', revision: 2 }
+					)
+				} finally {
+					releaseMetadataLock()
+					await metadataLockHolder
+				}
+				const [persistedMetadata] = await db
+					.select({
+						revision: realTimePastesTable.revision,
+						title: realTimePastesTable.title
+					})
+					.from(realTimePastesTable)
+					.where(eq(realTimePastesTable.slug, slug))
+				deepStrictEqual(persistedMetadata, {
+					revision: 2,
+					title: 'Persisted while blocked'
+				})
+
+				const lateJoiner = await createClient()
+				const lateJoin = await join(lateJoiner, slug)
+				strictEqual(lateJoin.status, 'success')
+				if (lateJoin.status === 'success') {
+					strictEqual(lateJoin.snapshot?.content, 'abc!')
+					strictEqual(lateJoin.snapshot?.title, 'Newer live title')
+					strictEqual(lateJoin.revision, 2)
+				}
+			} finally {
+				observer.off('content-change', contentListener)
+				releaseLock()
+				await lockHolder
+			}
+		})
+
 		await t.test('revision CAS has one winner, conflict snapshot and explicit resync', async () => {
 			const slug = await createPaste('cas')
 			const first = await createClient()
@@ -597,8 +1156,17 @@ test('Socket.IO realtime contract', { concurrency: false }, async (t) => {
 					await emitAck(
 						second,
 						'code-change',
-						codeChange(0, 0, 6, 'stale')
+						codeChange(0, 6, 6, '!')
 					)
+				).status,
+				'success'
+			)
+			strictEqual(
+				(
+					await emitAck(second, 'content-sync', {
+						content: 'winner!',
+						baseRevision: 0
+					})
 				).status,
 				'revision_conflict'
 			)
@@ -607,7 +1175,7 @@ test('Socket.IO realtime contract', { concurrency: false }, async (t) => {
 					await emitAck(
 						second,
 						'code-change',
-						codeChange(1, 0, 6, 'resynced')
+						codeChange(1, 0, 7, 'resynced')
 					)
 				).status,
 				'success'
@@ -651,7 +1219,7 @@ test('Socket.IO realtime contract', { concurrency: false }, async (t) => {
 			const joinLimited = await createClient()
 			for (
 				let index = 0;
-				index < SOCKET_LIMITS.rate.joinRoom.max;
+				index < SOCKET_LIMITS.rate.joinRoom.burst;
 				index += 1
 			) {
 				strictEqual((await join(joinLimited, joinSlug)).status, 'success')
@@ -669,32 +1237,19 @@ test('Socket.IO realtime contract', { concurrency: false }, async (t) => {
 			const codeSlug = await createPaste('limit-code')
 			const codeLimited = await createClient()
 			await join(codeLimited, codeSlug)
-			for (
-				let index = 0;
-				index < SOCKET_LIMITS.rate.codeChange.max;
-				index += 1
-			) {
-				strictEqual(
-					(
-						await emitAck(
+			const codeBurst = await Promise.all(
+				Array.from(
+					{ length: SOCKET_LIMITS.rate.codeChange.burst * 2 },
+					() =>
+						emitAck(
 							codeLimited,
 							'code-change',
 							codeChange(0, 0, 0, '')
 						)
-					).status,
-					'success'
 				)
-			}
-			strictEqual(
-				(
-					await emitAck(
-						codeLimited,
-						'code-change',
-						codeChange(0, 0, 0, '')
-					)
-				).status,
-				'rate_limited'
 			)
+			ok(codeBurst.some(({ status }) => status === 'success'))
+			ok(codeBurst.some(({ status }) => status === 'rate_limited'))
 
 			const contentSlug = await createPaste('limit-content')
 			const contentLimited = await createClient()
@@ -702,7 +1257,7 @@ test('Socket.IO realtime contract', { concurrency: false }, async (t) => {
 			let contentRevision = 0
 			for (
 				let index = 0;
-				index < SOCKET_LIMITS.rate.contentSync.max;
+				index < SOCKET_LIMITS.rate.contentSync.burst;
 				index += 1
 			) {
 				const acknowledgement = await emitAck(
@@ -731,7 +1286,7 @@ test('Socket.IO realtime contract', { concurrency: false }, async (t) => {
 			let metaRevision = 0
 			for (
 				let index = 0;
-				index < SOCKET_LIMITS.rate.metaSync.max;
+				index < SOCKET_LIMITS.rate.metaSync.burst;
 				index += 1
 			) {
 				const acknowledgement = await emitAck(metaLimited, 'meta-sync', {
@@ -758,31 +1313,58 @@ test('Socket.IO realtime contract', { concurrency: false }, async (t) => {
 			const cursorSlug = await createPaste('limit-cursor')
 			const cursorLimited = await createClient()
 			await join(cursorLimited, cursorSlug)
-			for (
-				let index = 0;
-				index < SOCKET_LIMITS.rate.cursorMove.max;
-				index += 1
-			) {
-				strictEqual(
-					(
-						await emitAck(
+			const cursorBurst = await Promise.all(
+				Array.from(
+					{ length: SOCKET_LIMITS.rate.cursorMove.burst * 2 },
+					() =>
+						emitAck(
 							cursorLimited,
 							'cursor-move',
 							cursorPayload()
 						)
-					).status,
-					'success'
 				)
-			}
-			const blockedCursor = await emitAck(
-				cursorLimited,
-				'cursor-move',
-				cursorPayload()
 			)
-			strictEqual(blockedCursor.status, 'rate_limited')
-			if (blockedCursor.status === 'rate_limited') {
+			ok(cursorBurst.some(({ status }) => status === 'success'))
+			const blockedCursor = cursorBurst.find(
+				({ status }) => status === 'rate_limited'
+			)
+			ok(blockedCursor?.status === 'rate_limited')
+			if (blockedCursor?.status === 'rate_limited')
 				ok(blockedCursor.retryAfterMs > 0)
+
+			const presenceSlug = await createPaste('limit-presence')
+			const presenceLimited = await createClient()
+			await join(presenceLimited, presenceSlug)
+			const allowedPresence = await Promise.all(
+				Array.from(
+					{ length: SOCKET_LIMITS.rate.presenceUpdate.burst * 2 },
+					() =>
+						emitAck(presenceLimited, 'presence-update', {
+							field: 'idle'
+						})
+				)
+			)
+			ok(allowedPresence.some(({ status }) => status === 'success'))
+			const blockedPresence = allowedPresence.find(
+				({ status }) => status === 'rate_limited'
+			)
+			ok(blockedPresence?.status === 'rate_limited')
+			if (blockedPresence?.status === 'rate_limited') {
+				ok(blockedPresence.retryAfterMs > 0)
 			}
+
+			const titleSlug = await createPaste('limit-title')
+			const titleLimited = await createClient()
+			await join(titleLimited, titleSlug)
+			const titleBurst = await Promise.all(
+				Array.from(
+					{ length: SOCKET_LIMITS.rate.titleChange.burst * 2 },
+					() =>
+						emitAck(titleLimited, 'title-change', { title: 'Live' })
+				)
+			)
+			ok(titleBurst.some(({ status }) => status === 'success'))
+			ok(titleBurst.some(({ status }) => status === 'rate_limited'))
 		})
 	} finally {
 		for (const socket of sockets) socket.disconnect()

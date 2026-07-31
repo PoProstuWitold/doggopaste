@@ -66,9 +66,55 @@ export type RemoteMetaChange = {
 	sender: string
 }
 
+export type RemoteRevisionChange = {
+	revision: number
+	sender: string
+	kind: 'content' | 'metadata'
+}
+
 export type CursorSelection = {
 	anchor: number
 	head: number
+}
+
+export type TextPresenceUpdate =
+	| {
+			field: 'content'
+			name?: string
+			selection: CursorSelection
+	  }
+	| {
+			field: 'title'
+			name?: string
+			selection: CursorSelection
+	  }
+
+export type RealtimePresenceUpdate =
+	| TextPresenceUpdate
+	| { field: 'syntax'; name?: string }
+	| { field: 'idle'; name?: string }
+
+export type RemotePresenceUpdate = RealtimePresenceUpdate & {
+	id: string
+	revision: number
+}
+
+export type RemoteTextPresence = Extract<
+	RemotePresenceUpdate,
+	{ field: 'content' | 'title' }
+>
+
+export type RemotePresenceLeave = {
+	id: string
+}
+
+export type LiveTitleChange = {
+	title: string
+}
+
+export type RemoteLiveTitleChange = LiveTitleChange & {
+	sender: string
+	revision: number
 }
 
 export type CursorMovePayload = {

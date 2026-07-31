@@ -1,8 +1,8 @@
 import { SOCKET_LIMITS, type SocketRateLimitEvent } from './socket-contract.js'
 
-interface RateWindow {
-	count: number
-	resetAt: number
+interface RateBucket {
+	tokens: number
+	updatedAt: number
 }
 
 export interface SocketRateLimitResult {
@@ -11,7 +11,7 @@ export interface SocketRateLimitResult {
 }
 
 export class SocketRateLimiter {
-	readonly #windows = new Map<SocketRateLimitEvent, RateWindow>()
+	readonly #buckets = new Map<SocketRateLimitEvent, RateBucket>()
 
 	consume(
 		event: SocketRateLimitEvent,
@@ -20,37 +20,50 @@ export class SocketRateLimiter {
 		this.cleanup(now)
 
 		const limit = SOCKET_LIMITS.rate[event]
-		const existing = this.#windows.get(event)
+		const existing = this.#buckets.get(event)
 		if (!existing) {
-			this.#windows.set(event, {
-				count: 1,
-				resetAt: now + limit.windowMs
+			this.#buckets.set(event, {
+				tokens: limit.burst - 1,
+				updatedAt: now
 			})
 			return { allowed: true, retryAfterMs: 0 }
 		}
 
-		if (existing.count >= limit.max) {
+		const refillPerMillisecond = limit.max / limit.windowMs
+		const elapsed = Math.max(0, now - existing.updatedAt)
+		existing.tokens = Math.min(
+			limit.burst,
+			existing.tokens + elapsed * refillPerMillisecond
+		)
+		existing.updatedAt = Math.max(existing.updatedAt, now)
+
+		if (existing.tokens < 1) {
 			return {
 				allowed: false,
-				retryAfterMs: Math.max(1, existing.resetAt - now)
+				retryAfterMs: Math.max(
+					1,
+					Math.ceil((1 - existing.tokens) / refillPerMillisecond)
+				)
 			}
 		}
 
-		existing.count += 1
+		existing.tokens -= 1
 		return { allowed: true, retryAfterMs: 0 }
 	}
 
 	cleanup(now = Date.now()): void {
-		for (const [event, window] of this.#windows) {
-			if (window.resetAt <= now) this.#windows.delete(event)
+		for (const [event, bucket] of this.#buckets) {
+			if (now - bucket.updatedAt >= SOCKET_LIMITS.rate[event].windowMs) {
+				this.#buckets.delete(event)
+			}
 		}
 	}
 
 	clear(): void {
-		this.#windows.clear()
+		this.#buckets.clear()
 	}
 
 	get size(): number {
-		return this.#windows.size
+		return this.#buckets.size
 	}
 }
