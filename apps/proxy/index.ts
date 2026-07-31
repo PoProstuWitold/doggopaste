@@ -73,13 +73,12 @@ const apiProxy = createProxyMiddleware({
 const wsProxy = createProxyMiddleware({
 	target: 'ws://localhost:3001/ws',
 	changeOrigin: true,
-	ws: true
+	pathRewrite: (path) => path.replace(/^\/ws(?=\/|\?|$)/, '')
 })
 
 const webProxy = createProxyMiddleware({
 	target: 'http://localhost:3000',
-	changeOrigin: true,
-	ws: true
+	changeOrigin: true
 })
 
 app.use('/api', apiProxy)
