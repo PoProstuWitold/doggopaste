@@ -1,16 +1,11 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import {
-	FaCode,
-	FaDatabase,
-	FaEdit,
-	FaSave,
-	FaSync,
-	FaTimes
-} from 'react-icons/fa'
+import { FaCode, FaEdit, FaSave, FaTimes } from 'react-icons/fa'
+import { FaRotate } from 'react-icons/fa6'
 import type { AdminSyntaxDto, AdminSyntaxesResponse } from '@/app/types'
 import { apiRequest, getApiErrorMessage } from '@/app/utils/api'
+import { AdminSection } from './AdminSection'
 
 async function getAdminSyntaxes(): Promise<AdminSyntaxDto[]> {
 	const result = await apiRequest<AdminSyntaxesResponse>(
@@ -62,84 +57,54 @@ export const AdminSyntaxes: React.FC = () => {
 	}
 
 	return (
-		<details className='collapse bg-base-200 collapse-arrow border border-base-300 rounded-lg'>
-			<summary className='collapse-title text-xl font-medium'>
-				<div className='flex items-center gap-3'>
-					<span className='text-primary'>
-						<FaCode />
-					</span>
-					<p className='font-semibold tracking-wide'>Syntaxes</p>
-					{loading && (
-						<span className='badge badge-outline animate-pulse'>
-							Loading...
-						</span>
-					)}
-					{error && !loading && (
-						<span className='badge badge-error'>{error}</span>
-					)}
-					{!loading && !error && (
-						<span className='badge badge-accent flex items-center gap-1'>
-							<FaDatabase /> {syntaxes.length} total
-						</span>
-					)}
-					<button
-						className='btn btn-sm flex items-center gap-1'
-						onClick={reload}
-						disabled={loading}
-						type='button'
-					>
-						<FaSync className={loading ? 'animate-spin' : ''} />{' '}
-						Reload
-					</button>
-				</div>
-			</summary>
-			<div className='collapse-content pt-0'>
-				{loading && (
-					<p className='text-sm opacity-70'>Fetching syntaxes...</p>
-				)}
-				{error && !loading && (
-					<p className='text-error text-sm'>Error: {error}</p>
-				)}
-				{!loading &&
-					!error &&
-					(syntaxes.length ? (
-						<div className='w-full overflow-x-auto -mx-2 px-2 pb-2 md:pb-0'>
-							<table className='table w-full min-w-[760px]'>
-								<thead>
-									<tr className='bg-base-300/60 backdrop-blur sticky top-0 z-10'>
-										<th className='whitespace-nowrap'>
-											ID
-										</th>
-										<th className='whitespace-nowrap'>
-											Syntax
-										</th>
-										<th className='whitespace-nowrap'>
-											Extension
-										</th>
-										<th className='whitespace-nowrap'>
-											Color
-										</th>
-										<th className='whitespace-nowrap'>
-											Actions
-										</th>
-									</tr>
-								</thead>
-								<tbody>
-									{syntaxes.map((s) => (
-										<SyntaxRow
-											key={s.id}
-											syntax={s}
-											onAction={reload}
-										/>
-									))}
-								</tbody>
-							</table>
-						</div>
-					) : (
-						<p>No syntaxes found.</p>
-					))}
+		<AdminSection
+			id='admin-syntaxes'
+			title='Syntaxes'
+			description='Maintain syntax names, file extensions and highlighting colors.'
+			icon={<FaCode />}
+			count={syntaxes.length}
+			loading={loading}
+			error={error}
+			loadingLabel='Fetching syntaxes...'
+			emptyTitle='No syntaxes found'
+			emptyDescription='There are no syntax definitions to display.'
+			isEmpty={syntaxes.length === 0}
+			onReload={reload}
+		>
+			<div className='overflow-hidden rounded-xl border border-base-300 bg-base-100'>
+				<table className='table block! w-full lg:table! lg:table-fixed'>
+					<caption className='sr-only'>Syntax definitions</caption>
+					<thead className='hidden bg-base-200/70 lg:table-header-group'>
+						<tr>
+							<th scope='col' className='w-[22%]'>
+								Syntax
+							</th>
+							<th scope='col' className='w-[16%]'>
+								Extension
+							</th>
+							<th scope='col' className='w-[20%]'>
+								Color
+							</th>
+							<th scope='col' className='w-[24%]'>
+								ID
+							</th>
+							<th scope='col' className='w-[18%] text-right'>
+								Actions
+							</th>
+						</tr>
+					</thead>
+					<tbody className='block divide-y divide-base-300 lg:table-row-group'>
+						{syntaxes.map((syntax) => (
+							<SyntaxRow
+								key={syntax.id}
+								syntax={syntax}
+								onAction={reload}
+							/>
+						))}
+					</tbody>
+				</table>
 			</div>
-		</details>
+		</AdminSection>
 	)
 }
 
@@ -155,6 +120,7 @@ const SyntaxRow: React.FC<SyntaxRowProps> = ({ syntax, onAction }) => {
 	const [extension, setExtension] = useState(syntax.extension ?? '')
 	const [color, setColor] = useState(syntax.color)
 	const [error, setError] = useState<string | null>(null)
+	const inputPrefix = `syntax-${syntax.id}`
 
 	function startEdit() {
 		setEditing(true)
@@ -201,105 +167,169 @@ const SyntaxRow: React.FC<SyntaxRowProps> = ({ syntax, onAction }) => {
 	}
 
 	return (
-		<tr className='hover:bg-base-300/40 transition-colors'>
-			<td className='font-mono truncate' title={syntax.id}>
-				{syntax.id}
-			</td>
-			<td className='truncate' title={syntax.name}>
+		<tr className='grid grid-cols-1 gap-4 p-4 transition-colors hover:bg-base-200/50 sm:grid-cols-2 lg:table-row lg:p-0'>
+			<td className='block min-w-0 p-0 lg:table-cell lg:p-4'>
+				<span className='mb-1 block text-xs font-semibold uppercase tracking-wide text-base-content/55 lg:hidden'>
+					Syntax
+				</span>
 				{editing ? (
-					<input
-						value={name}
-						onChange={(e) => setName(e.target.value)}
-						className='input input-xs input-bordered w-full max-w-[160px]'
-						placeholder='Name'
-					/>
+					<>
+						<label
+							htmlFor={`${inputPrefix}-name`}
+							className='sr-only'
+						>
+							Syntax name
+						</label>
+						<input
+							id={`${inputPrefix}-name`}
+							value={name}
+							onChange={(event) => setName(event.target.value)}
+							className='input input-bordered min-h-11 w-full lg:input-sm lg:min-h-9'
+							placeholder='Name'
+						/>
+					</>
 				) : (
-					<span className='truncate'>{syntax.name}</span>
+					<span
+						className='block break-words font-medium'
+						title={syntax.name}
+					>
+						{syntax.name}
+					</span>
 				)}
 			</td>
-			<td className='truncate' title={syntax.extension ?? undefined}>
+
+			<td className='block min-w-0 p-0 lg:table-cell lg:p-4'>
+				<span className='mb-1 block text-xs font-semibold uppercase tracking-wide text-base-content/55 lg:hidden'>
+					Extension
+				</span>
 				{editing ? (
-					<input
-						value={extension}
-						onChange={(e) => setExtension(e.target.value)}
-						className='input input-xs input-bordered w-full max-w-[110px] font-mono'
-						placeholder='.ext'
-					/>
+					<>
+						<label
+							htmlFor={`${inputPrefix}-extension`}
+							className='sr-only'
+						>
+							File extension
+						</label>
+						<input
+							id={`${inputPrefix}-extension`}
+							value={extension}
+							onChange={(event) =>
+								setExtension(event.target.value)
+							}
+							className='input input-bordered min-h-11 w-full font-mono lg:input-sm lg:min-h-9'
+							placeholder='.ext'
+						/>
+					</>
 				) : syntax.extension ? (
-					<span className='badge badge-soft font-mono font-semibold'>
-						{syntax.extension}
+					<span className='badge badge-soft max-w-full font-mono font-semibold'>
+						<span className='truncate'>{syntax.extension}</span>
 					</span>
 				) : (
-					<span className='italic mx-2'>No extension</span>
+					<span className='text-sm italic text-base-content/55'>
+						No extension
+					</span>
 				)}
 			</td>
-			<td className='truncate' title={syntax.color}>
+
+			<td className='block min-w-0 p-0 lg:table-cell lg:p-4'>
+				<span className='mb-1 block text-xs font-semibold uppercase tracking-wide text-base-content/55 lg:hidden'>
+					Color
+				</span>
 				{editing ? (
 					<div className='flex items-center gap-2'>
+						<label
+							htmlFor={`${inputPrefix}-color`}
+							className='sr-only'
+						>
+							Highlight color
+						</label>
 						<input
+							id={`${inputPrefix}-color`}
 							type='text'
 							value={color}
-							onChange={(e) => setColor(e.target.value)}
-							className='input input-xs input-bordered w-28 font-mono'
+							onChange={(event) => setColor(event.target.value)}
+							className='input input-bordered min-h-11 min-w-0 flex-1 font-mono lg:input-sm lg:min-h-9'
 							placeholder='#abcdef'
 						/>
 						<span
-							className='inline-block h-4 w-4 rounded-sm border border-base-300'
+							aria-hidden='true'
+							className='size-6 shrink-0 rounded-md border border-base-300'
 							style={{ backgroundColor: color }}
-						></span>
+						/>
 					</div>
 				) : (
-					<div className='flex items-center gap-2 truncate'>
+					<div className='flex min-w-0 items-center gap-2'>
 						<span
-							className='inline-block h-4 w-4 rounded-sm border border-base-300'
+							aria-hidden='true'
+							className='size-5 shrink-0 rounded-md border border-base-300'
 							style={{ backgroundColor: syntax.color }}
-						></span>
-						<span className='font-mono truncate font-semibold'>
+						/>
+						<span className='min-w-0 break-all font-mono text-sm font-semibold'>
 							{syntax.color}
 						</span>
 					</div>
 				)}
 			</td>
-			<td className='space-x-2'>
+
+			<td className='block min-w-0 p-0 sm:col-span-2 lg:table-cell lg:p-4'>
+				<span className='mb-1 block text-xs font-semibold uppercase tracking-wide text-base-content/55 lg:hidden'>
+					ID
+				</span>
+				<span
+					className='block break-all font-mono text-xs text-base-content/65'
+					title={syntax.id}
+				>
+					{syntax.id}
+				</span>
+			</td>
+
+			<td className='block min-w-0 p-0 sm:col-span-2 lg:table-cell lg:p-4 lg:text-right'>
 				{editing ? (
-					<div className='flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3'>
+					<div className='flex flex-col gap-2 sm:flex-row sm:flex-wrap lg:justify-end'>
 						<button
 							type='button'
 							onClick={saveEdit}
-							className='btn btn-xs btn-success flex items-center gap-1'
+							className='btn btn-success min-h-11 gap-2 sm:btn-sm sm:min-h-10'
 							disabled={working}
-							title='Save syntax'
 						>
 							{working ? (
-								<FaSync className='animate-spin' />
+								<FaRotate
+									aria-hidden='true'
+									className='animate-spin'
+								/>
 							) : (
-								<FaSave />
+								<FaSave aria-hidden='true' />
 							)}
-							<span className='hidden sm:inline'>Save</span>
+							{working ? 'Saving...' : 'Save'}
 						</button>
 						<button
 							type='button'
 							onClick={cancelEdit}
-							className='btn btn-xs btn-ghost flex items-center gap-1'
+							className='btn btn-ghost min-h-11 gap-2 sm:btn-sm sm:min-h-10'
 							disabled={working}
-							title='Cancel edit'
 						>
-							<FaTimes />
+							<FaTimes aria-hidden='true' />
+							Cancel
 						</button>
-						{error && (
-							<span className='text-error text-xs'>{error}</span>
-						)}
 					</div>
 				) : (
 					<button
 						type='button'
 						onClick={startEdit}
-						className='btn btn-xs btn-outline flex items-center gap-1'
-						title='Edit syntax'
+						className='btn btn-outline min-h-11 w-full gap-2 sm:w-auto lg:btn-sm lg:min-h-10'
+						aria-label={`Edit syntax ${syntax.name}`}
 					>
-						<FaEdit />
-						<span className='hidden sm:inline'>Update</span>
+						<FaEdit aria-hidden='true' />
+						Edit
 					</button>
+				)}
+				{error && (
+					<p
+						className='mt-2 break-words text-left text-sm text-error lg:text-right'
+						role='alert'
+					>
+						{error}
+					</p>
 				)}
 			</td>
 		</tr>

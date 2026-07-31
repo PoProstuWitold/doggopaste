@@ -29,19 +29,19 @@ export const PasteCard: React.FC<PasteCardProps> = ({ paste }) => {
 	return (
 		<li
 			key={paste.id}
-			className='card bg-base-100 border border-base-300 shadow-sm hover:shadow-md transition-all'
+			className='card min-w-0 overflow-hidden border border-base-300 bg-base-100 transition-colors hover:border-primary/40'
 		>
-			<div className='card-body px-6 py-4 gap-2'>
-				<div className='flex flex-col md:flex-row md:justify-between md:items-center'>
+			<div className='card-body min-w-0 gap-3 p-4 sm:p-5'>
+				<div className='flex min-w-0 flex-col gap-3 sm:flex-row sm:items-start sm:justify-between'>
 					<Link
 						href={`/p/${paste.slug}`}
-						className='text-lg font-semibold text-primary hover:underline truncate max-w-full md:max-w-[70%]'
+						className='min-w-0 break-words text-lg font-semibold text-primary underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:max-w-[75%]'
 						title={paste.title}
 					>
 						{paste.title || '(Untitled)'}
 					</Link>
 					<span
-						className='badge mt-2 md:mt-0 font-semibold'
+						className='badge max-w-full shrink-0 self-start font-semibold'
 						style={{
 							backgroundColor: bgColor,
 							color: getContrastTextColor(bgColor)
@@ -50,23 +50,23 @@ export const PasteCard: React.FC<PasteCardProps> = ({ paste }) => {
 						{paste.syntax.name}
 					</span>
 				</div>
-				<p className='text-md flex items-center gap-2 w-full'>
-					<span className='truncate block min-w-0'>
+				<p className='flex w-full min-w-0 items-center gap-2 text-sm text-base-content/80 sm:text-base'>
+					<span className='block min-w-0 break-words'>
 						{paste.description || '(No description)'}
 					</span>
 				</p>
-				<p className='text-sm text-base-content/60 flex items-center gap-2'>
-					<FaClock /> Created:{' '}
+				<p className='flex flex-wrap items-center gap-2 text-sm text-base-content/60'>
+					<FaClock aria-hidden='true' /> Created:{' '}
 					{new Date(paste.createdAt).toLocaleString('pl-PL')}
 				</p>
 				{paste.createdAt !== paste.updatedAt && (
-					<p className='text-sm text-base-content/60 flex items-center gap-2'>
-						<FaRegEdit /> Edited:{' '}
+					<p className='flex flex-wrap items-center gap-2 text-sm text-base-content/60'>
+						<FaRegEdit aria-hidden='true' /> Edited:{' '}
 						{new Date(paste.updatedAt).toLocaleString('pl-PL')}
 					</p>
 				)}
 
-				<div className='flex flex-wrap gap-2 mt-2 text-sm'>
+				<div className='mt-1 flex min-w-0 flex-wrap gap-2 text-sm'>
 					{paste.category && paste.category !== 'none' && (
 						<span className='badge badge-secondary'>
 							<BiCategory /> {getCategoryLabel(paste.category)}
@@ -89,21 +89,40 @@ export const PasteCard: React.FC<PasteCardProps> = ({ paste }) => {
 						</span>
 					)}
 
-					{paste.folderId && (
-						<span className='badge badge-outline'>
-							<FaFolderOpen className='mr-1' /> In a folder
+					{paste.folderId && paste.folderName && (
+						<span
+							className='badge badge-outline h-auto max-w-full min-w-0 gap-1 py-1'
+							title={paste.folderName}
+						>
+							<FaFolderOpen
+								className='shrink-0'
+								aria-hidden='true'
+							/>
+							<span className='min-w-0 truncate'>
+								{paste.folderName}
+							</span>
 						</span>
 					)}
 
-					{paste.userId ? (
-						<span className='badge badge-outline'>
-							<FaUserAlt className='mr-1' /> User Paste
+					{paste.userId && paste.userName ? (
+						<span
+							className='badge badge-outline h-auto max-w-full min-w-0 gap-1 py-1'
+							title={`User: ${paste.userName}`}
+						>
+							<FaUserAlt
+								className='shrink-0'
+								aria-hidden='true'
+							/>
+							<span className='min-w-0 truncate'>
+								User: {paste.userName}
+							</span>
 						</span>
-					) : (
+					) : !paste.userId ? (
 						<span className='badge badge-outline'>
-							<FaUserAlt className='mr-1' /> Guest Paste
+							<FaUserAlt className='mr-1' aria-hidden='true' />{' '}
+							Guest Paste
 						</span>
-					)}
+					) : null}
 
 					{paste.passwordProtected && (
 						<span className='badge badge-warning'>
@@ -112,7 +131,7 @@ export const PasteCard: React.FC<PasteCardProps> = ({ paste }) => {
 					)}
 					{paste.encrypted && (
 						<span className='badge badge-error'>
-							<MdEnhancedEncryption /> Ecrypted
+							<MdEnhancedEncryption /> Encrypted
 						</span>
 					)}
 				</div>

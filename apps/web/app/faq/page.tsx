@@ -42,7 +42,7 @@ const FaqLink: React.FC<{
 }> = ({ label, href }) => {
 	return (
 		<a
-			className='link link-primary hover:text-primary-focus transition-colors'
+			className='link link-primary transition-colors hover:opacity-80'
 			target='_blank'
 			href={href}
 			rel='noopener noreferrer'
@@ -218,7 +218,7 @@ const faqItems: FaqItem[] = [
 				<a
 					href='https://pollub.pl'
 					target='_blank'
-					className='font-semibold text-[#bb1e29] hover:underline'
+					className='link link-primary font-semibold'
 					rel='noopener noreferrer'
 				>
 					Lublin University of Technology (Politechnika Lubelska)
@@ -249,32 +249,45 @@ const faqItems: FaqItem[] = [
 
 export default function FaqPage() {
 	return (
-		<div className='flex flex-col gap-10 max-w-5xl mx-auto w-full'>
-			{/* Header */}
-			<div className='flex flex-col gap-4'>
-				<div className='flex items-center gap-3 border-b border-base-300 pb-3'>
-					<FaQuestionCircle className='w-8 h-8 text-primary' />
-					<h1 className='text-3xl font-bold'>
-						FAQ{' '}
-						<span className='text-base-content/60 text-lg font-normal ml-2 hidden sm:inline'>
-							[Frequently Asked Questions]
-						</span>
-					</h1>
+		<div
+			id='faq-top'
+			className='mx-auto flex w-full max-w-5xl flex-col gap-10 pb-16'
+		>
+			<header className='rounded-2xl border border-base-300 bg-base-100 p-5 sm:p-7'>
+				<div className='flex items-start gap-4'>
+					<span className='flex size-12 shrink-0 items-center justify-center rounded-xl border border-primary/20 bg-primary/10 text-primary'>
+						<FaQuestionCircle
+							className='size-6'
+							aria-hidden='true'
+						/>
+					</span>
+					<div className='min-w-0 space-y-1'>
+						<h1 className='text-2xl font-bold tracking-tight sm:text-3xl'>
+							FAQ
+							<span className='ml-2 hidden text-base font-normal text-base-content/60 sm:inline'>
+								[Frequently Asked Questions]
+							</span>
+						</h1>
+						<p className='max-w-2xl text-sm leading-relaxed text-base-content/70 sm:text-base'>
+							Here are some of the most frequently asked questions
+							about DoggoPaste.
+						</p>
+					</div>
 				</div>
 
-				<p className='text-lg'>
-					Here are some of the most frequently asked questions about
-					DoggoPaste:
-				</p>
-
-				{/* Question list (Table of Contents) */}
-				<nav className='bg-base-200/50 p-4 rounded-lg'>
-					<ol className='list-decimal list-inside flex flex-col gap-2 font-medium'>
+				<nav
+					aria-label='Frequently asked questions'
+					className='mt-6 rounded-xl border border-base-300 bg-base-200/40 p-4 sm:p-5'
+				>
+					<h2 className='mb-3 text-sm font-semibold uppercase tracking-wider text-base-content/70'>
+						Questions
+					</h2>
+					<ol className='flex list-decimal flex-col gap-2 pl-5 font-medium marker:text-primary'>
 						{faqItems.map((item, index) => (
-							<li key={`link-${item.question}`}>
+							<li key={`link-${item.question}`} className='pl-1'>
 								<a
 									href={`#question-${index + 1}`}
-									className='link link-hover hover:text-primary transition-colors'
+									className='link link-hover break-words transition-colors hover:text-primary'
 								>
 									{item.question}
 								</a>
@@ -282,40 +295,48 @@ export default function FaqPage() {
 						))}
 					</ol>
 				</nav>
-			</div>
+			</header>
 
-			{/* Actual questions */}
-			<div className='flex flex-col gap-8'>
+			<div className='flex flex-col gap-4'>
 				{faqItems.map((item, index) => (
-					<div
+					<section
 						key={`content-${item.question}`}
 						id={`question-${index + 1}`}
-						className='scroll-mt-24 flex flex-col gap-6'
+						aria-labelledby={`question-${index + 1}-heading`}
+						className='scroll-mt-24 rounded-2xl border border-base-300 bg-base-100 p-5 sm:p-6'
 					>
-						<section className='flex flex-col'>
-							<h2 className='text-xl md:text-2xl font-bold border-b border-base-300 pb-2 mb-3 flex gap-2'>
+						<div className='flex flex-col'>
+							<h2
+								id={`question-${index + 1}-heading`}
+								className='mb-4 flex min-w-0 items-start gap-2 border-b border-base-300 pb-3 text-lg font-bold sm:text-xl'
+							>
 								<a
-									className='link link-primary'
+									className='link link-primary shrink-0'
 									href={`#question-${index + 1}`}
+									aria-label={`Link to question ${index + 1}: ${item.question}`}
 								>
 									#{index + 1}.
 								</a>
-								{item.question}
+								<span className='min-w-0 break-words'>
+									{item.question}
+								</span>
 							</h2>
-							<div className='text-base-content/90 leading-relaxed pl-1 md:pl-4'>
+							<div className='max-w-prose leading-relaxed text-base-content/85'>
 								{item.answer}
 							</div>
 
-							{/* Back to top */}
 							<a
-								className='self-end link-primary font-semibold link mt-2 flex items-center gap-2'
-								href='/faq#'
+								className='link link-primary mt-4 flex min-h-11 w-fit items-center gap-2 self-end font-semibold'
+								href='#faq-top'
 							>
 								back to top
-								<FaArrowUp className='w-3 h-3' />
+								<FaArrowUp
+									className='size-3'
+									aria-hidden='true'
+								/>
 							</a>
-						</section>
-					</div>
+						</div>
+					</section>
 				))}
 			</div>
 		</div>

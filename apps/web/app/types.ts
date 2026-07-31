@@ -93,6 +93,8 @@ export interface PasteSummary {
 	updatedAt: string
 	userId: string | null
 	folderId: string | null
+	folderName: string | null
+	userName: string | null
 	title: string
 	slug: string
 	description: string

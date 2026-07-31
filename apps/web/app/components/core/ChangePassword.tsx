@@ -41,8 +41,8 @@ export const ChangePassword: React.FC = () => {
 	return (
 		<>
 			{/* Form */}
-			<form onSubmit={handleSubmit(onSubmit)} className='space-y-4'>
-				<div>
+			<form onSubmit={handleSubmit(onSubmit)} className='space-y-5'>
+				<div className='space-y-2'>
 					<label
 						htmlFor='currentPassword'
 						className='block text-sm font-medium'
@@ -53,16 +53,25 @@ export const ChangePassword: React.FC = () => {
 						type='password'
 						id='currentPassword'
 						{...register('currentPassword', { required: true })}
-						className='w-full input input-bordered'
+						className='input input-bordered w-full'
 						placeholder='Your Current Password'
+						aria-invalid={Boolean(errors.currentPassword)}
+						aria-describedby={
+							errors.currentPassword
+								? 'current-password-error'
+								: undefined
+						}
 					/>
 					{errors.currentPassword && (
-						<p className='text-sm text-error'>
+						<p
+							id='current-password-error'
+							className='text-sm text-error'
+						>
 							{errors.currentPassword.message}
 						</p>
 					)}
 				</div>
-				<div>
+				<div className='space-y-2'>
 					<label
 						htmlFor='newPassword'
 						className='block text-sm font-medium'
@@ -73,29 +82,38 @@ export const ChangePassword: React.FC = () => {
 						type='password'
 						id='newPassword'
 						{...register('newPassword', { required: true })}
-						className='w-full input input-bordered'
+						className='input input-bordered w-full'
 						placeholder='Your New Password'
+						aria-invalid={Boolean(errors.newPassword)}
+						aria-describedby={
+							errors.newPassword
+								? 'new-password-error'
+								: undefined
+						}
 					/>
 					{errors.newPassword && (
-						<p className='text-sm text-error'>
+						<p
+							id='new-password-error'
+							className='text-sm text-error'
+						>
 							{errors.newPassword.message}
 						</p>
 					)}
 				</div>
 				<div>
-					<label className='flex items-center space-x-2'>
+					<label className='flex cursor-pointer items-center gap-3 rounded-xl border border-base-300 bg-base-200/40 p-3'>
 						<input
 							type='checkbox'
 							id='revokeOtherSessions'
 							{...register('revokeOtherSessions')}
-							className='checkbox'
+							className='checkbox checkbox-sm'
 						/>
 						<span className='text-sm'>Revoke Other Sessions</span>
 					</label>
 				</div>
 
 				{/* Submit Button */}
-				<button type='submit' className='w-full py-2 btn btn-accent'>
+				<button type='submit' className='btn btn-accent w-full'>
 					Submit
 				</button>
 			</form>

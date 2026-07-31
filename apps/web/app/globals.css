@@ -10,6 +10,38 @@
 	utils: true;
 }
 
+[data-theme="oled"] {
+	color-scheme: dark;
+	--color-base-100: oklch(0% 0 0);
+	--color-base-200: oklch(10% 0 0);
+	--color-base-300: oklch(20% 0.004 286);
+	--color-base-content: oklch(95% 0.004 286);
+	--color-primary: oklch(64% 0.24 277);
+	--color-primary-content: oklch(14% 0.04 277);
+	--color-secondary: oklch(68% 0.22 354);
+	--color-secondary-content: oklch(14% 0.04 354);
+	--color-accent: oklch(78% 0.15 182);
+	--color-accent-content: oklch(20% 0.04 188);
+	--color-neutral: oklch(14% 0.005 286);
+	--color-neutral-content: oklch(94% 0.004 286);
+	--color-info: oklch(74% 0.16 233);
+	--color-info-content: oklch(18% 0.05 243);
+	--color-success: oklch(76% 0.177 163);
+	--color-success-content: oklch(18% 0.05 169);
+	--color-warning: oklch(82% 0.189 84);
+	--color-warning-content: oklch(20% 0.06 46);
+	--color-error: oklch(71% 0.194 13);
+	--color-error-content: oklch(18% 0.06 12);
+	--radius-selector: 0.5rem;
+	--radius-field: 0.5rem;
+	--radius-box: 0.75rem;
+	--size-selector: 0.25rem;
+	--size-field: 0.25rem;
+	--border: 1px;
+	--depth: 0;
+	--noise: 0;
+}
+
 /* Markdown preview */
 .markdown-preview {
     font-size: 0.9375rem;

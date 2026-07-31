@@ -9,7 +9,9 @@ export const PASTE_SUMMARY_DTO_KEYS = [
 	'createdAt',
 	'updatedAt',
 	'userId',
+	'userName',
 	'folderId',
+	'folderName',
 	'title',
 	'description',
 	'slug',
@@ -39,7 +41,9 @@ export interface PasteSummaryDto {
 	createdAt: Date
 	updatedAt: Date
 	userId: string | null
+	userName: string | null
 	folderId: string | null
+	folderName: string | null
 	title: string
 	description: string
 	slug: string
@@ -86,6 +90,11 @@ type NullableSyntax = {
 	color: string | null
 }
 
+export interface PasteRelationNames {
+	folderName: string | null
+	userName: string | null
+}
+
 export const pasteSummarySelection = {
 	id: pastesTable.id,
 	createdAt: pastesTable.createdAt,
@@ -120,14 +129,17 @@ function toSyntaxDto(syntax: NullableSyntax | null): PasteSyntaxDto {
 export function toPasteSummaryDto(
 	paste: PasteSummarySource,
 	syntax: NullableSyntax | null,
-	tags: string[]
+	tags: string[],
+	relations: PasteRelationNames
 ): PasteSummaryDto {
 	return {
 		id: paste.id,
 		createdAt: paste.createdAt,
 		updatedAt: paste.updatedAt,
 		userId: paste.userId,
+		userName: paste.userId ? (relations.userName ?? null) : null,
 		folderId: paste.folderId,
+		folderName: paste.folderId ? (relations.folderName ?? null) : null,
 		title: paste.title,
 		description: paste.description ?? '',
 		slug: paste.slug ?? '',
@@ -147,10 +159,11 @@ export function toPasteDetailsDto(
 	paste: PasteDetailsSource,
 	syntax: NullableSyntax | null,
 	tags: string[],
-	includeContent: boolean
+	includeContent: boolean,
+	relations: PasteRelationNames
 ): PasteDetailsDto {
 	return {
-		...toPasteSummaryDto(paste, syntax, tags),
+		...toPasteSummaryDto(paste, syntax, tags, relations),
 		content: includeContent ? paste.content : ''
 	}
 }

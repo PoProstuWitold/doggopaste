@@ -7,7 +7,8 @@ import {
 	pastesTable,
 	pasteTagsTable,
 	syntaxesTable,
-	tagsTable
+	tagsTable,
+	usersTable
 } from '../db/schema.js'
 import { GenericException } from '../exceptions/generic-exception.js'
 import { userGuard } from '../middlewares/user-guard.js'
@@ -336,86 +337,93 @@ const app = new Hono<Env>()
 			: await DoggoUtils.generateSlug()
 		const expiresAt = await DoggoUtils.calculateExpirationDate(expiration)
 
-		const { newPaste, dbSyntax } = await db.transaction(async (tx) => {
-			if (uniqueTags.length > 0) {
-				await DoggoUtils.acquirePasteMutationLock(tx)
-			}
+		const { newPaste, dbSyntax, folderName } = await db.transaction(
+			async (tx) => {
+				if (uniqueTags.length > 0) {
+					await DoggoUtils.acquirePasteMutationLock(tx)
+				}
 
-			let folderId: string | null = null
+				let folderId: string | null = null
+				let folderName: string | null = null
 
-			if (folder !== 'none') {
-				const [dbFolder] = await tx
-					.select({ id: foldersTable.id })
-					.from(foldersTable)
-					.where(
-						and(
-							eq(foldersTable.id, folder),
-							eq(foldersTable.userId, userId as string)
+				if (folder !== 'none') {
+					const [dbFolder] = await tx
+						.select({
+							id: foldersTable.id,
+							name: foldersTable.name
+						})
+						.from(foldersTable)
+						.where(
+							and(
+								eq(foldersTable.id, folder),
+								eq(foldersTable.userId, userId as string)
+							)
 						)
-					)
 
-				if (!dbFolder) {
+					if (!dbFolder) {
+						throw new GenericException({
+							statusCode: 404,
+							name: 'Not Found',
+							message:
+								'Folder not found or does not belong to the user'
+						})
+					}
+					folderId = dbFolder.id
+					folderName = dbFolder.name
+				}
+
+				const [dbSyntax] = await tx
+					.select({
+						id: syntaxesTable.id,
+						name: syntaxesTable.name,
+						extension: syntaxesTable.extension,
+						color: syntaxesTable.color
+					})
+					.from(syntaxesTable)
+					.where(eq(syntaxesTable.name, syntax))
+
+				if (!dbSyntax) {
 					throw new GenericException({
-						statusCode: 404,
-						name: 'Not Found',
-						message:
-							'Folder not found or does not belong to the user'
+						statusCode: 400,
+						name: 'Bad Request',
+						message: `Unknown syntax "${syntax}"`
 					})
 				}
-				folderId = dbFolder.id
+
+				const [newPaste] = await tx
+					.insert(pastesTable)
+					.values({
+						title,
+						description,
+						content,
+						category,
+						syntaxId: dbSyntax.id,
+						expiration,
+						visibility,
+						folderId,
+						userId,
+						encrypted: encrypted ?? false,
+						slug: generatedSlug,
+						expiresAt,
+						passwordHash
+					})
+					.returning()
+
+				if (!newPaste) throw new Error('Failed to create paste')
+
+				if (uniqueTags.length > 0) {
+					const tagIds = await resolveTagIds(tx, uniqueTags)
+					await tx.insert(pasteTagsTable).values(
+						tagIds.map((tagId) => ({
+							pasteId: newPaste.id,
+							tagId
+						}))
+					)
+				}
+
+				return { newPaste, dbSyntax, folderName }
 			}
-
-			const [dbSyntax] = await tx
-				.select({
-					id: syntaxesTable.id,
-					name: syntaxesTable.name,
-					extension: syntaxesTable.extension,
-					color: syntaxesTable.color
-				})
-				.from(syntaxesTable)
-				.where(eq(syntaxesTable.name, syntax))
-
-			if (!dbSyntax) {
-				throw new GenericException({
-					statusCode: 400,
-					name: 'Bad Request',
-					message: `Unknown syntax "${syntax}"`
-				})
-			}
-
-			const [newPaste] = await tx
-				.insert(pastesTable)
-				.values({
-					title,
-					description,
-					content,
-					category,
-					syntaxId: dbSyntax.id,
-					expiration,
-					visibility,
-					folderId,
-					userId,
-					encrypted: encrypted ?? false,
-					slug: generatedSlug,
-					expiresAt,
-					passwordHash
-				})
-				.returning()
-
-			if (!newPaste) throw new Error('Failed to create paste')
-
-			if (uniqueTags.length > 0) {
-				const tagIds = await resolveTagIds(tx, uniqueTags)
-				await tx.insert(pasteTagsTable).values(
-					tagIds.map((tagId) => ({
-						pasteId: newPaste.id,
-						tagId
-					}))
-				)
-			}
-
-			return { newPaste, dbSyntax }
-		})
+		)
 
 		// 8. Return response
 		c.status(201)
@@ -425,7 +433,11 @@ const app = new Hono<Env>()
 				pasteRecordToDetailsSource(newPaste),
 				dbSyntax,
 				uniqueTags,
-				newPaste.passwordHash === null
+				newPaste.passwordHash === null,
+				{
+					folderName,
+					userName: newPaste.userId ? (user?.name ?? null) : null
+				}
 			)
 		})
 	})
@@ -449,10 +461,14 @@ const app = new Hono<Env>()
 					name: syntaxesTable.name,
 					extension: syntaxesTable.extension,
 					color: syntaxesTable.color
-				}
+				},
+				folderName: foldersTable.name,
+				userName: usersTable.name
 			})
 			.from(pastesTable)
 			.leftJoin(syntaxesTable, eq(pastesTable.syntaxId, syntaxesTable.id))
+			.leftJoin(foldersTable, eq(pastesTable.folderId, foldersTable.id))
+			.leftJoin(usersTable, eq(pastesTable.userId, usersTable.id))
 			.where(whereClause)
 			.orderBy(desc(pastesTable.updatedAt), desc(pastesTable.id))
 			.limit(limit)
@@ -479,8 +495,11 @@ const app = new Hono<Env>()
 		}
 
 		const enrichedPastes: PasteSummaryDto[] = pastes.map(
-			({ paste, syntax }) =>
-				toPasteSummaryDto(paste, syntax, groupedTags[paste.id] || [])
+			({ paste, syntax, folderName, userName }) =>
+				toPasteSummaryDto(paste, syntax, groupedTags[paste.id] || [], {
+					folderName,
+					userName
+				})
 		)
 
 		return c.json({
@@ -506,10 +525,14 @@ const app = new Hono<Env>()
 					name: syntaxesTable.name,
 					extension: syntaxesTable.extension,
 					color: syntaxesTable.color
-				}
+				},
+				folderName: foldersTable.name,
+				userName: usersTable.name
 			})
 			.from(pastesTable)
 			.leftJoin(syntaxesTable, eq(pastesTable.syntaxId, syntaxesTable.id))
+			.leftJoin(foldersTable, eq(pastesTable.folderId, foldersTable.id))
+			.leftJoin(usersTable, eq(pastesTable.userId, usersTable.id))
 			.where(eq(pastesTable.slug, slug))
 
 		if (!row) throwPasteNotFound()
@@ -551,7 +574,11 @@ const app = new Hono<Env>()
 				{ ...paste, hits },
 				syntax,
 				tags.map((tag) => tag.name),
-				readDecision.canReadContent
+				readDecision.canReadContent,
+				{
+					folderName: row.folderName,
+					userName: row.userName
+				}
 			)
 		})
 	})
@@ -672,7 +699,7 @@ const app = new Hono<Env>()
 			const expiresAt =
 				await DoggoUtils.calculateExpirationDate(expiration)
 
-			const { updatedPaste, dbSyntax } = await db.transaction(
+			const { updatedPaste, dbSyntax, folderName } = await db.transaction(
 				async (tx) => {
 					await DoggoUtils.acquirePasteMutationLock(tx)
 
@@ -693,9 +720,13 @@ const app = new Hono<Env>()
 					}
 
 					let folderId: string | null = null
+					let folderName: string | null = null
 					if (folder !== 'none') {
 						const [dbFolder] = await tx
-							.select({ id: foldersTable.id })
+							.select({
+								id: foldersTable.id,
+								name: foldersTable.name
+							})
 							.from(foldersTable)
 							.where(
 								and(
@@ -713,6 +744,7 @@ const app = new Hono<Env>()
 							})
 						}
 						folderId = dbFolder.id
+						folderName = dbFolder.name
 					}
 
 					const [dbSyntax] = await tx
@@ -775,7 +807,7 @@ const app = new Hono<Env>()
 					}
 
 					await DoggoUtils.removeUnusedTags(tx)
-					return { updatedPaste, dbSyntax }
+					return { updatedPaste, dbSyntax, folderName }
 				}
 			)
 
@@ -787,7 +819,11 @@ const app = new Hono<Env>()
 					pasteRecordToDetailsSource(updatedPaste),
 					dbSyntax,
 					uniqueTags,
-					updatedPaste.passwordHash === null
+					updatedPaste.passwordHash === null,
+					{
+						folderName,
+						userName: user.name
+					}
 				)
 			})
 		}

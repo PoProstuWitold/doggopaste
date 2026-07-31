@@ -65,19 +65,19 @@ const guideSections: GuideSection[] = [
 							For a faster sign-in experience, you can use your
 							existing accounts from supported providers.
 						</p>
-						<div className='flex gap-4'>
-							<div className='btn btn-outline gap-2 pointer-events-none'>
-								<SiGoogle /> Google
+						<div className='flex flex-wrap gap-2'>
+							<div className='inline-flex items-center gap-2 rounded-lg border border-base-300 bg-base-100 px-3 py-2 font-medium'>
+								<SiGoogle aria-hidden='true' /> Google
 							</div>
-							<div className='btn btn-outline gap-2 pointer-events-none'>
-								<SiGithub /> GitHub
+							<div className='inline-flex items-center gap-2 rounded-lg border border-base-300 bg-base-100 px-3 py-2 font-medium'>
+								<SiGithub aria-hidden='true' /> GitHub
 							</div>
-							<div className='btn btn-outline gap-2 pointer-events-none'>
-								<SiFacebook /> Facebook
+							<div className='inline-flex items-center gap-2 rounded-lg border border-base-300 bg-base-100 px-3 py-2 font-medium'>
+								<SiFacebook aria-hidden='true' /> Facebook
 							</div>
 						</div>
-						<div className='alert alert-info text-sm shadow-sm'>
-							<FaInfoCircle />
+						<div className='alert alert-info text-sm'>
+							<FaInfoCircle aria-hidden='true' />
 							If you use the same email address for OAuth2 as your
 							manual account, they will be automatically linked.
 						</div>
@@ -193,9 +193,10 @@ const guideSections: GuideSection[] = [
 							You can choose your preferred UI theme in the{' '}
 							<strong>Theme</strong> menu in your right corner.
 						</p>
-						<div className='alert bg-base-200 shadow-sm text-sm'>
-							<FaInfoCircle /> All themes have assigned text
-							editor themes for a cohesive experience.
+						<div className='alert border border-base-300 bg-base-200 text-sm'>
+							<FaInfoCircle aria-hidden='true' /> All themes have
+							assigned text editor themes for a cohesive
+							experience.
 						</div>
 					</div>
 				)
@@ -333,8 +334,8 @@ const guideSections: GuideSection[] = [
 							paste and click <strong>Delete</strong> in the paste
 							header, then confirm.
 						</p>
-						<div className='alert alert-error shadow-sm text-sm'>
-							<FaInfoCircle />
+						<div className='alert alert-error text-sm'>
+							<FaInfoCircle aria-hidden='true' />
 							This action is permanent and removes the content
 							after confirmation.
 						</div>
@@ -450,9 +451,9 @@ const guideSections: GuideSection[] = [
 							You can create pastes without an account. These are
 							known as <strong>guest pastes</strong>.
 						</p>
-						<div className='alert alert-warning py-2 text-sm shadow-sm'>
-							<FaInfoCircle /> Guest pastes cannot be edited or
-							deleted later.
+						<div className='alert alert-warning py-2 text-sm'>
+							<FaInfoCircle aria-hidden='true' /> Guest pastes
+							cannot be edited or deleted later.
 						</div>
 						<p className='text-sm'>
 							If you are logged in and still wish to create an
@@ -587,7 +588,10 @@ const guideSections: GuideSection[] = [
 				instructions: (
 					<div className='space-y-2'>
 						<div className='flex items-center gap-2'>
-							<FaInfoCircle className='text-info' />
+							<FaInfoCircle
+								className='text-info'
+								aria-hidden='true'
+							/>
 							<span className='font-bold'>
 								Your folders are visible only to you.
 							</span>
@@ -636,7 +640,7 @@ const guideSections: GuideSection[] = [
 							Share the URL with your friends or colleagues.
 							Anyone with the link can join and edit.
 						</p>
-						<div className='alert bg-base-200 shadow-sm py-2 px-4'>
+						<div className='alert border border-base-300 bg-base-200 px-4 py-2'>
 							<span className='text-sm font-bold'>
 								Synced via WebSockets:
 							</span>
@@ -678,8 +682,9 @@ const guideSections: GuideSection[] = [
 			{
 				feature: 'Becoming Admin',
 				instructions: (
-					<div className='alert alert-success bg-success/10 text-base-content border-success/20 shadow-sm'>
-						<FaInfoCircle /> First registered user becomes admin.
+					<div className='alert alert-success border-success/20 bg-success/10 text-base-content'>
+						<FaInfoCircle aria-hidden='true' /> First registered
+						user becomes admin.
 					</div>
 				)
 			},
@@ -725,96 +730,94 @@ const guideSections: GuideSection[] = [
 
 export default function GuidePage() {
 	return (
-		<div className='min-h-screen bg-base-200/30 pb-20'>
-			<div className='container mx-auto max-w-5xl px-4 py-8 flex flex-col gap-12'>
-				{/* Header / Hero Section */}
-				<div className='card bg-base-100 shadow-xl border border-base-200'>
-					<div className='card-body gap-6'>
-						<div className='flex items-start gap-4'>
-							<div className='p-3 bg-primary/10 rounded-xl text-primary'>
-								<FaInfoCircle className='w-8 h-8' />
-							</div>
-							<div className='flex flex-col gap-2'>
-								<h1 className='text-3xl font-extrabold tracking-tight'>
-									DoggoPaste Guide
-								</h1>
-								<p className='text-lg leading-relaxed'>
-									Learn how to use DoggoPaste.
-								</p>
-							</div>
-						</div>
-
-						{/* Navigation Pills */}
-						<div className='bg-base-200/50 rounded-box p-5'>
-							<h3 className='font-bold uppercase tracking-wider mb-3 ml-1 flex items-center gap-2'>
-								<FaBookOpen /> Table of Contents
-							</h3>
-							<nav className='flex flex-wrap gap-2 w-full'>
-								{guideSections.map((section) => (
-									<a
-										key={section.name}
-										href={`#${section.label}`}
-										className='btn btn-outline btn-secondary flex-auto min-w-[10rem] justify-between'
-									>
-										<span className='truncate'>
-											{section.name}
-										</span>
-										<FaArrowRight className='w-4 h-4 ml-2 shrink-0' />
-									</a>
-								))}
-							</nav>
-						</div>
+		<div
+			id='guide-top'
+			className='mx-auto flex w-full max-w-5xl flex-col gap-10 pb-16'
+		>
+			<header className='rounded-2xl border border-base-300 bg-base-100 p-5 sm:p-7'>
+				<div className='flex items-start gap-4'>
+					<span className='flex size-12 shrink-0 items-center justify-center rounded-xl border border-primary/20 bg-primary/10 text-primary'>
+						<FaInfoCircle className='size-6' aria-hidden='true' />
+					</span>
+					<div className='min-w-0 space-y-1'>
+						<h1 className='text-2xl font-bold tracking-tight sm:text-3xl'>
+							DoggoPaste Guide
+						</h1>
+						<p className='max-w-2xl text-sm leading-relaxed text-base-content/70 sm:text-base'>
+							Learn how to use DoggoPaste.
+						</p>
 					</div>
 				</div>
 
-				{/* Actual Guide Sections */}
-				<div className='flex flex-col gap-16'>
-					{guideSections.map((section) => (
-						<div
-							key={section.name}
-							id={section.label}
-							className='scroll-mt-24 flex flex-col gap-6'
-						>
-							{/* Section Header */}
-							<div className='flex items-center gap-4'>
-								<div className='h-px flex-1 bg-base-300'></div>
-								<h2 className='text-2xl font-bold text-primary flex items-center gap-2'>
-									<HiHashtag className='w-5 h-5 opacity-50' />
-									{section.name}
-								</h2>
-								<div className='h-px flex-1 bg-base-300'></div>
-							</div>
-
-							{/* Section Items Grid */}
-							<div className='grid gap-6 md:grid-cols-1'>
-								{section.items.map((item) => (
-									<div
-										key={item.feature}
-										className='card bg-base-100 shadow-sm border border-base-200 hover:shadow-md transition-shadow duration-300'
-									>
-										<div className='card-body'>
-											<h3 className='card-title text-lg border-b border-base-100 pb-2 mb-2'>
-												{item.feature}
-											</h3>
-											<div className='prose prose-sm max-w-none'>
-												{item.instructions}
-											</div>
-										</div>
-									</div>
-								))}
-							</div>
-
-							{/* Back to top */}
+				<div className='mt-6 rounded-xl border border-base-300 bg-base-200/40 p-4 sm:p-5'>
+					<h2 className='mb-3 flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-base-content/70'>
+						<FaBookOpen aria-hidden='true' /> Table of Contents
+					</h2>
+					<nav
+						aria-label='Guide sections'
+						className='grid w-full grid-cols-1 gap-2 sm:grid-cols-2'
+					>
+						{guideSections.map((section) => (
 							<a
-								className='self-end link-primary font-semibold link mt-2 flex items-center gap-2'
-								href='/guide#'
+								key={section.name}
+								href={`#${section.label}`}
+								className='btn btn-outline btn-secondary min-h-12 min-w-0 justify-between rounded-xl px-4 normal-case'
 							>
-								back to top
-								<FaArrowUp className='w-3 h-3' />
+								<span className='truncate'>{section.name}</span>
+								<FaArrowRight
+									className='size-4 shrink-0'
+									aria-hidden='true'
+								/>
 							</a>
-						</div>
-					))}
+						))}
+					</nav>
 				</div>
+			</header>
+
+			<div className='flex flex-col gap-12'>
+				{guideSections.map((section) => (
+					<section
+						key={section.name}
+						id={section.label}
+						aria-labelledby={`${section.label}-heading`}
+						className='scroll-mt-24'
+					>
+						<h2
+							id={`${section.label}-heading`}
+							className='mb-5 flex items-center gap-2 border-b border-base-300 pb-3 text-xl font-bold text-primary sm:text-2xl'
+						>
+							<HiHashtag
+								className='size-5 opacity-60'
+								aria-hidden='true'
+							/>
+							{section.name}
+						</h2>
+
+						<div className='grid gap-4'>
+							{section.items.map((item) => (
+								<article
+									key={item.feature}
+									className='rounded-2xl border border-base-300 bg-base-100 p-5 transition-colors hover:border-primary/35 sm:p-6'
+								>
+									<h3 className='mb-4 border-b border-base-300 pb-3 text-lg font-semibold'>
+										{item.feature}
+									</h3>
+									<div className='max-w-prose leading-relaxed text-base-content/85'>
+										{item.instructions}
+									</div>
+								</article>
+							))}
+						</div>
+
+						<a
+							className='link link-primary mt-4 flex min-h-11 w-fit items-center gap-2 font-semibold'
+							href='#guide-top'
+						>
+							back to top
+							<FaArrowUp className='size-3' aria-hidden='true' />
+						</a>
+					</section>
+				))}
 			</div>
 		</div>
 	)

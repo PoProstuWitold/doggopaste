@@ -7,7 +7,8 @@ import {
 	pastesTable,
 	pasteTagsTable,
 	syntaxesTable,
-	tagsTable
+	tagsTable,
+	usersTable
 } from '../db/schema.js'
 import { GenericException } from '../exceptions/generic-exception.js'
 import { userGuard } from '../middlewares/user-guard.js'
@@ -401,10 +402,14 @@ const app = new Hono<Env>()
 					name: syntaxesTable.name,
 					extension: syntaxesTable.extension,
 					color: syntaxesTable.color
-				}
+				},
+				folderName: foldersTable.name,
+				userName: usersTable.name
 			})
 			.from(pastesTable)
 			.leftJoin(syntaxesTable, eq(pastesTable.syntaxId, syntaxesTable.id))
+			.leftJoin(foldersTable, eq(pastesTable.folderId, foldersTable.id))
+			.leftJoin(usersTable, eq(pastesTable.userId, usersTable.id))
 			.where(
 				and(
 					eq(pastesTable.folderId, id),
@@ -412,7 +417,7 @@ const app = new Hono<Env>()
 					activePasteCondition()
 				)
 			)
-			.orderBy(desc(pastesTable.updatedAt))
+			.orderBy(desc(pastesTable.updatedAt), desc(pastesTable.id))
 
 		const pasteIds = pastes.map((p) => p.paste.id)
 		const tags = await db
@@ -431,8 +436,11 @@ const app = new Hono<Env>()
 		}
 
 		const enrichedPastes: PasteSummaryDto[] = pastes.map(
-			({ paste, syntax }) =>
-				toPasteSummaryDto(paste, syntax, groupedTags[paste.id] || [])
+			({ paste, syntax, folderName, userName }) =>
+				toPasteSummaryDto(paste, syntax, groupedTags[paste.id] || [], {
+					folderName,
+					userName
+				})
 		)
 
 		return c.json({

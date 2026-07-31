@@ -42,8 +42,8 @@ export const EditUser: React.FC = () => {
 	return (
 		<>
 			{/* Form */}
-			<form onSubmit={handleSubmit(onSubmit)} className='space-y-4'>
-				<div>
+			<form onSubmit={handleSubmit(onSubmit)} className='space-y-5'>
+				<div className='space-y-2'>
 					<label htmlFor='name' className='block text-sm font-medium'>
 						Name
 					</label>
@@ -51,16 +51,22 @@ export const EditUser: React.FC = () => {
 						type='text'
 						id='name'
 						{...register('name', { required: true })}
-						className='w-full input input-bordered'
+						className='input input-bordered w-full'
 						placeholder='Your Name'
+						aria-invalid={Boolean(errors.name)}
+						aria-describedby={
+							errors.name ? 'name-error' : undefined
+						}
 					/>
 					{errors.name && (
-						<p className='text-sm text-error'>Name is required</p>
+						<p id='name-error' className='text-sm text-error'>
+							Name is required
+						</p>
 					)}
 				</div>
 
 				{/* Submit Button */}
-				<button type='submit' className='w-full py-2 btn btn-accent'>
+				<button type='submit' className='btn btn-accent w-full'>
 					Submit
 				</button>
 			</form>

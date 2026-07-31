@@ -23,12 +23,15 @@ test(
 		const app = getTestApp()
 		const suffix = `${Date.now()}-${crypto.randomUUID().slice(0, 8)}`
 		const email = `paste-security-${suffix}@example.test`
+		const userName = `paste-security-${suffix}`
 		const protectedContent = `Zażółć gęślą jaźń — ${suffix} 🐕\n`
 		const tagSuffix = crypto.randomUUID().replaceAll('-', '').slice(0, 10)
 		const rejectedTags = [`auth${tagSuffix}`, `anon${tagSuffix}`]
 		const slugs = {
 			publicPlain: `public-plain-${suffix}`,
 			publicProtected: `public-protected-${suffix}`,
+			publicGuest: `public-guest-${suffix}`,
+			folderSecond: `folder-second-${suffix}`,
 			privatePlain: `private-plain-${suffix}`,
 			privateProtected: `private-protected-${suffix}`,
 			expired: `expired-${suffix}`,
@@ -55,7 +58,7 @@ test(
 					Origin: 'http://localhost:3001'
 				},
 				body: JSON.stringify({
-					name: `paste-security-${suffix}`,
+					name: userName,
 					email,
 					password: 'test-password-123'
 				})
@@ -77,6 +80,25 @@ test(
 		})
 		const assertNoStore = (response: Response) => {
 			strictEqual(response.headers.get('cache-control'), 'no-store')
+		}
+		const countDatabaseQueries = async <T>(
+			operation: () => Promise<T> | T
+		): Promise<{ count: number; result: T }> => {
+			type QueryClient = { query: (...args: any[]) => any }
+			const client = db.$client as unknown as QueryClient
+			const originalQuery = client.query
+			let count = 0
+			client.query = (...args: any[]) => {
+				count += 1
+				return originalQuery.apply(client, args)
+			}
+
+			try {
+				const result = await operation()
+				return { count, result }
+			} finally {
+				client.query = originalQuery
+			}
 		}
 
 		const pasteBody = (
@@ -102,7 +124,8 @@ test(
 
 		const createPaste = async (
 			slug: string,
-			overrides: Record<string, unknown> = {}
+			overrides: Record<string, unknown> = {},
+			expectedUserId: string | null = userId
 		) => {
 			const response = await app.request('/api/pastes', {
 				method: 'POST',
@@ -111,11 +134,20 @@ test(
 			})
 			const json = (await response.json()) as Json
 			strictEqual(response.status, 201)
-			strictEqual(json.data.userId, userId)
+			strictEqual(json.data.userId, expectedUserId)
+			strictEqual(
+				json.data.userName,
+				expectedUserId === null ? null : userName
+			)
 			return json.data as Json
 		}
 
 		const publicPlain = await createPaste(slugs.publicPlain)
+		await createPaste(
+			slugs.publicGuest,
+			{ pasteAsGuest: true },
+			null
+		)
 		const publicProtected = await createPaste(slugs.publicProtected, {
 			content: protectedContent,
 			password: 'correct-password',
@@ -140,13 +172,14 @@ test(
 			passwordEnabled: true
 		})
 
+		const folderName = `Security${Date.now()}`
 		const [folder] = await db
 			.insert(foldersTable)
 			.values({
-				name: `Security${Date.now()}`,
+				name: folderName,
 				userId
 			})
-			.returning({ id: foldersTable.id })
+			.returning({ id: foldersTable.id, name: foldersTable.name })
 
 		const expiredInFolder = await createPaste(slugs.expiredInFolder, {
 			expiration: '10m',
@@ -254,6 +287,9 @@ test(
 			strictEqual(response.status, 200)
 			strictEqual(json.data.passwordProtected, true)
 			strictEqual('passwordHash' in json.data, false)
+			strictEqual(json.data.folderId, folder.id)
+			strictEqual(json.data.folderName, folder.name)
+			strictEqual(json.data.userName, userName)
 		})
 
 		await t.test(
@@ -319,6 +355,28 @@ test(
 			strictEqual('content' in publicItem, false)
 			strictEqual('passwordHash' in publicItem, false)
 			strictEqual(publicItem.passwordProtected, true)
+			strictEqual(publicItem.folderId, folder.id)
+			strictEqual(publicItem.folderName, folder.name)
+			strictEqual(publicItem.userName, userName)
+
+			const folderlessItem = publicJson.data.find(
+				(item: Json) => item.slug === slugs.publicPlain
+			)
+			ok(folderlessItem)
+			strictEqual(folderlessItem.folderId, null)
+			strictEqual(folderlessItem.folderName, null)
+			strictEqual(folderlessItem.userName, userName)
+
+			const guestItem = publicJson.data.find(
+				(item: Json) => item.slug === slugs.publicGuest
+			)
+			ok(guestItem)
+			strictEqual(guestItem.userId, null)
+			strictEqual(guestItem.userName, null)
+			strictEqual(guestItem.folderId, null)
+			strictEqual(guestItem.folderName, null)
+			strictEqual('content' in guestItem, false)
+			strictEqual('passwordHash' in guestItem, false)
 			strictEqual(
 				publicJson.data.some((item: Json) => item.slug === slugs.expired),
 				false
@@ -335,6 +393,9 @@ test(
 			ok(userItem)
 			strictEqual('content' in userItem, false)
 			strictEqual('passwordHash' in userItem, false)
+			strictEqual(userItem.folderId, folder.id)
+			strictEqual(userItem.folderName, folder.name)
+			strictEqual(userItem.userName, userName)
 			strictEqual(
 				userJson.data.some((item: Json) => item.slug === slugs.expired),
 				false
@@ -351,6 +412,9 @@ test(
 			ok(folderItem)
 			strictEqual('content' in folderItem, false)
 			strictEqual('passwordHash' in folderItem, false)
+			strictEqual(folderItem.folderId, folder.id)
+			strictEqual(folderItem.folderName, folder.name)
+			strictEqual(folderItem.userName, userName)
 			strictEqual(
 				folderJson.data.pastes.some(
 					(item: Json) => item.slug === slugs.expiredInFolder
@@ -360,6 +424,68 @@ test(
 			strictEqual(folderJson.data.folder.pastesCount, 1)
 		})
 
+		await t.test('card list query count stays constant as result size grows', async () => {
+			const publicSingle = await countDatabaseQueries(() =>
+				app.request('/api/pastes?limit=1&offset=0')
+			)
+			const publicMany = await countDatabaseQueries(() =>
+				app.request('/api/pastes?limit=100&offset=0')
+			)
+			strictEqual(publicSingle.result.status, 200)
+			strictEqual(publicMany.result.status, 200)
+			const publicSingleJson = (await publicSingle.result.json()) as Json
+			const publicManyJson = (await publicMany.result.json()) as Json
+			strictEqual(publicSingleJson.data.length, 1)
+			ok(publicManyJson.data.length > publicSingleJson.data.length)
+			ok(publicSingle.count > 0)
+			strictEqual(publicMany.count, publicSingle.count)
+
+			const userSingle = await countDatabaseQueries(() =>
+				app.request(`/api/user/pastes?userId=${userId}&limit=1&offset=0`, {
+					headers: jsonHeaders(true)
+				})
+			)
+			const userMany = await countDatabaseQueries(() =>
+				app.request(`/api/user/pastes?userId=${userId}&limit=100&offset=0`, {
+					headers: jsonHeaders(true)
+				})
+			)
+			strictEqual(userSingle.result.status, 200)
+			strictEqual(userMany.result.status, 200)
+			const userSingleJson = (await userSingle.result.json()) as Json
+			const userManyJson = (await userMany.result.json()) as Json
+			strictEqual(userSingleJson.data.length, 1)
+			ok(userManyJson.data.length > userSingleJson.data.length)
+			ok(userSingle.count > 0)
+			strictEqual(userMany.count, userSingle.count)
+
+			const folderSingle = await countDatabaseQueries(() =>
+				app.request(`/api/folders/f/${folder.id}`, {
+					headers: jsonHeaders(true)
+				})
+			)
+			strictEqual(folderSingle.result.status, 200)
+			const folderSingleJson = (await folderSingle.result.json()) as Json
+			strictEqual(folderSingleJson.data.pastes.length, 1)
+
+			const secondFolderPaste = await createPaste(slugs.folderSecond, {
+				folder: folder.id
+			})
+			strictEqual(secondFolderPaste.folderId, folder.id)
+			strictEqual(secondFolderPaste.folderName, folder.name)
+
+			const folderMany = await countDatabaseQueries(() =>
+				app.request(`/api/folders/f/${folder.id}`, {
+					headers: jsonHeaders(true)
+				})
+			)
+			strictEqual(folderMany.result.status, 200)
+			const folderManyJson = (await folderMany.result.json()) as Json
+			strictEqual(folderManyJson.data.pastes.length, 2)
+			ok(folderSingle.count > 0)
+			strictEqual(folderMany.count, folderSingle.count)
+		})
+
 		await t.test('details never expose passwordHash', async () => {
 			const response = await app.request(
 				`/api/pastes/${slugs.publicProtected}`
@@ -367,6 +493,9 @@ test(
 			const json = (await response.json()) as Json
 			strictEqual(response.status, 200)
 			strictEqual(json.data.content, '')
+			strictEqual(json.data.folderId, folder.id)
+			strictEqual(json.data.folderName, folder.name)
+			strictEqual(json.data.userName, userName)
 			strictEqual(json.data.passwordProtected, true)
 			strictEqual('passwordHash' in json.data, false)
 		})

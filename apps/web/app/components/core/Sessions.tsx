@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
+import { FaExclamationTriangle, FaShieldAlt } from 'react-icons/fa'
 import { createDynamicAuthClient } from '@/app/utils/auth-client'
 import { wait } from '@/app/utils/functions'
 import type { SessionDto } from '../../types'
@@ -69,48 +70,73 @@ export const Sessions: React.FC<SessionsProps> = ({
 	}
 
 	return (
-		<details className='collapse bg-base-200 collapse-arrow'>
-			<summary className='collapse-title text-xl font-medium'>
-				<div className='flex items-center gap-2'>
-					<p>Sessions</p>
-					<span className='badge badge-accent'>
-						{allSessions?.length
-							? `${allSessions.length} active session(s)`
-							: null}
+		<section aria-labelledby='active-sessions-heading'>
+			<h2 id='active-sessions-heading' className='sr-only'>
+				Sessions
+			</h2>
+			<details className='collapse collapse-arrow rounded-2xl border border-base-300 bg-base-100'>
+				<summary className='collapse-title min-h-0 p-4 pr-12 sm:p-5 sm:pr-12'>
+					<span className='flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
+						<span className='flex min-w-0 items-center gap-3'>
+							<span className='flex size-10 shrink-0 items-center justify-center rounded-xl bg-info/10 text-info'>
+								<FaShieldAlt aria-hidden='true' />
+							</span>
+							<span className='min-w-0'>
+								<span className='block text-lg font-semibold'>
+									Sessions
+								</span>
+								<span className='block text-sm font-normal text-base-content/65'>
+									Review where your account is signed in
+								</span>
+							</span>
+						</span>
+						<span className='badge badge-accent h-auto max-w-full gap-1.5 py-1'>
+							<FaShieldAlt
+								className='size-3'
+								aria-hidden='true'
+							/>
+							{`${allSessions.length} active session(s)`}
+						</span>
 					</span>
-				</div>
-			</summary>
-			<div className='collapse-content flex flex-col gap-2 p-2'>
-				<div className='p-2 flex flex-col gap-4'>
-					{allSessions.map((session) => (
-						<Session
-							key={session.id}
-							currentSessionToken={currentSessionToken}
-							session={session}
-							revokeSession={revokeSession}
-						/>
-					))}
-				</div>
-				<div className='p-2'>
-					<div className='p-4 border border-error rounded-lg shadow-lg flex flex-col gap-4'>
-						<h2 className='text-xl font-bold text-error'>
-							Danger Zone
-						</h2>
-						<p className='text-error'>
-							Be careful! These actions cannot be undone and will
-							affect your active sessions.
-						</p>
-						<div className='flex flex-col md:flex-row gap-4'>
+				</summary>
+				<div className='collapse-content flex flex-col gap-5 px-4 pb-4 sm:px-5 sm:pb-5'>
+					<div className='flex flex-col gap-4'>
+						{allSessions.map((session) => (
+							<Session
+								key={session.id}
+								currentSessionToken={currentSessionToken}
+								session={session}
+								revokeSession={revokeSession}
+							/>
+						))}
+					</div>
+					<div className='flex flex-col gap-4 rounded-xl border border-error/50 bg-error/5 p-4 sm:p-5'>
+						<div className='flex items-start gap-3'>
+							<FaExclamationTriangle
+								className='mt-1 shrink-0 text-error'
+								aria-hidden='true'
+							/>
+							<div className='min-w-0'>
+								<h3 className='text-lg font-bold text-error'>
+									Danger Zone
+								</h3>
+								<p className='mt-1 text-sm leading-relaxed text-base-content/75'>
+									Be careful! These actions cannot be undone
+									and will affect your active sessions.
+								</p>
+							</div>
+						</div>
+						<div className='grid gap-3 sm:grid-cols-2 lg:grid-cols-3'>
 							<button
 								type='button'
-								className='btn btn-error'
+								className='btn btn-error w-full'
 								onClick={revokeAllSessions}
 							>
 								Revoke all sessions
 							</button>
 							<button
 								type='button'
-								className='btn btn-error'
+								className='btn btn-error btn-outline w-full'
 								onClick={revokeOtherSessions}
 							>
 								Revoke other sessions
@@ -118,7 +144,7 @@ export const Sessions: React.FC<SessionsProps> = ({
 							{currentSession ? (
 								<button
 									type='button'
-									className='btn btn-error'
+									className='btn btn-error btn-outline w-full'
 									onClick={() =>
 										revokeSession(currentSession.token)
 									}
@@ -129,7 +155,7 @@ export const Sessions: React.FC<SessionsProps> = ({
 						</div>
 					</div>
 				</div>
-			</div>
-		</details>
+			</details>
+		</section>
 	)
 }
