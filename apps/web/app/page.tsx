@@ -55,7 +55,7 @@ export default async function HomePage() {
 						</h1>
 						<p className='mt-5 max-w-2xl text-lg leading-relaxed text-base-content/70 sm:text-xl'>
 							Create a feature-rich static paste or open a
-							realtime editor for live collaboration—without
+							realtime editor for live collaboration without
 							leaving the same focused workspace.
 						</p>
 						<p className='mt-3 max-w-2xl text-sm leading-relaxed text-base-content/60'>
