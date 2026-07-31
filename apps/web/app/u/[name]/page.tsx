@@ -5,7 +5,9 @@ import { notFound } from 'next/navigation'
 import { BiInfoCircle } from 'react-icons/bi'
 import {
 	FaCalendarAlt,
+	FaFileAlt,
 	FaFolderOpen,
+	FaRegFolderOpen,
 	FaUser,
 	FaUserShield
 } from 'react-icons/fa'
@@ -55,7 +57,6 @@ export default async function UserPage({
 	searchParams?: Promise<Search>
 }) {
 	const viewer = await getCurrentViewer()
-
 	const { name } = await params
 	const sp = await searchParams
 	const page = Number.parseInt(sp?.page || '1', 10)
@@ -83,13 +84,14 @@ export default async function UserPage({
 
 	const pastes = result.data.data ?? []
 	const total = result.data.total ?? 0
-
 	const label = user.name || name
-	const joined = new Date(user.createdAt).toLocaleDateString('pl-PL')
+	const joinedAt = new Date(user.createdAt)
+	const joined = joinedAt.toLocaleDateString('pl-PL')
 	const RoleIcon = user.role === 'admin' ? FaUserShield : FaUser
+	const isOwnProfile = viewer?.id === user.id
 
 	let folders: Folder[] = []
-	if (viewer?.id === user.id) {
+	if (isOwnProfile) {
 		const foldersResult = await apiRequest<ApiDataResponse<Folder[]>>(
 			'/api/folders/all',
 			{
@@ -97,127 +99,276 @@ export default async function UserPage({
 				cache: 'no-store'
 			}
 		)
-		if (foldersResult.ok) {
-			folders = foldersResult.data?.data ?? []
-		}
+		if (foldersResult.ok) folders = foldersResult.data?.data ?? []
 	}
 
 	return (
-		<div className='max-w-5xl mx-auto px-6 py-6 flex flex-col gap-10'>
-			{/* Check if logged matches fetched user */}
-			{viewer?.id === user.id && (
-				<div className='alert alert-info'>
-					<BiInfoCircle className='w-10 h-10' />
-					<span>
-						You are viewing your own public profile. Feel free to
-						share this page with anyone. Your private and unlisted
-						pastes as well as folders and settings are not visible
-						here.
+		<div className='mx-auto flex w-full max-w-6xl flex-col gap-8 pb-12'>
+			{isOwnProfile && (
+				<div
+					className='alert border border-info/25 bg-info/10 text-base-content'
+					role='status'
+				>
+					<BiInfoCircle
+						className='h-6 w-6 shrink-0 text-info'
+						aria-hidden='true'
+					/>
+					<span className='min-w-0 text-sm leading-relaxed sm:text-base'>
+						This is your public profile. Private and unlisted
+						pastes, folders and account settings remain visible only
+						to you.
 					</span>
 				</div>
 			)}
-			<div className='card bg-base-100 border border-base-300 shadow-sm'>
-				<div className='card-body p-4 md:p-6'>
-					<div className='flex items-center gap-3'>
-						<div className='w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center'>
-							<RoleIcon className='w-5 h-5 text-primary' />
-						</div>
-						<div>
-							<div className='flex items-center gap-3'>
-								<h1 className='text-lg md:text-xl font-semibold'>
-									{label}
-								</h1>
-								<span
-									className={`badge ${user.role === 'admin' ? 'badge-error' : 'badge-ghost'}`}
-									title='User role'
-								>
-									{user.role}
-								</span>
-							</div>
-							<div className='text-sm text-base-content/60 flex items-center gap-3'>
-								<span
-									className='inline-flex items-center gap-2'
-									title='Joined'
-								>
-									<FaCalendarAlt className='w-4 h-4' />
-									<span>Joined {joined}</span>
-								</span>
-							</div>
-						</div>
+
+			<header className='overflow-hidden rounded-3xl border border-base-300 bg-base-100'>
+				<div className='grid gap-6 p-5 sm:p-7 lg:grid-cols-[auto_minmax(0,1fr)_auto] lg:items-center'>
+					<div className='flex h-20 w-20 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10 text-primary sm:h-24 sm:w-24'>
+						<RoleIcon
+							className='h-9 w-9 sm:h-11 sm:w-11'
+							aria-hidden='true'
+						/>
 					</div>
-				</div>
-			</div>
 
-			{viewer?.id === user.id && (
-				<div className='card bg-base-100 border border-base-300 shadow-sm'>
-					<div className='card-body p-4 md:p-6'>
-						<h2 className='text-lg md:text-xl font-semibold flex items-center gap-2'>
-							<FaFolderOpen className='w-6 h-6 text-primary' />
-							Your Folders
-						</h2>
+					<div className='min-w-0'>
+						<div className='flex min-w-0 flex-wrap items-center gap-2'>
+							<h1 className='min-w-0 break-words text-3xl font-black tracking-tight sm:text-4xl'>
+								{label}
+							</h1>
+							<span
+								className={`badge gap-1 ${user.role === 'admin' ? 'badge-error' : 'badge-ghost'}`}
+							>
+								<RoleIcon
+									className='h-3 w-3'
+									aria-hidden='true'
+								/>
+								{user.role || 'user'}
+							</span>
+						</div>
+						<p className='mt-2 flex flex-wrap items-center gap-2 text-sm text-base-content/65'>
+							<FaCalendarAlt aria-hidden='true' />
+							Joined{' '}
+							<time dateTime={joinedAt.toISOString()}>
+								{joined}
+							</time>
+						</p>
+						<p className='mt-4 max-w-2xl break-words text-base-content/70'>
+							{isOwnProfile
+								? 'Your active static pastes, including items visible only to you.'
+								: `Public static pastes shared by ${label} on DoggoPaste.`}
+						</p>
+					</div>
 
-						{folders.length > 0 ? (
-							<div className='mt-3'>
-								{renderFolderBranch(
-									buildFolderTree(folders),
-									null,
-									0,
-									viewer.name
-								)}
-							</div>
-						) : (
-							<div className='mt-2 text-sm text-base-content/70'>
-								You don&apos;t have any folders yet.
-							</div>
+					<nav
+						className='flex flex-wrap gap-2 lg:flex-col'
+						aria-label='Profile sections'
+					>
+						<a
+							href='#public-pastes'
+							className='btn btn-sm btn-primary'
+						>
+							<FaFileAlt aria-hidden='true' />{' '}
+							{isOwnProfile ? 'Your pastes' : 'Public pastes'}
+						</a>
+						{isOwnProfile && (
+							<Link
+								href={`/u/${encodeURIComponent(viewer.name)}/folders`}
+								className='btn btn-sm btn-outline'
+							>
+								<FaFolderOpen aria-hidden='true' /> Folders
+							</Link>
 						)}
-						{/* Managing folders */}
+					</nav>
+				</div>
+
+				<div className='grid border-t border-base-300 bg-base-200/35 sm:grid-cols-2'>
+					<div className='flex items-center gap-3 p-4 sm:p-5'>
+						<FaFileAlt
+							className='text-primary'
+							aria-hidden='true'
+						/>
+						<div>
+							<p className='text-2xl font-bold'>{total}</p>
+							<p className='text-sm text-base-content/60'>
+								Visible pastes
+							</p>
+						</div>
+					</div>
+					{isOwnProfile && (
+						<div className='flex items-center gap-3 border-t border-base-300 p-4 sm:border-l sm:border-t-0 sm:p-5'>
+							<FaRegFolderOpen
+								className='text-primary'
+								aria-hidden='true'
+							/>
+							<div>
+								<p className='text-2xl font-bold'>
+									{folders.length}
+								</p>
+								<p className='text-sm text-base-content/60'>
+									Private folders
+								</p>
+							</div>
+						</div>
+					)}
+				</div>
+			</header>
+
+			{isOwnProfile && (
+				<section
+					className='rounded-2xl border border-base-300 bg-base-100 p-5 sm:p-6'
+					aria-labelledby='profile-folders-title'
+				>
+					<div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
+						<div>
+							<h2
+								id='profile-folders-title'
+								className='flex items-center gap-2 text-xl font-bold'
+							>
+								<FaFolderOpen
+									className='text-primary'
+									aria-hidden='true'
+								/>{' '}
+								Your folders
+							</h2>
+							<p className='mt-1 text-sm text-base-content/65'>
+								Only you can see and manage this folder tree.
+							</p>
+						</div>
 						<Link
-							href={`/u/${viewer.name}/folders`}
-							className='btn btn-primary btn-ghost'
+							href={`/u/${encodeURIComponent(viewer.name)}/folders`}
+							className='btn btn-sm btn-outline'
 						>
-							<FiEdit className='w-5 h-5' />
-							Manage Folders
+							<FiEdit aria-hidden='true' /> Manage folders
 						</Link>
 					</div>
-				</div>
+
+					{folders.length > 0 ? (
+						<div className='mt-5 min-w-0 overflow-x-auto rounded-xl border border-base-300 bg-base-200/25 p-3 sm:p-4'>
+							{renderFolderBranch(
+								buildFolderTree(folders),
+								null,
+								0,
+								viewer.name
+							)}
+						</div>
+					) : (
+						<div className='mt-5 rounded-xl border border-dashed border-base-300 p-6 text-center text-sm text-base-content/65'>
+							You don&apos;t have any folders yet.
+						</div>
+					)}
+				</section>
 			)}
 
-			<div className='divider'>{`${label}'s DoggoPaste`}</div>
-
-			<ul className='flex flex-col gap-6'>
-				{pastes.map((paste) => (
-					<PasteCard paste={paste} key={paste.id} />
-				))}
-			</ul>
-
-			{pastes.length > 0 ? (
-				<div className='flex justify-center'>
-					<div className='join'>
-						<Link
-							href={`?page=${page - 1}`}
-							className={`join-item btn btn-sm ${page <= 1 ? 'btn-disabled' : ''}`}
+			<section
+				id='public-pastes'
+				className='scroll-mt-24'
+				aria-labelledby='public-pastes-title'
+			>
+				<div className='mb-5 flex flex-wrap items-end justify-between gap-3'>
+					<div className='min-w-0'>
+						<p className='text-sm font-semibold uppercase tracking-[0.16em] text-primary'>
+							Shared work
+						</p>
+						<h2
+							id='public-pastes-title'
+							className='mt-1 min-w-0 break-words text-2xl font-bold'
 						>
-							«
-						</Link>
-						<button
-							type='button'
-							className='join-item btn btn-sm btn-ghost no-animation cursor-default'
-						>
-							Page {page} of {Math.ceil(total / limit)}
-						</button>
-						<Link
-							href={`?page=${page + 1}`}
-							className={`join-item btn btn-sm ${page * limit >= total ? 'btn-disabled' : ''}`}
-						>
-							»
-						</Link>
+							{isOwnProfile
+								? 'Your visible pastes'
+								: `${label}'s public pastes`}
+						</h2>
 					</div>
+					<span className='badge badge-outline gap-1'>
+						<FaFileAlt aria-hidden='true' /> {total} total
+					</span>
 				</div>
-			) : (
-				<div className='text-center text-lg font-semibold text-base-content/60'>
-					This user has no pastes.
-				</div>
-			)}
+
+				{pastes.length > 0 ? (
+					<ul className='flex min-w-0 flex-col gap-4'>
+						{pastes.map((paste) => (
+							<PasteCard paste={paste} key={paste.id} />
+						))}
+					</ul>
+				) : (
+					<div className='rounded-2xl border border-dashed border-base-300 bg-base-100 p-10 text-center'>
+						<FaFileAlt
+							className='mx-auto h-8 w-8 text-base-content/35'
+							aria-hidden='true'
+						/>
+						<h3 className='mt-3 font-semibold'>
+							{isOwnProfile
+								? 'No visible pastes yet'
+								: 'No public pastes yet'}
+						</h3>
+						<p className='mt-1 text-sm text-base-content/60'>
+							{isOwnProfile
+								? 'There are no active pastes to show in your profile.'
+								: 'There is nothing public to show on this profile.'}
+						</p>
+					</div>
+				)}
+
+				{pastes.length > 0 && (
+					<nav
+						className='mt-7 flex justify-center'
+						aria-label={
+							isOwnProfile
+								? 'Visible pastes pagination'
+								: 'Public pastes pagination'
+						}
+					>
+						<div className='join'>
+							{page > 1 ? (
+								<Link
+									href={`?page=${page - 1}`}
+									className='join-item btn btn-sm'
+								>
+									<span aria-hidden='true'>«</span>
+									<span className='sr-only'>
+										Previous page
+									</span>
+								</Link>
+							) : (
+								<span
+									className='join-item btn btn-sm btn-disabled'
+									aria-disabled='true'
+								>
+									<span aria-hidden='true'>«</span>
+									<span className='sr-only'>
+										Previous page unavailable
+									</span>
+								</span>
+							)}
+							<span
+								className='join-item btn btn-sm btn-ghost no-animation cursor-default'
+								aria-current='page'
+							>
+								Page {page} of{' '}
+								{Math.max(1, Math.ceil(total / limit))}
+							</span>
+							{page * limit < total ? (
+								<Link
+									href={`?page=${page + 1}`}
+									className='join-item btn btn-sm'
+								>
+									<span aria-hidden='true'>»</span>
+									<span className='sr-only'>Next page</span>
+								</Link>
+							) : (
+								<span
+									className='join-item btn btn-sm btn-disabled'
+									aria-disabled='true'
+								>
+									<span aria-hidden='true'>»</span>
+									<span className='sr-only'>
+										Next page unavailable
+									</span>
+								</span>
+							)}
+						</div>
+					</nav>
+				)}
+			</section>
 		</div>
 	)
 }

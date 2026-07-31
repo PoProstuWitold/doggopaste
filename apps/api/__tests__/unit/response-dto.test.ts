@@ -81,8 +81,8 @@ test('static paste DTO keys stay aligned with the public contract', () => {
 		id: '00000000-0000-4000-8000-000000000005',
 		createdAt,
 		updatedAt,
-		userId: null,
-		folderId: null,
+		userId: '00000000-0000-4000-8000-000000000006',
+		folderId: '00000000-0000-4000-8000-000000000007',
 		title: 'Static',
 		description: null,
 		slug: 'static',
@@ -97,8 +97,15 @@ test('static paste DTO keys stay aligned with the public contract', () => {
 		passwordHash: 'must-not-leak'
 	}
 	const syntax = { name: 'Plaintext', extension: 'txt', color: '#808080' }
-	const summary = toPasteSummaryDto(source, syntax, ['tag'])
-	const details = toPasteDetailsDto(source, syntax, ['tag'], true)
+	const relations = { folderName: 'Examples', userName: 'doggo' }
+	const summary = toPasteSummaryDto(source, syntax, ['tag'], relations)
+	const details = toPasteDetailsDto(
+		source,
+		syntax,
+		['tag'],
+		true,
+		relations
+	)
 
 	deepStrictEqual(Object.keys(summary).sort(), [
 		...PASTE_SUMMARY_DTO_KEYS
@@ -108,4 +115,24 @@ test('static paste DTO keys stay aligned with the public contract', () => {
 	].sort())
 	strictEqual('passwordHash' in summary, false)
 	strictEqual('passwordHash' in details, false)
+	strictEqual(summary.folderName, 'Examples')
+	strictEqual(summary.userName, 'doggo')
+
+	const anonymousSummary = toPasteSummaryDto(
+		{ ...source, folderId: null, userId: null },
+		syntax,
+		[],
+		relations
+	)
+	strictEqual(anonymousSummary.folderName, null)
+	strictEqual(anonymousSummary.userName, null)
+
+	const missingRelationsSummary = toPasteSummaryDto(source, syntax, [], {
+		folderName: null,
+		userName: null
+	})
+	strictEqual(missingRelationsSummary.folderId, source.folderId)
+	strictEqual(missingRelationsSummary.folderName, null)
+	strictEqual(missingRelationsSummary.userId, source.userId)
+	strictEqual(missingRelationsSummary.userName, null)
 })

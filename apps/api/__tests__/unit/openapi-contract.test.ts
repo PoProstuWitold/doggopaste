@@ -69,12 +69,26 @@ test('OpenAPI response schemas stay aligned with API DTO keys', async () => {
 	deepStrictEqual(Object.keys(schemas.PasteDetails.properties).sort(), [
 		...PASTE_DETAILS_DTO_KEYS
 	].sort())
+	deepStrictEqual(schemas.PasteSummary.required.sort(), [
+		...PASTE_SUMMARY_DTO_KEYS
+	].sort())
+	deepStrictEqual(schemas.PasteDetails.required.sort(), [
+		...PASTE_DETAILS_DTO_KEYS
+	].sort())
 	deepStrictEqual(Object.keys(schemas.RealtimePasteRecord.properties).sort(), [
 		...REALTIME_PASTE_DTO_KEYS
 	].sort())
 	deepStrictEqual(Object.keys(schemas.Folder.properties).sort(), [
 		...FOLDER_DTO_KEYS
 	].sort())
+	deepStrictEqual(schemas.PasteSummary.properties.folderName, {
+		oneOf: [{ type: 'string' }, { type: 'null' }]
+	})
+	deepStrictEqual(schemas.PasteSummary.properties.userName, {
+		oneOf: [{ type: 'string' }, { type: 'null' }]
+	})
+	strictEqual('content' in schemas.PasteSummary.properties, false)
+	strictEqual('passwordHash' in schemas.PasteSummary.properties, false)
 })
 
 test('OpenAPI publishes the implemented REST limits and concrete errors', async () => {

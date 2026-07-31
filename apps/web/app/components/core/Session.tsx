@@ -1,4 +1,13 @@
 import { useState } from 'react'
+import {
+	FaCalendarAlt,
+	FaCheckCircle,
+	FaClock,
+	FaDesktop,
+	FaFingerprint,
+	FaKey,
+	FaNetworkWired
+} from 'react-icons/fa'
 import { UAParser } from 'ua-parser-js'
 import type { SessionDto } from '../../types'
 
@@ -18,73 +27,127 @@ export const Session: React.FC<SessionProps> = ({
 	const [showSessionToken, setShowSessionToken] = useState(false)
 
 	return (
-		<div className='flex justify-between items-center p-4 border border-error-content rounded-lg shadow-sm'>
-			<div className='flex flex-col md:flex-row gap-2 md:items-center w-full justify-between'>
-				<div className='flex flex-col gap-2'>
+		<article
+			className='rounded-xl border border-base-300 bg-base-100 p-4'
+			aria-label={
+				currentSessionToken === session.token
+					? 'Current session'
+					: 'Other active session'
+			}
+		>
+			<div className='flex min-w-0 flex-col gap-5 lg:flex-row lg:items-center lg:justify-between'>
+				<div className='flex min-w-0 flex-1 flex-col gap-3'>
 					{currentSessionToken === session.token ? (
-						<span className='text-accent font-bold'>
-							Current session
+						<span className='badge badge-success badge-outline h-auto w-fit gap-1.5 py-1'>
+							<FaCheckCircle aria-hidden='true' /> Current session
 						</span>
 					) : (
 						''
 					)}
-					<div className='flex md:flex-row md:items-center gap-2 flex-col'>
-						<strong>ID:</strong>
-						<div className='flex items-center gap-2'>
-							<span className='badge badge-neutral'>
-								{showSessionId ? session.id : 'HIDDEN'}
-							</span>
-							<button
-								className='btn btn-xs btn-outline rounded-2xl'
-								onClick={() => setShowSessionId(!showSessionId)}
-								type='button'
-							>
-								{showSessionId ? 'Hide' : 'Show'}
-							</button>
+					<div className='grid min-w-0 gap-3 xl:grid-cols-2'>
+						<div className='min-w-0 rounded-lg bg-base-200/50 p-3'>
+							<p className='mb-2 flex items-center gap-2 text-sm font-semibold text-base-content/70'>
+								<FaFingerprint aria-hidden='true' /> Session ID
+							</p>
+							<div className='flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center'>
+								<code className='min-w-0 break-all rounded-lg bg-base-300 px-3 py-2 text-xs'>
+									{showSessionId ? session.id : 'HIDDEN'}
+								</code>
+								<button
+									className='btn btn-sm btn-outline min-h-11 w-full shrink-0 rounded-xl sm:w-auto'
+									onClick={() =>
+										setShowSessionId(!showSessionId)
+									}
+									type='button'
+									aria-pressed={showSessionId}
+									aria-label={
+										showSessionId
+											? 'Hide session ID'
+											: 'Show session ID'
+									}
+								>
+									{showSessionId ? 'Hide' : 'Show'}
+								</button>
+							</div>
+						</div>
+						<div className='min-w-0 rounded-lg bg-base-200/50 p-3'>
+							<p className='mb-2 flex items-center gap-2 text-sm font-semibold text-base-content/70'>
+								<FaKey aria-hidden='true' /> Session token
+							</p>
+							<div className='flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center'>
+								<code className='min-w-0 break-all rounded-lg bg-base-300 px-3 py-2 text-xs'>
+									{showSessionToken
+										? session.token
+										: 'HIDDEN'}
+								</code>
+								<button
+									className='btn btn-sm btn-outline min-h-11 w-full shrink-0 rounded-xl sm:w-auto'
+									onClick={() =>
+										setShowSessionToken(!showSessionToken)
+									}
+									type='button'
+									aria-pressed={showSessionToken}
+									aria-label={
+										showSessionToken
+											? 'Hide session token'
+											: 'Show session token'
+									}
+								>
+									{showSessionToken ? 'Hide' : 'Show'}
+								</button>
+							</div>
 						</div>
 					</div>
-					<div className='flex md:flex-row md:items-center gap-2 flex-col'>
-						<strong>Token:</strong>
-						<div className='flex items-center gap-2'>
-							<span className='badge badge-neutral'>
-								{showSessionToken ? session.token : 'HIDDEN'}
-							</span>
-							<button
-								className='btn btn-xs btn-outline rounded-2xl'
-								onClick={() =>
-									setShowSessionToken(!showSessionToken)
-								}
-								type='button'
-							>
-								{showSessionToken ? 'Hide' : 'Show'}
-							</button>
+
+					<dl className='grid min-w-0 gap-3 text-sm sm:grid-cols-2 xl:grid-cols-4'>
+						<div className='min-w-0'>
+							<dt className='flex items-center gap-2 font-semibold text-base-content/70'>
+								<FaNetworkWired aria-hidden='true' /> IP Address
+							</dt>
+							<dd className='mt-1 break-all'>
+								{session.ipAddress || 'Unknown'}
+							</dd>
 						</div>
-					</div>
-					<div className='flex items-center gap-2'>
-						<strong>IP Address:</strong>
-						{session.ipAddress || 'Unknown'}
-					</div>
-					<div className='flex md:flex-row md:items-center gap-2 flex-col'>
-						<strong>User Agent:</strong>
-						<span>
-							{session.userAgent && os.name
-								? `${os.name}, ${browser.name} ${browser.major}`
-								: 'Unknown'}
-						</span>
-					</div>
-					<div className='flex md:flex-row md:items-center gap-2 flex-col'>
-						<strong>Expires At:</strong>
-						{new Date(session.expiresAt).toLocaleString('pl-PL')}
-					</div>
-					<div className='flex md:flex-row md:items-center gap-2 flex-col'>
-						<strong>Created/Updated:</strong>
-						{new Date(session.createdAt).toLocaleString('pl-PL')} /
-						{new Date(session.updatedAt).toLocaleString('pl-PL')}
-					</div>
+						<div className='min-w-0'>
+							<dt className='flex items-center gap-2 font-semibold text-base-content/70'>
+								<FaDesktop aria-hidden='true' /> Device
+							</dt>
+							<dd className='mt-1 break-words'>
+								{session.userAgent && os.name
+									? `${os.name}, ${browser.name} ${browser.major}`
+									: 'Unknown'}
+							</dd>
+						</div>
+						<div className='min-w-0'>
+							<dt className='flex items-center gap-2 font-semibold text-base-content/70'>
+								<FaClock aria-hidden='true' /> Expires
+							</dt>
+							<dd className='mt-1'>
+								{new Date(session.expiresAt).toLocaleString(
+									'pl-PL'
+								)}
+							</dd>
+						</div>
+						<div className='min-w-0'>
+							<dt className='flex items-center gap-2 font-semibold text-base-content/70'>
+								<FaCalendarAlt aria-hidden='true' /> Created /
+								Updated
+							</dt>
+							<dd className='mt-1 break-words'>
+								{new Date(session.createdAt).toLocaleString(
+									'pl-PL'
+								)}{' '}
+								/
+								{new Date(session.updatedAt).toLocaleString(
+									'pl-PL'
+								)}
+							</dd>
+						</div>
+					</dl>
 				</div>
 				<button
 					type='button'
-					className='btn btn-error btn-outline'
+					className='btn btn-error btn-outline w-full shrink-0 lg:w-auto'
 					onClick={() => revokeSession(session.token)}
 				>
 					{session.token === currentSessionToken
@@ -92,6 +155,6 @@ export const Session: React.FC<SessionProps> = ({
 						: 'Revoke'}
 				</button>
 			</div>
-		</div>
+		</article>
 	)
 }

@@ -2673,7 +2673,9 @@
 					"createdAt",
 					"updatedAt",
 					"userId",
+					"userName",
 					"folderId",
+					"folderName",
 					"title",
 					"description",
 					"slug",
@@ -2711,11 +2713,31 @@
 							}
 						]
 					},
+					"userName": {
+						"oneOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						]
+					},
 					"folderId": {
 						"oneOf": [
 							{
 								"type": "string",
 								"format": "uuid"
+							},
+							{
+								"type": "null"
+							}
+						]
+					},
+					"folderName": {
+						"oneOf": [
+							{
+								"type": "string"
 							},
 							{
 								"type": "null"
@@ -2811,7 +2833,9 @@
 					"createdAt",
 					"updatedAt",
 					"userId",
+					"userName",
 					"folderId",
+					"folderName",
 					"title",
 					"description",
 					"slug",
@@ -2850,11 +2874,31 @@
 							}
 						]
 					},
+					"userName": {
+						"oneOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						]
+					},
 					"folderId": {
 						"oneOf": [
 							{
 								"type": "string",
 								"format": "uuid"
+							},
+							{
+								"type": "null"
+							}
+						]
+					},
+					"folderName": {
+						"oneOf": [
+							{
+								"type": "string"
 							},
 							{
 								"type": "null"

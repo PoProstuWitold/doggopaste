@@ -46,7 +46,7 @@ export const setThemeScript = `
 (function() {
 	try {
 		const savedTheme = localStorage.getItem('theme');
-		const allowedThemes = ['system', 'light', 'dark', 'emerald', 'retro', 'cyberpunk', 'valentine', 'halloween', 'winter', 'business', 'nord'];
+		const allowedThemes = ['system', 'light', 'dark', 'oled', 'emerald', 'retro', 'cyberpunk', 'valentine', 'halloween', 'winter', 'business', 'nord'];
 		const theme = allowedThemes.includes(savedTheme) ? savedTheme : 'system';
 		const root = document.documentElement;
 		if (theme === 'system') {

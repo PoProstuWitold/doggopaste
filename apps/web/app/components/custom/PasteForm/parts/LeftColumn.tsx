@@ -16,7 +16,7 @@ export function LeftColumn({
 	isAuthenticated: boolean
 }) {
 	return (
-		<div className='w-full lg:w-1/5 flex flex-col gap-4'>
+		<div className='flex w-full min-w-0 flex-col gap-4'>
 			<BasicOptions mode={mode} />
 			<TagsInput />
 			<SyntaxSelect />

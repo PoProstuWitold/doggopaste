@@ -9,6 +9,7 @@ import {
 	FaHeart,
 	FaLeaf,
 	FaMoon,
+	FaRegCircle,
 	FaSnowflake,
 	FaSun
 } from 'react-icons/fa'
@@ -22,6 +23,7 @@ export function ThemeSelector() {
 		{ name: 'system', label: 'System', icon: <FaDesktop size={16} /> },
 		{ name: 'light', label: 'Light', icon: <FaSun size={16} /> },
 		{ name: 'dark', label: 'Dark', icon: <FaMoon size={16} /> },
+		{ name: 'oled', label: 'OLED', icon: <FaRegCircle size={16} /> },
 		{ name: 'emerald', label: 'Emerald', icon: <FaLeaf size={16} /> },
 		{ name: 'valentine', label: 'Valentine', icon: <FaHeart size={16} /> },
 		{ name: 'halloween', label: 'Halloween', icon: <FaGhost size={16} /> },

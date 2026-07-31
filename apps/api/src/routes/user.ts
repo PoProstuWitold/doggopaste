@@ -2,6 +2,7 @@ import { and, desc, eq, inArray, sql } from 'drizzle-orm'
 import { Hono } from 'hono'
 import { db } from '../db/index.js'
 import {
+	foldersTable,
 	pastesTable,
 	pasteTagsTable,
 	syntaxesTable,
@@ -57,10 +58,14 @@ const app = new Hono<Env>()
 					name: syntaxesTable.name,
 					extension: syntaxesTable.extension,
 					color: syntaxesTable.color
-				}
+				},
+				folderName: foldersTable.name,
+				userName: usersTable.name
 			})
 			.from(pastesTable)
 			.leftJoin(syntaxesTable, eq(pastesTable.syntaxId, syntaxesTable.id))
+			.leftJoin(foldersTable, eq(pastesTable.folderId, foldersTable.id))
+			.leftJoin(usersTable, eq(pastesTable.userId, usersTable.id))
 			.where(whereClause)
 			.orderBy(desc(pastesTable.updatedAt), desc(pastesTable.id))
 			.limit(limit)
@@ -87,8 +92,11 @@ const app = new Hono<Env>()
 		}
 
 		const enrichedPastes: PasteSummaryDto[] = pastes.map(
-			({ paste, syntax }) =>
-				toPasteSummaryDto(paste, syntax, groupedTags[paste.id] || [])
+			({ paste, syntax, folderName, userName }) =>
+				toPasteSummaryDto(paste, syntax, groupedTags[paste.id] || [], {
+					folderName,
+					userName
+				})
 		)
 
 		return c.json({

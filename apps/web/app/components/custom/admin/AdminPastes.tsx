@@ -3,13 +3,11 @@
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import {
-	FaDatabase,
 	FaEye,
 	FaEyeSlash,
 	FaFileAlt,
 	FaFileCode,
 	FaLink,
-	FaSync,
 	FaTrash,
 	FaUser,
 	FaUserSlash
@@ -17,6 +15,8 @@ import {
 import type { AdminPasteDto, AdminPastesResponse } from '@/app/types'
 import { apiRequest, getApiErrorMessage } from '@/app/utils/api'
 import { getContrastTextColor } from '@/app/utils/functions'
+import { AdminConfirmDialog } from './AdminConfirmDialog'
+import { AdminSection } from './AdminSection'
 
 async function getAdminPastes(): Promise<AdminPasteDto[]> {
 	const result = await apiRequest<AdminPastesResponse>('/api/admin/pastes')
@@ -72,96 +72,60 @@ export const AdminPastes: React.FC = () => {
 	}
 
 	return (
-		<details className='collapse bg-base-200 collapse-arrow border border-base-300 rounded-lg'>
-			<summary className='collapse-title text-xl font-medium'>
-				<div className='flex items-center gap-3'>
-					<span className='text-primary'>
-						<FaFileCode />
-					</span>
-					<p className='font-semibold tracking-wide'>Static Pastes</p>
-					{loading && (
-						<span className='badge badge-outline animate-pulse'>
-							Loading...
-						</span>
-					)}
-					{error && !loading && (
-						<span className='badge badge-error'>{error}</span>
-					)}
-					{!loading && !error && (
-						<span className='badge badge-accent flex items-center gap-1'>
-							<FaDatabase /> {total} total
-						</span>
-					)}
-					<button
-						type='button'
-						onClick={reload}
-						className='btn btn-sm flex items-center gap-1'
-						disabled={loading}
-					>
-						<FaSync className={loading ? 'animate-spin' : ''} />{' '}
-						Reload
-					</button>
-				</div>
-			</summary>
-			<div className='collapse-content pt-0'>
-				{loading && (
-					<p className='text-sm opacity-70'>Fetching pastes...</p>
-				)}
-				{error && !loading && (
-					<p className='text-error text-sm'>Error: {error}</p>
-				)}
-				{!loading &&
-					!error &&
-					(data.length ? (
-						<div className='w-full overflow-x-auto -mx-2 px-2 pb-2 md:pb-0 relative'>
-							<table className='table w-full min-w-[1040px]'>
-								<thead>
-									<tr className='bg-base-300/60 backdrop-blur sticky top-0 z-10'>
-										<th className='whitespace-nowrap'>
-											ID
-										</th>
-										<th className='whitespace-nowrap'>
-											Slug
-										</th>
-										<th className='whitespace-nowrap'>
-											Title
-										</th>
-										<th className='whitespace-nowrap'>
-											User
-										</th>
-										<th className='whitespace-nowrap'>
-											Visibility
-										</th>
-										<th className='whitespace-nowrap'>
-											Syntax
-										</th>
-										<th className='whitespace-nowrap'>
-											Created
-										</th>
-										<th className='whitespace-nowrap'>
-											Updated
-										</th>
-										<th className='whitespace-nowrap'>
-											Actions
-										</th>
-									</tr>
-								</thead>
-								<tbody>
-									{data.map((p) => (
-										<PasteRow
-											key={p.paste.id}
-											staticPaste={p}
-											onAction={reload}
-										/>
-									))}
-								</tbody>
-							</table>
-						</div>
-					) : (
-						<p>No pastes found.</p>
-					))}
+		<AdminSection
+			id='admin-static-pastes'
+			title='Static Pastes'
+			description='Inspect static paste metadata, access settings and ownership.'
+			icon={<FaFileCode />}
+			count={total}
+			loading={loading}
+			error={error}
+			loadingLabel='Fetching static pastes...'
+			emptyTitle='No static pastes found'
+			emptyDescription='There are no active static pastes to display.'
+			isEmpty={data.length === 0}
+			onReload={reload}
+		>
+			<div className='overflow-hidden rounded-xl border border-base-300 bg-base-100'>
+				<table className='table block! w-full xl:table! xl:table-fixed'>
+					<caption className='sr-only'>Static pastes</caption>
+					<thead className='hidden bg-base-200/70 xl:table-header-group'>
+						<tr>
+							<th scope='col' className='w-[23%]'>
+								Paste
+							</th>
+							<th scope='col' className='w-[14%]'>
+								Owner
+							</th>
+							<th scope='col' className='w-[15%]'>
+								Access
+							</th>
+							<th scope='col' className='w-[14%]'>
+								Created
+							</th>
+							<th scope='col' className='w-[14%]'>
+								Updated
+							</th>
+							<th scope='col' className='w-[12%]'>
+								ID
+							</th>
+							<th scope='col' className='w-[8%] text-right'>
+								Actions
+							</th>
+						</tr>
+					</thead>
+					<tbody className='block divide-y divide-base-300 xl:table-row-group'>
+						{data.map((paste) => (
+							<PasteRow
+								key={paste.paste.id}
+								staticPaste={paste}
+								onAction={reload}
+							/>
+						))}
+					</tbody>
+				</table>
 			</div>
-		</details>
+		</AdminSection>
 	)
 }
 
@@ -175,10 +139,12 @@ const PasteRow: React.FC<PasteRowProps> = ({ staticPaste, onAction }) => {
 	const syntaxColor = syntax?.color ?? '#808080'
 	const syntaxName = syntax?.name ?? 'Plaintext'
 	const [working, setWorking] = useState(false)
+	const [error, setError] = useState<string | null>(null)
+	const [confirmOpen, setConfirmOpen] = useState(false)
 
 	async function deletePaste() {
-		if (!confirm('Delete this paste?')) return
 		setWorking(true)
+		setError(null)
 		try {
 			const result = await apiRequest(
 				`/api/admin/pastes/${encodeURIComponent(paste.id)}`,
@@ -189,110 +155,180 @@ const PasteRow: React.FC<PasteRowProps> = ({ staticPaste, onAction }) => {
 					getApiErrorMessage(result.data, `Failed ${result.status}`)
 				)
 			}
+			setConfirmOpen(false)
 			onAction?.()
 		} catch (e) {
-			alert((e as Error).message || 'Delete failed')
+			setError((e as Error).message || 'Delete failed')
 		} finally {
 			setWorking(false)
 		}
 	}
 
+	const pasteLabel = paste.title || paste.slug || paste.id
+
 	return (
-		<tr className='hover:bg-base-300/40 transition-colors'>
-			<td className='font-mono truncate' title={paste.id}>
-				{paste.id}
-			</td>
-			<td className='font-mono truncate' title={paste.slug ?? undefined}>
-				{paste.slug ? (
-					<Link
-						prefetch={false}
-						href={`/p/${paste.slug}`}
-						className='inline-flex items-center gap-1 text-primary hover:underline'
-						title={`Open paste ${paste.slug}`}
-					>
-						<FaLink className='opacity-60' />
-						<span className='truncate'>{paste.slug}</span>
-					</Link>
-				) : (
-					<span className='opacity-50'>-</span>
-				)}
-			</td>
-			<td className='truncate' title={paste.title}>
-				<div className='flex items-center gap-1 truncate'>
-					<FaFileAlt className='opacity-60 shrink-0' />
-					<span className='truncate'>
-						{paste.title || (
-							<span className='italic opacity-70'>
-								(no title)
+		<tr className='grid grid-cols-1 gap-4 p-4 transition-colors hover:bg-base-200/50 sm:grid-cols-2 xl:table-row xl:p-0'>
+			<td className='block min-w-0 p-0 sm:col-span-2 xl:table-cell xl:p-4'>
+				<span className='mb-1 block text-xs font-semibold uppercase tracking-wide text-base-content/55 xl:hidden'>
+					Paste
+				</span>
+				<div className='flex min-w-0 items-start gap-2'>
+					<FaFileAlt
+						aria-hidden='true'
+						className='mt-1 shrink-0 opacity-55'
+					/>
+					<div className='min-w-0'>
+						<p
+							className='break-words font-medium'
+							title={paste.title}
+						>
+							{paste.title || (
+								<span className='italic text-base-content/60'>
+									(no title)
+								</span>
+							)}
+						</p>
+						{paste.slug ? (
+							<Link
+								prefetch={false}
+								href={`/p/${paste.slug}`}
+								className='mt-1 inline-flex max-w-full items-center gap-1 font-mono text-xs text-primary underline-offset-2 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary'
+								aria-label={`Open paste ${paste.slug}`}
+							>
+								<FaLink
+									aria-hidden='true'
+									className='shrink-0'
+								/>
+								<span className='truncate'>{paste.slug}</span>
+							</Link>
+						) : (
+							<span className='mt-1 block text-xs text-base-content/50'>
+								No slug
 							</span>
 						)}
-					</span>
+					</div>
 				</div>
 			</td>
-			<td className='truncate' title={user?.name ?? 'Guest Paste'}>
+
+			<td className='block min-w-0 p-0 xl:table-cell xl:p-4'>
+				<span className='mb-1 block text-xs font-semibold uppercase tracking-wide text-base-content/55 xl:hidden'>
+					Owner
+				</span>
 				{user ? (
-					<div className='flex items-center gap-1 truncate'>
-						<FaUser className='opacity-60 shrink-0' />
-						<span className='truncate'>{user.name}</span>
+					<div className='flex min-w-0 items-center gap-2'>
+						<FaUser
+							aria-hidden='true'
+							className='shrink-0 opacity-55'
+						/>
+						<span className='min-w-0 break-words' title={user.name}>
+							{user.name}
+						</span>
 					</div>
 				) : (
-					<span className='badge badge-neutral flex items-center gap-1'>
-						<FaUserSlash /> Guest
+					<span className='badge badge-neutral gap-1.5'>
+						<FaUserSlash aria-hidden='true' /> Guest
 					</span>
 				)}
 			</td>
-			<td>
-				{paste.visibility === 'public' ? (
-					<span className='badge badge-success flex items-center gap-1'>
-						<FaEye /> Public
+
+			<td className='block min-w-0 p-0 xl:table-cell xl:p-4'>
+				<span className='mb-1 block text-xs font-semibold uppercase tracking-wide text-base-content/55 xl:hidden'>
+					Access
+				</span>
+				<div className='flex flex-wrap gap-2'>
+					{paste.visibility === 'public' ? (
+						<span className='badge badge-success gap-1.5'>
+							<FaEye aria-hidden='true' /> Public
+						</span>
+					) : paste.visibility === 'private' ? (
+						<span className='badge badge-warning gap-1.5'>
+							<FaEyeSlash aria-hidden='true' /> Private
+						</span>
+					) : paste.visibility === 'unlisted' ? (
+						<span className='badge badge-info gap-1.5'>
+							<FaLink aria-hidden='true' /> Unlisted
+						</span>
+					) : (
+						<span className='badge'>{paste.visibility}</span>
+					)}
+					<span
+						className='badge max-w-full font-semibold'
+						style={{
+							backgroundColor: syntaxColor,
+							color: getContrastTextColor(syntaxColor)
+						}}
+						title={syntaxName}
+					>
+						<span className='truncate'>{syntaxName}</span>
 					</span>
-				) : paste.visibility === 'private' ? (
-					<span className='badge badge-warning flex items-center gap-1'>
-						<FaEyeSlash /> Private
-					</span>
-				) : paste.visibility === 'unlisted' ? (
-					<span className='badge badge-info flex items-center gap-1'>
-						<FaLink /> Unlisted
-					</span>
-				) : (
-					<span className='badge'>{paste.visibility}</span>
-				)}
+				</div>
 			</td>
-			<td>
-				<span
-					className='badge mt-2 md:mt-0 font-semibold'
-					style={{
-						backgroundColor: syntaxColor,
-						color: getContrastTextColor(syntaxColor)
-					}}
+
+			<td className='block min-w-0 p-0 xl:table-cell xl:p-4'>
+				<span className='mb-1 block text-xs font-semibold uppercase tracking-wide text-base-content/55 xl:hidden'>
+					Created
+				</span>
+				<time
+					dateTime={paste.createdAt}
+					className='text-sm'
+					title={new Date(paste.createdAt).toLocaleString('pl-PL')}
 				>
-					{syntaxName}
+					{new Date(paste.createdAt).toLocaleString('pl-PL')}
+				</time>
+			</td>
+
+			<td className='block min-w-0 p-0 xl:table-cell xl:p-4'>
+				<span className='mb-1 block text-xs font-semibold uppercase tracking-wide text-base-content/55 xl:hidden'>
+					Updated
+				</span>
+				<time
+					dateTime={paste.updatedAt}
+					className='text-sm'
+					title={new Date(paste.updatedAt).toLocaleString('pl-PL')}
+				>
+					{new Date(paste.updatedAt).toLocaleString('pl-PL')}
+				</time>
+			</td>
+
+			<td className='block min-w-0 p-0 sm:col-span-2 xl:table-cell xl:p-4'>
+				<span className='mb-1 block text-xs font-semibold uppercase tracking-wide text-base-content/55 xl:hidden'>
+					ID
+				</span>
+				<span
+					className='block break-all font-mono text-xs text-base-content/65'
+					title={paste.id}
+				>
+					{paste.id}
 				</span>
 			</td>
-			<td>
-				<div className='truncate'>
-					{new Date(paste.createdAt).toLocaleString('pl-PL')}
-				</div>
-			</td>
-			<td>
-				<div className='truncate'>
-					{new Date(paste.updatedAt).toLocaleString('pl-PL')}
-				</div>
-			</td>
-			<td className='space-x-2'>
+
+			<td className='block min-w-0 p-0 sm:col-span-2 xl:table-cell xl:p-4 xl:text-right'>
 				<button
-					className='btn btn-sm btn-error flex items-center gap-1'
-					disabled={working}
-					onClick={deletePaste}
-					title='Delete paste'
 					type='button'
+					className='btn btn-error btn-outline min-h-11 w-full gap-2 sm:w-auto xl:btn-sm xl:min-h-10'
+					disabled={working}
+					onClick={() => {
+						setError(null)
+						setConfirmOpen(true)
+					}}
+					aria-label={`Delete paste ${pasteLabel}`}
 				>
-					{working ? (
-						<FaSync className='animate-spin' />
-					) : (
-						<FaTrash />
-					)}
+					<FaTrash aria-hidden='true' />
+					Delete
 				</button>
+				<AdminConfirmDialog
+					open={confirmOpen}
+					title='Delete static paste?'
+					description='This permanently deletes the selected static paste. This action cannot be undone.'
+					itemLabel={pasteLabel}
+					working={working}
+					error={error}
+					onClose={() => {
+						setConfirmOpen(false)
+						setError(null)
+					}}
+					onConfirm={deletePaste}
+				/>
 			</td>
 		</tr>
 	)

@@ -1,191 +1,104 @@
-import { BsCursorFill, BsFillEyeSlashFill, BsFire } from 'react-icons/bs'
+import type { IconType } from 'react-icons'
+import { BsFire } from 'react-icons/bs'
+import { FaBolt, FaFolder, FaKey } from 'react-icons/fa'
 import {
-	FaBolt,
-	FaDog,
-	FaFileCode,
-	FaFolder,
-	FaKey,
-	FaUserAlt,
-	FaUserSecret,
-	FaUserShield
-} from 'react-icons/fa'
-import { HiOutlineClipboardList } from 'react-icons/hi'
-import { IoCopyOutline } from 'react-icons/io5'
-import {
-	MdDashboard,
-	MdDownload,
-	MdEmail,
-	MdHealthAndSafety,
+	MdEnhancedEncryption,
 	MdLabel,
 	MdLanguage,
-	MdOutlineLink,
-	MdOutlineManageAccounts,
-	MdPalette,
-	MdPassword,
-	MdPublic,
-	MdSecurity,
-	MdTimer
+	MdOutlineFileDownload
 } from 'react-icons/md'
-import { PiPuzzlePieceFill } from 'react-icons/pi'
-import { RiTeamLine } from 'react-icons/ri'
-import { TbBrandDocker, TbCode } from 'react-icons/tb'
+
+const features: Array<{
+	title: string
+	description: string
+	icon: IconType
+}> = [
+	{
+		title: 'Password protection',
+		description:
+			'Require a password before protected static paste content can be read.',
+		icon: FaKey
+	},
+	{
+		title: 'Client-side encryption',
+		description:
+			'Encrypt content in the browser before it is sent to DoggoPaste.',
+		icon: MdEnhancedEncryption
+	},
+	{
+		title: 'Burn after read',
+		description:
+			'Create a static paste that is removed after its successful read.',
+		icon: BsFire
+	},
+	{
+		title: 'Syntax highlighting',
+		description:
+			'Choose from the supported editor languages and download with a matching extension.',
+		icon: MdLanguage
+	},
+	{
+		title: 'Realtime collaboration',
+		description:
+			'Share a slug and edit title, syntax and content together with live presence.',
+		icon: FaBolt
+	},
+	{
+		title: 'Folders',
+		description: 'Organize owned static pastes in private, nested folders.',
+		icon: FaFolder
+	},
+	{
+		title: 'Tags and categories',
+		description:
+			'Add compact labels that make an owned paste easier to recognize.',
+		icon: MdLabel
+	},
+	{
+		title: 'Raw and download',
+		description:
+			'Open an authorized paste as plain text or save it as a local file.',
+		icon: MdOutlineFileDownload
+	}
+]
 
 export function FeatureSection() {
 	return (
-		<section className='w-full px-4'>
-			<h2 className='text-3xl font-bold text-center mb-6 divider'>
-				Features
-			</h2>
+		<section className='w-full' aria-labelledby='features-title'>
+			<div className='mb-6 max-w-2xl'>
+				<p className='mb-2 text-sm font-semibold uppercase tracking-[0.18em] text-primary'>
+					Built for useful sharing
+				</p>
+				<h2
+					id='features-title'
+					className='text-2xl font-bold sm:text-3xl'
+				>
+					The tools around your text
+				</h2>
+				<p className='mt-2 text-base-content/70'>
+					Use only the controls you need, from a quick public snippet
+					to a protected or collaborative workspace.
+				</p>
+			</div>
 
-			<div className='grid gap-4'>
-				{/* USER */}
-				<details className='collapse bg-base-100 border border-base-300 collapse-arrow'>
-					<summary className='collapse-title font-semibold text-xl flex items-center gap-2'>
-						<div className='flex items-center gap-2'>
-							<FaUserAlt />
-							Users
-						</div>
-					</summary>
-					<div className='collapse-content text-sm text-base-content/80'>
-						<ul className='grid gap-2 list-none'>
-							<li className='flex items-center gap-2'>
-								<MdEmail /> Credential (email & password) auth
-							</li>
-							<li className='flex items-center gap-2'>
-								<FaKey /> OAuth2 authentication with the
-								following providers: Google, GitHub, Facebook
-							</li>
-							<li className='flex items-center gap-2'>
-								<MdOutlineLink /> Account linking and unlinking
-								with social providers
-							</li>
-							<li className='flex items-center gap-2'>
-								<MdPassword /> Password change with the option
-								to log out from all active sessions
-							</li>
-							<li className='flex items-center gap-2'>
-								<MdSecurity /> Session management
-							</li>
-							<li className='flex items-center gap-2'>
-								<MdOutlineManageAccounts /> Profile management
-							</li>
-							<li className='flex items-center gap-2'>
-								<MdPalette /> UI theme selection
-							</li>
-							<li className='flex items-center gap-2'>
-								<FaUserShield /> Role-based access control
-								(user, admin) with admin dashboard
-							</li>
-						</ul>
-					</div>
-				</details>
-
-				{/* PASTES */}
-				<details className='collapse bg-base-100 border border-base-300 collapse-arrow'>
-					<summary className='collapse-title font-semibold text-xl flex items-center gap-2'>
-						<div className='flex items-center gap-2'>
-							<FaFileCode />
-							Static Pastes
-						</div>
-					</summary>
-					<div className='collapse-content text-sm text-base-content/80'>
-						<ul className='grid gap-2 list-none'>
-							<li className='flex items-center gap-2'>
-								<MdDashboard /> Full CRUD for authenticated
-								users, and CR access for guests
-							</li>
-							<li className='flex items-center gap-2'>
-								<FaFolder /> Folders for static pastes
-							</li>
-							<li className='flex items-center gap-2'>
-								<MdLabel /> Tags and categories
-							</li>
-							<li className='flex items-center gap-2'>
-								<BsFire /> Burn after read
-							</li>
-							<li className='flex items-center gap-2'>
-								<MdTimer /> Expiration after a specified period
-								(e.g., 2 weeks)
-							</li>
-							<li className='flex items-center gap-2'>
-								<BsFillEyeSlashFill /> Sensitive content
-								warnings
-							</li>
-							<li className='flex items-center gap-2'>
-								<MdDownload /> Download with correct file
-								extensions and name sanitization
-							</li>
-							<li className='flex items-center gap-2'>
-								<HiOutlineClipboardList /> Raw view mode
-							</li>
-							<li className='flex items-center gap-2'>
-								<IoCopyOutline /> One-click copy to clipboard
-							</li>
-							<li className='flex items-center gap-2'>
-								<PiPuzzlePieceFill /> Auto-generated
-								human-readable slugs (e.g., "everybody-cold")
-							</li>
-							<li className='flex items-center gap-2'>
-								<MdLanguage /> Syntax highlighting for over 50
-								languages, with 10 editor themes
-							</li>
-							<li className='flex items-center gap-2'>
-								<MdPublic /> Public paste feed with pagination
-							</li>
-							<li className='flex items-center gap-2'>
-								<FaUserSecret /> Anonymous static pastes
-							</li>
-						</ul>
-					</div>
-				</details>
-
-				{/* REALTIME */}
-				<details className='collapse bg-base-100 border border-base-300 collapse-arrow'>
-					<summary className='collapse-title font-semibold text-xl flex items-center gap-2'>
-						<div className='flex items-center gap-2'>
-							<FaBolt />
-							Realtime Editors
-						</div>
-					</summary>
-					<div className='collapse-content text-sm text-base-content/80'>
-						<ul className='grid gap-2 list-none'>
-							<li className='flex items-center gap-2'>
-								<RiTeamLine /> Realtime collaborative code
-								editing
-							</li>
-							<li className='flex items-center gap-2'>
-								<BsCursorFill /> Live cursors showing
-								participants' positions
-							</li>
-						</ul>
-					</div>
-				</details>
-
-				{/* OTHER */}
-				<details className='collapse bg-base-100 border border-base-300 collapse-arrow'>
-					<summary className='collapse-title font-semibold text-xl flex items-center gap-2'>
-						<div className='flex items-center gap-2'>
-							<TbCode />
-							Other
-						</div>
-					</summary>
-					<div className='collapse-content text-sm text-base-content/80'>
-						<ul className='grid gap-2 list-none'>
-							<li className='flex items-center gap-2'>
-								<TbBrandDocker /> Easy deployment with Docker &
-								reverse proxy (e.g., Caddy)
-							</li>
-							<li className='flex items-center gap-2'>
-								<MdHealthAndSafety /> System status & version
-								monitoring
-							</li>
-							<li className='flex items-center gap-2'>
-								<FaDog /> Guide & FAQ pages for easy entry to
-								DoggoPaste
-							</li>
-						</ul>
-					</div>
-				</details>
+			<div className='grid gap-3 sm:grid-cols-2 lg:grid-cols-4'>
+				{features.map((feature) => {
+					const Icon = feature.icon
+					return (
+						<article
+							key={feature.title}
+							className='min-w-0 rounded-2xl border border-base-300 bg-base-100 p-5 transition-colors hover:border-primary/40'
+						>
+							<div className='mb-4 flex h-10 w-10 items-center justify-center rounded-xl border border-primary/20 bg-primary/10 text-primary'>
+								<Icon className='h-5 w-5' aria-hidden='true' />
+							</div>
+							<h3 className='font-semibold'>{feature.title}</h3>
+							<p className='mt-2 text-sm leading-relaxed text-base-content/70'>
+								{feature.description}
+							</p>
+						</article>
+					)
+				})}
 			</div>
 		</section>
 	)

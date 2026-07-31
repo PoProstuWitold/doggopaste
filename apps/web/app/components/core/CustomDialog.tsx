@@ -50,21 +50,27 @@ export const CustomDialog: React.FC<CustomDialogProps> = ({
 			<Dialog
 				open={open}
 				onClose={close}
-				className='fixed inset-0 flex w-screen items-center justify-center bg-black/30 p-4 transition duration-300 ease-out data-[closed]:opacity-0'
+				className='fixed inset-0 z-[100] w-screen overflow-y-auto p-4 transition duration-300 ease-out data-[closed]:opacity-0'
 				transition
 			>
 				<DialogBackdrop className='fixed inset-0 bg-black/30' />
-				<div className='fixed inset-0 flex w-screen items-center justify-center p-4'>
-					<DialogPanel className='p-5 rounded-xl bg-base-200 w-full max-w-sm md:max-w-lg'>
-						<DialogTitle className='font-bold text-xl flex justify-between items-center'>
-							<p>{title}</p>
+				<div className='relative flex min-h-full w-full items-center justify-center'>
+					<DialogPanel className='max-h-[calc(100dvh-2rem)] w-full max-w-sm overflow-y-auto rounded-xl bg-base-200 p-5 md:max-w-lg'>
+						<DialogTitle
+							as='div'
+							className='flex items-center justify-between gap-4'
+						>
+							<h2 className='text-xl font-bold'>{title}</h2>
 							<button
 								className='btn btn-error btn-soft'
 								type='button'
 								onClick={close}
 								aria-label='Close dialog'
 							>
-								<FaXmark className='text-2xl' />
+								<FaXmark
+									className='text-2xl'
+									aria-hidden='true'
+								/>
 							</button>
 						</DialogTitle>
 						<Description>{description}</Description>

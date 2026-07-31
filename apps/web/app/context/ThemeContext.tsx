@@ -13,6 +13,7 @@ const themes = [
 	'system',
 	'light',
 	'dark',
+	'oled',
 	'emerald',
 	'retro',
 	'cyberpunk',
@@ -51,6 +52,21 @@ const loadCodeMirrorTheme = (theme: ResolvedTheme): Promise<Extension> => {
 					return themes.vscodeDarkInit({
 						settings: {
 							caret: '#c6c6c6',
+							fontFamily: 'monospace'
+						}
+					})
+				case 'oled':
+					return themes.vscodeDarkInit({
+						settings: {
+							background: '#000000',
+							foreground: '#e8e8e8',
+							caret: '#ffffff',
+							selection: '#7c3aed55',
+							selectionMatch: '#22d3ee40',
+							lineHighlight: '#ffffff0a',
+							gutterBackground: '#030303',
+							gutterForeground: '#8b8b8b',
+							gutterActiveForeground: '#ffffff',
 							fontFamily: 'monospace'
 						}
 					})
