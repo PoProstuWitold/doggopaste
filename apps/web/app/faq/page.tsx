@@ -268,7 +268,7 @@ export default function FaqPage() {
 								[Frequently Asked Questions]
 							</span>
 						</h1>
-						<p className='max-w-2xl text-sm leading-relaxed text-base-content/70 sm:text-base'>
+						<p className='text-sm leading-relaxed text-base-content/70 sm:text-base'>
 							Here are some of the most frequently asked questions
 							about DoggoPaste.
 						</p>
@@ -287,7 +287,7 @@ export default function FaqPage() {
 							<li key={`link-${item.question}`} className='pl-1'>
 								<a
 									href={`#question-${index + 1}`}
-									className='link link-hover break-words transition-colors hover:text-primary'
+									className='link link-hover wrap-break-word transition-colors hover:text-primary'
 								>
 									{item.question}
 								</a>
@@ -317,11 +317,11 @@ export default function FaqPage() {
 								>
 									#{index + 1}.
 								</a>
-								<span className='min-w-0 break-words'>
+								<span className='min-w-0 wrap-break-word'>
 									{item.question}
 								</span>
 							</h2>
-							<div className='max-w-prose leading-relaxed text-base-content/85'>
+							<div className='leading-relaxed text-base-content/85'>
 								{item.answer}
 							</div>
 

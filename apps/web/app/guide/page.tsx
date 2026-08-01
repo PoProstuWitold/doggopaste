@@ -802,7 +802,7 @@ export default function GuidePage() {
 									<h3 className='mb-4 border-b border-base-300 pb-3 text-lg font-semibold'>
 										{item.feature}
 									</h3>
-									<div className='max-w-prose leading-relaxed text-base-content/85'>
+									<div className='leading-relaxed text-base-content/85'>
 										{item.instructions}
 									</div>
 								</article>

@@ -65,7 +65,7 @@ const features: Array<{
 export function FeatureSection() {
 	return (
 		<section className='w-full' aria-labelledby='features-title'>
-			<div className='mb-6 max-w-2xl'>
+			<div className='mb-6'>
 				<p className='mb-2 text-sm font-semibold uppercase tracking-[0.18em] text-primary'>
 					Built for useful sharing
 				</p>

@@ -24,93 +24,81 @@ export default async function HomePage() {
 
 	return (
 		<div className='mx-auto flex w-full max-w-7xl flex-col gap-16 pb-12 sm:gap-20'>
-			<section className='relative overflow-hidden rounded-3xl border border-base-300 bg-base-100 px-5 py-8 sm:px-8 sm:py-12 lg:px-12'>
-				<div className='absolute inset-y-0 right-0 hidden w-2/5 bg-primary/5 lg:block' />
-				<div className='relative grid items-center gap-8 lg:grid-cols-[minmax(0,1fr)_18rem]'>
-					<div className='min-w-0'>
-						<div className='mb-6 flex flex-wrap items-center gap-2'>
-							<span
-								className={`badge h-auto max-w-full min-w-0 gap-2 py-2 ${viewer ? 'badge-success' : 'badge-ghost'}`}
-							>
-								<span
-									className='h-2 w-2 rounded-full bg-current'
-									aria-hidden='true'
-								/>
-								<span className='min-w-0 truncate'>
-									{viewer
-										? `Signed in as ${viewer.name}`
-										: 'Ready for a guest paste'}
-								</span>
-							</span>
-							<span className='badge badge-outline h-auto py-2'>
-								Open source · self-hostable
-							</span>
-						</div>
-
-						<p className='mb-3 text-sm font-semibold uppercase tracking-[0.2em] text-primary'>
-							Share text your way
-						</p>
-						<h1 className='max-w-4xl text-4xl font-black tracking-tight sm:text-5xl lg:text-6xl'>
-							Drop your code. Let Doggo fetch it.
-						</h1>
-						<p className='mt-5 max-w-2xl text-lg leading-relaxed text-base-content/70 sm:text-xl'>
-							Create a feature-rich static paste or open a
-							realtime editor for live collaboration without
-							leaving the same focused workspace.
-						</p>
-						<p className='mt-3 max-w-2xl text-sm leading-relaxed text-base-content/60'>
-							A focused blend of{' '}
-							<Link
-								href='https://pastebin.com'
-								target='_blank'
-								className='link link-hover'
-							>
-								Pastebin-style sharing
-							</Link>{' '}
-							and{' '}
-							<Link
-								href='https://codeshare.io'
-								target='_blank'
-								className='link link-hover'
-							>
-								CodeShare-style collaboration
-							</Link>
-							.
-						</p>
-
-						<div className='mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap'>
-							<Link
-								href='/p/create'
-								className='btn btn-primary min-h-12 sm:btn-wide'
-							>
-								<FaFileCode aria-hidden='true' />
-								Create static paste
-							</Link>
-							<Link
-								href='/r'
-								className='btn btn-outline min-h-12 sm:btn-wide'
-							>
-								<FaBolt aria-hidden='true' />
-								Open realtime editor
-							</Link>
-						</div>
-					</div>
-
-					<div className='relative mx-auto flex h-56 w-56 items-center justify-center rounded-full border border-primary/20 bg-base-200/60 sm:h-64 sm:w-64 lg:h-72 lg:w-72'>
+			<section
+				className='relative isolate overflow-hidden rounded-3xl bg-base-100'
+				aria-labelledby='home-hero-title'
+			>
+				<div className='relative mx-auto flex max-w-4xl flex-col items-center px-5 py-12 text-center sm:px-10 sm:py-16 lg:py-20'>
+					<div className='mb-6 grid size-20 place-items-center rounded-2xl border border-base-300 bg-base-200/60 sm:size-24'>
 						<Image
 							src='/img/doggo.svg'
-							alt='DoggoPaste dog mascot'
-							className='h-40 w-40 sm:h-48 sm:w-48'
-							width={192}
-							height={192}
+							alt=''
+							className='size-16 sm:size-20'
+							width={80}
+							height={80}
 							priority
 						/>
 					</div>
+
+					<p className='text-sm font-semibold uppercase tracking-[0.2em] text-primary'>
+						Open source · selfhostable
+					</p>
+					<h1
+						id='home-hero-title'
+						className='mt-3 max-w-4xl text-4xl font-black tracking-tight sm:text-5xl lg:text-6xl'
+					>
+						Drop your code.{' '}
+						<span className='block text-primary'>
+							Let Doggo fetch it.
+						</span>
+					</h1>
+					<p className='mt-6 text-lg leading-relaxed text-base-content/70 sm:text-xl'>
+						Create a feature-rich static paste or collaborate in
+						realtime, all from one focused workspace.
+					</p>
+
+					<div className='mt-8 flex w-full max-w-lg flex-col justify-center gap-3 sm:flex-row'>
+						<Link
+							href='/p/create'
+							className='btn btn-primary min-h-12 w-full sm:w-auto sm:min-w-56'
+						>
+							<FaFileCode aria-hidden='true' />
+							Create static paste
+						</Link>
+						<Link
+							href='/r'
+							className='btn btn-outline min-h-12 w-full sm:w-auto sm:min-w-56'
+						>
+							<FaBolt aria-hidden='true' />
+							Open realtime editor
+						</Link>
+					</div>
+
+					<span
+						className={`badge mt-6 h-auto max-w-full min-w-0 gap-2 py-2 ${viewer ? 'badge-success' : 'badge-ghost'}`}
+					>
+						<span
+							className='size-2 shrink-0 rounded-full bg-current'
+							aria-hidden='true'
+						/>
+						<span
+							className='min-w-0 truncate'
+							title={
+								viewer
+									? `Signed in as ${viewer.name}`
+									: undefined
+							}
+						>
+							{viewer
+								? `Signed in as ${viewer.name}`
+								: 'Ready for a guest paste'}
+						</span>
+					</span>
 				</div>
 			</section>
 
 			<section aria-labelledby='choose-mode-title'>
-				<div className='mb-6 max-w-2xl'>
+				<div className='mb-6'>
 					<p className='mb-2 text-sm font-semibold uppercase tracking-[0.18em] text-primary'>
 						Choose a mode
 					</p>
@@ -228,7 +216,7 @@ export default async function HomePage() {
 						>
 							Lublin University of Technology
 						</Link>{' '}
-						and available for self-hosting.
+						and available for selfhosting.
 					</p>
 					<div className='mt-5 flex flex-wrap gap-2'>
 						<Link

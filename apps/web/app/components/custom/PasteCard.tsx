@@ -35,7 +35,7 @@ export const PasteCard: React.FC<PasteCardProps> = ({ paste }) => {
 				<div className='flex min-w-0 flex-col gap-3 sm:flex-row sm:items-start sm:justify-between'>
 					<Link
 						href={`/p/${paste.slug}`}
-						className='min-w-0 break-words text-lg font-semibold text-primary underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:max-w-[75%]'
+						className='min-w-0 wrap-break-word text-lg font-semibold text-primary underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-primary sm:max-w-[75%]'
 						title={paste.title}
 					>
 						{paste.title || '(Untitled)'}
@@ -51,7 +51,7 @@ export const PasteCard: React.FC<PasteCardProps> = ({ paste }) => {
 					</span>
 				</div>
 				<p className='flex w-full min-w-0 items-center gap-2 text-sm text-base-content/80 sm:text-base'>
-					<span className='block min-w-0 break-words'>
+					<span className='block min-w-0 wrap-break-word'>
 						{paste.description || '(No description)'}
 					</span>
 				</p>
@@ -91,7 +91,7 @@ export const PasteCard: React.FC<PasteCardProps> = ({ paste }) => {
 
 					{paste.folderId && paste.folderName && (
 						<span
-							className='badge badge-outline h-auto max-w-full min-w-0 gap-1 py-1'
+							className='badge badge-outline max-w-full min-w-0 gap-1'
 							title={paste.folderName}
 						>
 							<FaFolderOpen
@@ -106,7 +106,7 @@ export const PasteCard: React.FC<PasteCardProps> = ({ paste }) => {
 
 					{paste.userId && paste.userName ? (
 						<span
-							className='badge badge-outline h-auto max-w-full min-w-0 gap-1 py-1'
+							className='badge badge-outline max-w-full min-w-0 gap-1'
 							title={`User: ${paste.userName}`}
 						>
 							<FaUserAlt
