@@ -33,9 +33,6 @@ export const auth = betterAuth({
 	basePath: '/api/auth',
 	secret: authEnvironment.BETTER_AUTH_SECRET,
 	trustedOrigins: origins,
-	ipAddress: {
-		disableIpTracking: false
-	},
 	plugins: [
 		openAPI({
 			path: '/docs'
@@ -67,6 +64,15 @@ export const auth = betterAuth({
 		}
 	},
 	advanced: {
+		ipAddress: {
+			disableIpTracking: false,
+			ipAddressHeaders: [
+				'cf-connecting-ip',
+				'x-client-ip',
+				'x-real-ip',
+				'x-forwarded-for'
+			]
+		},
 		database: {
 			generateId: false
 		},
