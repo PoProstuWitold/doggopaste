@@ -28,6 +28,10 @@ export const auth = betterAuth({
 			'/get-session': false
 		}
 	},
+	session: {
+		// The app has no separate re-authentication flow for profile management.
+		freshAge: 0
+	},
 	appName: authEnvironment.APP_NAME,
 	baseURL: authEnvironment.APP_URL,
 	basePath: '/api/auth',
