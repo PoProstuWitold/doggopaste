@@ -1,6 +1,6 @@
 {
 	"name": "doggopaste",
-	"version": "0.6.0",
+	"version": "0.7.0",
 	"private": true,
 	"description": "Drop your code, let Doggo fetch it! Combination of a Pastebin and CodeShare. Free and selfhostable.",
 	"license": "MIT",
