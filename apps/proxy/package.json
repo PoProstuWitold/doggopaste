@@ -9,7 +9,7 @@
 		"build": "tsc -p tsconfig.json",
 		"start": "NODE_ENV='production' node --env-file .env build/index.js",
 		"dev": "NODE_ENV='development' node --env-file .env --watch --import tsx index.ts",
-		"check-types": "tsc --noEmit",
+		"typecheck": "tsc --noEmit",
 		"ncu-u": "ncu -u && pnpm install",
 		"ncu": "ncu"
 	},

@@ -32,11 +32,26 @@
 		"monorepo",
 		"typescript"
 	],
+	"engines": {
+		"node": ">=24 <25"
+	},
+	"devEngines": {
+		"packageManager": {
+			"name": "pnpm",
+			"version": "11.24.0",
+			"onFail": "download"
+		},
+		"runtime": {
+			"name": "node",
+			"version": "24.x",
+			"onFail": "download"
+		}
+	},
 	"scripts": {
 		"build": "turbo run build",
 		"dev": "turbo run dev",
 		"start": "turbo run start",
-		"check-types": "turbo run check-types",
+		"typecheck": "turbo run typecheck",
 		"check": "biome check .",
 		"check:fix": "biome check . --write"
 	},
@@ -44,13 +59,5 @@
 		"@biomejs/biome": "^2.5.4",
 		"turbo": "^2.10.5",
 		"typescript": "^7.0.2"
-	},
-	"engines": {
-		"node": ">=24",
-		"pnpm": ">=10"
-	},
-	"packageManager": "pnpm@11.15.0",
-	"volta": {
-		"node": "24.18.0"
 	}
 }

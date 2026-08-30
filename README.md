@@ -289,7 +289,7 @@ Run monorepo tasks from the repository root:
 | `turbo run build` | Build all workspaces |
 | `turbo run start --filter=proxy` | Start the built runtime |
 | `turbo run check` | Run Biome checks |
-| `turbo run check-types` | Run TypeScript checks |
+| `turbo run typecheck` | Run TypeScript checks |
 | `turbo run test` | Run automated tests |
 | `turbo run docs --filter=api` | Regenerate OpenAPI JSON |
 

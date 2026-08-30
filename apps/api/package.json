@@ -8,7 +8,7 @@
 		"dev": "pnpm run db:push && NODE_ENV='development' node --watch --import tsx src/index.ts",
 		"build": "tsc -p tsconfig.json",
 		"start": "node build/src/index.js",
-		"check-types": "tsc --noEmit",
+		"typecheck": "tsc --noEmit",
 		"ncu-u": "ncu -u && pnpm install",
 		"ncu": "ncu",
 		"db:push": "drizzle-kit push --config=drizzle.config.ts",
